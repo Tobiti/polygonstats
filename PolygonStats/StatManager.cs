@@ -25,40 +25,18 @@ namespace PolygonStats
 
         private Dictionary<string, Stats> statDictionary = new Dictionary<string, Stats>();
 
-        public Stats getEntry(string account)
+        public Stats getEntry(string sessionId)
         {
-            if (!statDictionary.ContainsKey(account))
+            if (!statDictionary.ContainsKey(sessionId))
             {
-                statDictionary.Add(account, new Stats());
+                statDictionary.Add(sessionId, new Stats());
             }
-            return statDictionary[account];
+            return statDictionary[sessionId];
         }
 
         internal void removeEntry(string accName)
         {
             statDictionary.Remove(accName);
-        }
-
-        public void addCatchedPokemon(string account, CatchPokemonOutProto catchedPokemon)
-        {
-            Stats entry = getEntry(account);
-            switch (catchedPokemon.Status)
-            {
-                case CatchPokemonOutProto.Types.Status.CatchSuccess:
-                    Interlocked.Increment(ref entry.catchedPokemon);
-                    if (catchedPokemon.PokemonDisplay.Shiny)
-                    {
-                        Interlocked.Increment(ref entry.shinyPokemon);
-                    }
-
-                    entry.addXp(catchedPokemon.Scores.Exp.Sum());
-                    entry.addStardust(catchedPokemon.Scores.Stardust.Sum());
-                    break;
-                case CatchPokemonOutProto.Types.Status.CatchEscape:
-                case CatchPokemonOutProto.Types.Status.CatchFlee:
-                    Interlocked.Increment(ref entry.fleetPokemon);
-                    break;
-            }
         }
 
         public Dictionary<string, Stats> getAllEntries()

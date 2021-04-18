@@ -5,6 +5,7 @@ using NetCoreServer;
 using System.Text.Json;
 using POGOProtos.Rpc;
 using Google.Protobuf.Collections;
+using System.Linq;
 
 namespace PolygonStats
 {
@@ -17,6 +18,7 @@ namespace PolygonStats
         protected override void OnConnected()
         {
             Console.WriteLine($"Polygon TCP session with Id {Id} connected!");
+            getStatEntry().accountName = this.Id.ToString();
         }
 
         protected override void OnDisconnected()
@@ -50,7 +52,7 @@ namespace PolygonStats
                             if (accountName == null)
                             {
                                 accountName = payload.account_name;
-                                StatManager.sharedInstance.getEntry(accountName);
+                                getStatEntry().accountName = accountName;
                             }
                             handlePayload(payload);
                         }
@@ -68,6 +70,11 @@ namespace PolygonStats
             }
         }
 
+        private Stats getStatEntry()
+        {
+            return StatManager.sharedInstance.getEntry(this.Id.ToString());
+        }
+
         private void handlePayload(Payload payload)
         {
             switch (payload.getMethodType())
@@ -76,15 +83,15 @@ namespace PolygonStats
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
                     if (catchPokemonProto.PokemonDisplay != null)
                     {
-                        Console.WriteLine($"Pokemon {catchPokemonProto.DisplayPokedexId.ToString("G")} Status: {catchPokemonProto.Status.ToString("G")}.");
-                        StatManager.sharedInstance.addCatchedPokemon(payload.account_name, catchPokemonProto);
+                        //Console.WriteLine($"Pokemon {catchPokemonProto.DisplayPokedexId.ToString("G")} Status: {catchPokemonProto.Status.ToString("G")}.");
+                        addCatchedPokemon(catchPokemonProto);
                     }
                     break;
                 case Method.GymFeedPokemon:
                     GymFeedPokemonOutProto feedPokemonProto = GymFeedPokemonOutProto.Parser.ParseFrom(payload.getDate());
                     if (feedPokemonProto.Result == GymFeedPokemonOutProto.Types.Result.Success)
                     {
-                        Stats entry = StatManager.sharedInstance.getEntry(payload.account_name);
+                        Stats entry = getStatEntry();
                         entry.addXp(feedPokemonProto.XpAwarded);
                         entry.addStardust(feedPokemonProto.StardustAwarded);
                     }
@@ -114,7 +121,7 @@ namespace PolygonStats
                     FortSearchOutProto fortSearchProto = FortSearchOutProto.Parser.ParseFrom(payload.getDate());
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
                     {
-                        Stats entry = StatManager.sharedInstance.getEntry(payload.account_name);
+                        Stats entry = getStatEntry();
                         entry.addSpinnedPokestop();
                         entry.addXp(fortSearchProto.XpAwarded);
                     }
@@ -133,7 +140,7 @@ namespace PolygonStats
 
         private void processQuestRewards(string acc, RepeatedField<QuestRewardProto> rewards)
         {
-            Stats entry = StatManager.sharedInstance.getEntry(acc);
+            Stats entry = getStatEntry();
             foreach (QuestRewardProto reward in rewards)
             {
                 if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Exp)
@@ -148,7 +155,7 @@ namespace PolygonStats
         }
         private void processHatchedEggReward(string acc, GetHatchedEggsOutProto getHatchedEggsProto)
         {
-            Stats entry = StatManager.sharedInstance.getEntry(acc);
+            Stats entry = getStatEntry();
             int xpSum = 0;
             foreach (int reward in getHatchedEggsProto.ExpAwarded)
             {
@@ -162,6 +169,27 @@ namespace PolygonStats
                 stardustSum += reward;
             }
             entry.addStardust(stardustSum);
+        }
+        public void addCatchedPokemon(CatchPokemonOutProto catchedPokemon)
+        {
+            Stats entry = getStatEntry();
+            switch (catchedPokemon.Status)
+            {
+                case CatchPokemonOutProto.Types.Status.CatchSuccess:
+                    entry.catchedPokemon++;
+                    if (catchedPokemon.PokemonDisplay.Shiny)
+                    {
+                        entry.shinyPokemon++;
+                    }
+
+                    entry.addXp(catchedPokemon.Scores.Exp.Sum());
+                    entry.addStardust(catchedPokemon.Scores.Stardust.Sum());
+                    break;
+                case CatchPokemonOutProto.Types.Status.CatchEscape:
+                case CatchPokemonOutProto.Types.Status.CatchFlee:
+                    entry.fleetPokemon++;
+                    break;
+            }
         }
     }
 }

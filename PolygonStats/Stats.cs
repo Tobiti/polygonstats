@@ -9,6 +9,7 @@ namespace PolygonStats
 {
     class Stats
     {
+        public string accountName = null;
         public long connectionTimestamp = 0;
         public long catchedPokemon = 0;
         public long xpTotal = 0;
