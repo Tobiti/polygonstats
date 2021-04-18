@@ -36,7 +36,10 @@ namespace PolygonStats
 
         internal void removeEntry(ClientSession session)
         {
-            statDictionary.Remove(session);
+            if (statDictionary.ContainsKey(session))
+            {
+                statDictionary.Remove(session);
+            }
         }
 
         public Dictionary<ClientSession, Stats> getAllEntries()

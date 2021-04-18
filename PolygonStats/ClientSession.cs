@@ -24,10 +24,7 @@ namespace PolygonStats
         protected override void OnDisconnected()
         {
             Console.WriteLine($"Polygon TCP session with Id {Id} disconnected!");
-            if (accountName != null)
-            {
-                StatManager.sharedInstance.removeEntry(this);
-            }
+            StatManager.sharedInstance.removeEntry(this);
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -70,6 +67,10 @@ namespace PolygonStats
                         //Console.WriteLine(e.ToString());
                     }
                 }
+            }
+            if (!this.IsConnected)
+            {
+                StatManager.sharedInstance.removeEntry(this);
             }
         }
 
