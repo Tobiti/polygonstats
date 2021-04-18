@@ -53,19 +53,19 @@ namespace PolygonStats.HttpServer
         public static string getData()
         {
             StringBuilder sb = new StringBuilder();
-            foreach (ClientSession session in StatManager.sharedInstance.getAllEntries().Keys)
+            foreach (string accName in StatManager.sharedInstance.getAllEntries().Keys)
             {
-                sb.AppendLine(getTableEntry(session, StatManager.sharedInstance.getAllEntries()[session]));
+                sb.AppendLine(getTableEntry(accName, StatManager.sharedInstance.getAllEntries()[accName]));
             }
             return String.Format(data, sb.ToString());
         }
 
-        public static string getTableEntry(ClientSession session, Stats stat)
+        public static string getTableEntry(string accName, Stats stat)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("<tr>");
             sb.Append("<td>");
-            sb.Append(stat.accountName != null ? stat.accountName : stat.sessionId);
+            sb.Append(stat.accountName);
             sb.Append("</td>");
             sb.Append("<td>");
             sb.Append(stat.catchedPokemon.ToString());

@@ -18,13 +18,11 @@ namespace PolygonStats
         protected override void OnConnected()
         {
             Console.WriteLine($"Polygon TCP session with Id {Id} connected!");
-            getStatEntry();
         }
 
         protected override void OnDisconnected()
         {
             Console.WriteLine($"Polygon TCP session with Id {Id} disconnected!");
-            StatManager.sharedInstance.removeEntry(this);
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -46,13 +44,10 @@ namespace PolygonStats
                         StringBuilder sb = new StringBuilder();
                         foreach (Payload payload in message.payloads)
                         {
-                            if (accountName == null)
+                            if (this.accountName != payload.account_name)
                             {
-                                accountName = payload.account_name;
-                            }
-                            if (getStatEntry().accountName == null)
-                            {
-                                getStatEntry().accountName = accountName;
+                                this.accountName = payload.account_name;
+                                getStatEntry();
                             }
                             handlePayload(payload);
                         }
@@ -68,15 +63,11 @@ namespace PolygonStats
                     }
                 }
             }
-            if (!this.IsConnected)
-            {
-                StatManager.sharedInstance.removeEntry(this);
-            }
         }
 
         private Stats getStatEntry()
         {
-            return StatManager.sharedInstance.getEntry(this);
+            return StatManager.sharedInstance.getEntry(accountName);
         }
 
         private void handlePayload(Payload payload)
