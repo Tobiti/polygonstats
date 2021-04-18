@@ -65,7 +65,7 @@ namespace PolygonStats.HttpServer
             StringBuilder sb = new StringBuilder();
             sb.Append("<tr>");
             sb.Append("<td>");
-            sb.Append(accountName);
+            sb.Append(stat.accountName);
             sb.Append("</td>");
             sb.Append("<td>");
             sb.Append(stat.catchedPokemon.ToString());
