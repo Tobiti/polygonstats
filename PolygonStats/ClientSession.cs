@@ -26,7 +26,7 @@ namespace PolygonStats
             Console.WriteLine($"Polygon TCP session with Id {Id} disconnected!");
             if (accountName != null)
             {
-                StatManager.sharedInstance.removeEntry(accountName);
+                StatManager.sharedInstance.removeEntry(this);
             }
         }
 
@@ -72,7 +72,7 @@ namespace PolygonStats
 
         private Stats getStatEntry()
         {
-            return StatManager.sharedInstance.getEntry(this.Id.ToString());
+            return StatManager.sharedInstance.getEntry(this);
         }
 
         private void handlePayload(Payload payload)

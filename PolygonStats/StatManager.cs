@@ -23,23 +23,23 @@ namespace PolygonStats
             }
         }
 
-        private Dictionary<string, Stats> statDictionary = new Dictionary<string, Stats>();
+        private Dictionary<ClientSession, Stats> statDictionary = new Dictionary<ClientSession, Stats>();
 
-        public Stats getEntry(string sessionId)
+        public Stats getEntry(ClientSession session)
         {
-            if (!statDictionary.ContainsKey(sessionId))
+            if (!statDictionary.ContainsKey(session))
             {
-                statDictionary.Add(sessionId, new Stats());
+                statDictionary.Add(session, new Stats());
             }
-            return statDictionary[sessionId];
+            return statDictionary[session];
         }
 
-        internal void removeEntry(string accName)
+        internal void removeEntry(ClientSession session)
         {
-            statDictionary.Remove(accName);
+            statDictionary.Remove(session);
         }
 
-        public Dictionary<string, Stats> getAllEntries()
+        public Dictionary<ClientSession, Stats> getAllEntries()
         {
             return statDictionary;
         }

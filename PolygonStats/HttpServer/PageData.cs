@@ -53,14 +53,14 @@ namespace PolygonStats.HttpServer
         public static string getData()
         {
             StringBuilder sb = new StringBuilder();
-            foreach (string acc in StatManager.sharedInstance.getAllEntries().Keys)
+            foreach (ClientSession session in StatManager.sharedInstance.getAllEntries().Keys)
             {
-                sb.AppendLine(getTableEntry(acc, StatManager.sharedInstance.getAllEntries()[acc]));
+                sb.AppendLine(getTableEntry(session, StatManager.sharedInstance.getAllEntries()[session]));
             }
             return String.Format(data, sb.ToString());
         }
 
-        public static string getTableEntry(string accountName, Stats stat)
+        public static string getTableEntry(ClientSession session, Stats stat)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("<tr>");
