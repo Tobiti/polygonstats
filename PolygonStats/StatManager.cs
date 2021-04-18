@@ -29,7 +29,7 @@ namespace PolygonStats
         {
             if (!statDictionary.ContainsKey(session))
             {
-                statDictionary.Add(session, new Stats());
+                statDictionary.Add(session, new Stats(session.Id.ToString()));
             }
             return statDictionary[session];
         }

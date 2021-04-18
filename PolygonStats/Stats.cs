@@ -9,6 +9,7 @@ namespace PolygonStats
 {
     class Stats
     {
+        public string sessionId = null;
         public string accountName = null;
         public long connectionTimestamp = 0;
         public long catchedPokemon = 0;
@@ -21,6 +22,11 @@ namespace PolygonStats
         public Stats()
         {
             this.connectionTimestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+        }
+        public Stats(string sessionId)
+        {
+            this.connectionTimestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            this.sessionId = sessionId;
         }
 
         public int getXpPerHour()

@@ -18,7 +18,7 @@ namespace PolygonStats
         protected override void OnConnected()
         {
             Console.WriteLine($"Polygon TCP session with Id {Id} connected!");
-            getStatEntry().accountName = this.Id.ToString();
+            getStatEntry();
         }
 
         protected override void OnDisconnected()
@@ -52,6 +52,9 @@ namespace PolygonStats
                             if (accountName == null)
                             {
                                 accountName = payload.account_name;
+                            }
+                            if (getStatEntry().accountName == null)
+                            {
                                 getStatEntry().accountName = accountName;
                             }
                             handlePayload(payload);
