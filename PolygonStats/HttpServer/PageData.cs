@@ -125,7 +125,7 @@ namespace PolygonStats.HttpServer
             sb.Append("</td>");
             if (isAdmin)
             {
-                sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">>");
+                sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
                 sb.Append($"<form method=\"post\" action=\"remove-{stat.accountName}\"><input type=\"submit\" value=\"Remove\"> </form>");
                 sb.Append("</td>");
             }
@@ -206,7 +206,7 @@ namespace PolygonStats.HttpServer
             {
                 return stat.accountName;
             }
-            return stat.accountName.Substring(0, 5) + "XXXXX";
+            return stat.accountName.Substring(0, 4) + "XXXXXX";
         }
     }
 }
