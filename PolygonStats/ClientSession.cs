@@ -34,6 +34,10 @@ namespace PolygonStats
             var jsonStrings = messageBuffer.Split("\n", StringSplitOptions.RemoveEmptyEntries);
             foreach (string jsonString in jsonStrings)
             {
+                if(!jsonString.StartsWith("{"))
+                {
+                    continue;
+                }
                 if (!jsonString.Equals(""))
                 {
                     string trimedJsonString = jsonString.Trim('\r', '\n'); ;
@@ -41,7 +45,6 @@ namespace PolygonStats
                     {
                         messageBuffer = "";
                         MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
-                        StringBuilder sb = new StringBuilder();
                         foreach (Payload payload in message.payloads)
                         {
                             if(payload.account_name == null || payload.account_name.Equals("null"))
@@ -54,10 +57,6 @@ namespace PolygonStats
                                 getStatEntry();
                             }
                             handlePayload(payload);
-                        }
-                        if (sb.Length > 0)
-                        {
-                            Console.WriteLine(sb.ToString().Trim('\r', '\n'));
                         }
                     }
                     catch (JsonException e)

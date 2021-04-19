@@ -44,6 +44,22 @@ namespace PolygonStats
             return (int)(stardustTotal / hours);
         }
 
+        public int getXpPerDay()
+        {
+            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            float days = (((now - connectionTimestamp) / 60f) / 60f) / 24f;
+
+            return (int)(xpTotal / days);
+        }
+
+        public int getStardustPerDay()
+        {
+            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            float days = (((now - connectionTimestamp) / 60f) / 60f) / 24f;
+
+            return (int)(stardustTotal / days);
+        }
+
         public void addStardust(long stardust)
         {
             Interlocked.Add(ref stardustTotal, stardust);
@@ -57,6 +73,22 @@ namespace PolygonStats
         public void addSpinnedPokestop()
         {
             Interlocked.Increment(ref this.spinnedPokestops);
+        }
+
+        internal int getCaughtPokemonPerDay()
+        {
+            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            float days = (((now - connectionTimestamp) / 60f) / 60f) / 24f;
+
+            return (int)(caughtPokemon / days);
+        }
+
+        internal int getSpinnedPokestopsPerDay()
+        {
+            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+            float days = (((now - connectionTimestamp) / 60f) / 60f) / 24f;
+
+            return (int)(spinnedPokestops / days);
         }
     }
 }
