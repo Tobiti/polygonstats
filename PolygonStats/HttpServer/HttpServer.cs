@@ -83,7 +83,7 @@ namespace PolygonStats.HttpServer
                     context.Response.Redirect("/");
                 }
 
-                byte[] data = Encoding.UTF8.GetBytes(PageData.getData());
+                byte[] data = Encoding.UTF8.GetBytes(PageData.getData(context.Request.Url.AbsolutePath.StartsWith("/admin")));
 
                 context.Response.ContentType = "text/html";
                 context.Response.ContentEncoding = Encoding.UTF8;

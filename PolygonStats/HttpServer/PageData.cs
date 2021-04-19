@@ -53,17 +53,17 @@ namespace PolygonStats.HttpServer
             "  </body>" +
             "</html>";
 
-        public static string getData()
+        public static string getData(bool isAdmin)
         {
             StringBuilder sb = new StringBuilder();
             foreach (string accName in StatManager.sharedInstance.getAllEntries().Keys)
             {
-                sb.AppendLine(getTableEntry(accName, StatManager.sharedInstance.getAllEntries()[accName]));
+                sb.AppendLine(getTableEntry(accName, StatManager.sharedInstance.getAllEntries()[accName], isAdmin));
             }
             return String.Format(data, sb.ToString());
         }
 
-        public static string getTableEntry(string accName, Stats stat)
+        public static string getTableEntry(string accName, Stats stat, bool isAdmin)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("<tr>");
@@ -94,9 +94,12 @@ namespace PolygonStats.HttpServer
             sb.Append("<td>");
             sb.Append(stat.getStardustPerHour().ToString());
             sb.Append("</td>");
-            sb.Append("<td>");
-            sb.Append($"<form method=\"post\" action=\"remove-{stat.accountName}\"><input type=\"submit\" value=\"Remove\"> </form>");
-            sb.Append("</td>");
+            if (isAdmin)
+            {
+                sb.Append("<td>");
+                sb.Append($"<form method=\"post\" action=\"remove-{stat.accountName}\"><input type=\"submit\" value=\"Remove\"> </form>");
+                sb.Append("</td>");
+            }
             sb.Append("</tr>");
 
             return sb.ToString();
