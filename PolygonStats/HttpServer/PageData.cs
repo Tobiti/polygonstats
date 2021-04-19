@@ -206,7 +206,7 @@ namespace PolygonStats.HttpServer
             {
                 return stat.accountName;
             }
-            return $"{stat.accountName.Substring(0, 2)}XXXXXX{stat.accountName.Substring(stat.accountName.Length-3, 2)}";
+            return $"{stat.accountName.Substring(0, 2)}XXXXXX{stat.accountName.Substring(stat.accountName.Length-2, 2)}";
         }
     }
 }
