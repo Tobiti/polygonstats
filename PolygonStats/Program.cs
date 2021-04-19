@@ -8,20 +8,26 @@ namespace PolygonStats
     {
         static void Main(string[] args)
         {
-            // Start http server
-            PolygonStats.HttpServer.HttpServer httpServer = new PolygonStats.HttpServer.HttpServer(8888);
-
-            // TCP server port
-            int port = 9838;
+            // TCP socket server port
+            int socketPort = 9838;
             if (args.Length > 0)
-                port = int.Parse(args[0]);
+                socketPort = int.Parse(args[0]);
 
-            Console.WriteLine($"TCP server port: {port}");
+            // HTTP socket server port
+            int httpPort = 8888;
+            if (args.Length > 1)
+                httpPort = int.Parse(args[1]);
+
+            // Start http server
+            PolygonStats.HttpServer.HttpServer httpServer = new PolygonStats.HttpServer.HttpServer(httpPort);
+
+
+            Console.WriteLine($"TCP server port: {socketPort}");
 
             Console.WriteLine();
 
             // Create a new TCP chat server
-            var server = new PolygonStatServer(IPAddress.Any, port);
+            var server = new PolygonStatServer(IPAddress.Any, socketPort);
 
             // Start the server
             Console.Write("Server starting...");
