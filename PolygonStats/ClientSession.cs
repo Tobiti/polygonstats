@@ -181,7 +181,6 @@ namespace PolygonStats
                     entry.addXp(catchedPokemon.Scores.Exp.Sum());
                     entry.addStardust(catchedPokemon.Scores.Stardust.Sum());
                     break;
-                case CatchPokemonOutProto.Types.Status.CatchEscape:
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
                     entry.fleetPokemon++;
                     break;
