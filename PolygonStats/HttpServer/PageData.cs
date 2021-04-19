@@ -95,7 +95,7 @@ namespace PolygonStats.HttpServer
             sb.Append(stat.getStardustPerHour().ToString());
             sb.Append("</td>");
             sb.Append("<td>");
-            sb.Append($"<form method=\"post\" action=\"shutdown-{stat.accountName}\"><input type=\"submit\" value=\"Reset\"> </form>");
+            sb.Append($"<form method=\"post\" action=\"remove-{stat.accountName}\"><input type=\"submit\" value=\"Remove\"> </form>");
             sb.Append("</td>");
             sb.Append("</tr>");
 

@@ -80,6 +80,7 @@ namespace PolygonStats.HttpServer
                 {
                     string accName = context.Request.Url.AbsolutePath.Replace("/remove-", "");
                     StatManager.sharedInstance.removeEntry(accName);
+                    context.Response.Redirect("/");
                 }
 
                 byte[] data = Encoding.UTF8.GetBytes(PageData.getData());
