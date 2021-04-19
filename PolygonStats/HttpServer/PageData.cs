@@ -68,7 +68,7 @@ namespace PolygonStats.HttpServer
             StringBuilder sb = new StringBuilder();
             sb.Append("<tr>");
             sb.Append("<td>");
-            sb.Append(stat.accountName.Substring(0,5) + "XXXXX");
+            sb.Append();
             sb.Append("</td>");
             sb.Append("<td>");
             sb.Append(stat.caughtPokemon.ToString());
@@ -103,6 +103,15 @@ namespace PolygonStats.HttpServer
             sb.Append("</tr>");
 
             return sb.ToString();
+        }
+
+        private static string getName(bool isAdmin, Stats stat)
+        {
+            if(isAdmin)
+            {
+                return stat.accountName;
+            }
+            return stat.accountName.Substring(0, 5) + "XXXXX";
         }
     }
 }
