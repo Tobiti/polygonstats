@@ -11,7 +11,7 @@ namespace PolygonStats
     {
         public string accountName = null;
         public long connectionTimestamp = 0;
-        public long catchedPokemon = 0;
+        public long caughtPokemon = 0;
         public long xpTotal = 0;
         public long stardustTotal = 0;
         public long spinnedPokestops = 0;

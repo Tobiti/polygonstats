@@ -12,7 +12,7 @@ namespace PolygonStats
         public string proto { get; set; }
         public double lat { get; set; }
         public double lng { get; set; }
-        public object timestamp { get; set; }
+        public long timestamp { get; set; }
         public string token { get; set; }
         public string level { get; set; }
         public string account_name { get; set; }

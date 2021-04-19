@@ -21,7 +21,7 @@ namespace PolygonStats.HttpServer
             "               Account Name" +
             "           </th>" +
             "           <th>" +
-            "               Catched Pokemon" +
+            "               Caught Pokemon" +
             "           </th>" +
             "           <th>" +
             "               Escaped Pokemon" +
@@ -43,6 +43,9 @@ namespace PolygonStats.HttpServer
             "           </th>" +
             "           <th>" +
             "               Stardust/h" +
+            "           </th>" +
+            "           <th>" +
+            "              " +
             "           </th>" +
             "       </tr>" +
             "{0}" +
@@ -68,7 +71,7 @@ namespace PolygonStats.HttpServer
             sb.Append(stat.accountName);
             sb.Append("</td>");
             sb.Append("<td>");
-            sb.Append(stat.catchedPokemon.ToString());
+            sb.Append(stat.caughtPokemon.ToString());
             sb.Append("</td>");
             sb.Append("<td>");
             sb.Append(stat.fleetPokemon.ToString());
@@ -90,6 +93,9 @@ namespace PolygonStats.HttpServer
             sb.Append("</td>");
             sb.Append("<td>");
             sb.Append(stat.getStardustPerHour().ToString());
+            sb.Append("</td>");
+            sb.Append("<td>");
+            sb.Append($"<form method=\"post\" action=\"shutdown-{stat.accountName}\"><input type=\"submit\" value=\"Reset\"> </form>");
             sb.Append("</td>");
             sb.Append("</tr>");
 

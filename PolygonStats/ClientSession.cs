@@ -44,6 +44,10 @@ namespace PolygonStats
                         StringBuilder sb = new StringBuilder();
                         foreach (Payload payload in message.payloads)
                         {
+                            if(payload.account_name == null || payload.account_name.Equals("null"))
+                            {
+                                continue;
+                            }
                             if (this.accountName != payload.account_name)
                             {
                                 this.accountName = payload.account_name;
@@ -76,11 +80,8 @@ namespace PolygonStats
             {
                 case Method.CatchPokemon:
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
-                    if (catchPokemonProto.PokemonDisplay != null)
-                    {
-                        //Console.WriteLine($"Pokemon {catchPokemonProto.DisplayPokedexId.ToString("G")} Status: {catchPokemonProto.Status.ToString("G")}.");
-                        addCatchedPokemon(catchPokemonProto);
-                    }
+                    //Console.WriteLine($"Pokemon {catchPokemonProto.DisplayPokedexId.ToString("G")} Status: {catchPokemonProto.Status.ToString("G")}.");
+                    addCatchedPokemon(catchPokemonProto);
                     break;
                 case Method.GymFeedPokemon:
                     GymFeedPokemonOutProto feedPokemonProto = GymFeedPokemonOutProto.Parser.ParseFrom(payload.getDate());
@@ -171,8 +172,8 @@ namespace PolygonStats
             switch (catchedPokemon.Status)
             {
                 case CatchPokemonOutProto.Types.Status.CatchSuccess:
-                    entry.catchedPokemon++;
-                    if (catchedPokemon.PokemonDisplay.Shiny)
+                    entry.caughtPokemon++;
+                    if (catchedPokemon.PokemonDisplay != null && catchedPokemon.PokemonDisplay.Shiny)
                     {
                         entry.shinyPokemon++;
                     }

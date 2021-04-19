@@ -74,7 +74,13 @@ namespace PolygonStats.HttpServer
         {
             try
             {
-                //Adding permanent http response headers
+
+                // If `shutdown` url requested w/ POST, then shutdown the server after serving the page
+                if ((context.Request.HttpMethod == "POST") && context.Request.Url.AbsolutePath.StartsWith("/remove"))
+                {
+                    string accName = context.Request.Url.AbsolutePath.Replace("/remove-", "");
+                    StatManager.sharedInstance.removeEntry(accName);
+                }
 
                 byte[] data = Encoding.UTF8.GetBytes(PageData.getData());
 
