@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using PolygonStats.Configuration;
 using PolygonStats.HttpServer;
 
 namespace PolygonStats
@@ -8,26 +9,18 @@ namespace PolygonStats
     {
         static void Main(string[] args)
         {
-            // TCP socket server port
-            int socketPort = 9838;
-            if (args.Length > 0)
-                socketPort = int.Parse(args[0]);
-
-            // HTTP socket server port
-            int httpPort = 8888;
-            if (args.Length > 1)
-                httpPort = int.Parse(args[1]);
-
-            // Start http server
-            PolygonStats.HttpServer.HttpServer httpServer = new PolygonStats.HttpServer.HttpServer(httpPort);
+            PolygonStats.HttpServer.HttpServer httpServer = null;
+            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            {
+                // Start http server
+                httpServer = new PolygonStats.HttpServer.HttpServer(ConfigurationManager.shared.config.httpSettings.port);
+            }
 
 
-            Console.WriteLine($"TCP server port: {socketPort}");
-
-            Console.WriteLine();
+            Console.WriteLine($"TCP server port: {ConfigurationManager.shared.config.backendSettings.port}");
 
             // Create a new TCP chat server
-            var server = new PolygonStatServer(IPAddress.Any, socketPort);
+            var server = new PolygonStatServer(IPAddress.Any, ConfigurationManager.shared.config.backendSettings.port);
 
             // Start the server
             Console.Write("Server starting...");
@@ -47,7 +40,10 @@ namespace PolygonStats
             // Stop the server
             Console.Write("Server stopping...");
             server.Stop();
-            httpServer.Stop();
+            if (httpServer != null)
+            {
+                httpServer.Stop();
+            }
             Console.WriteLine("Done!");
         }
     }
