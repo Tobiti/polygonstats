@@ -23,11 +23,7 @@ namespace PolygonStats.Configuration
         public class MysqlSettings
         {
             public bool enabled { get; set; }
-            public string ipAddress { get; set; }
-            public int port { get; set; }
-            public string database { get; set; }
-            public string username { get; set; }
-            public string password { get; set; }
+            public string dbConnectionString { get; set; }
         }
         public MysqlSettings mysqlSettings { get; set; }
 
@@ -47,11 +43,7 @@ namespace PolygonStats.Configuration
             mysqlSettings = new MysqlSettings()
             {
                 enabled = false,
-                ipAddress = "localhost",
-                port = 8888,
-                database = "",
-                username = "",
-                password = ""
+                dbConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
             };
         }
     }
