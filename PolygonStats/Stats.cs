@@ -62,12 +62,12 @@ namespace PolygonStats
 
         public void addStardust(long stardust)
         {
-            stardustTotal = stardust;
+            stardustTotal += stardust;
         }
 
         public void addXp(long xp)
         {
-            xpTotal = xp;
+            xpTotal += xp;
         }
 
         public void addSpinnedPokestop()
