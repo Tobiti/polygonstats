@@ -65,7 +65,7 @@ namespace PolygonStats.HttpServer
             "    </table>" +
             "  <br />" +
             "  <br />" +
-            "  Support my work by clicking <href=\"https://paypal.me/pools/c/8nDB1mCCQz\">here.</a>" +
+            "  Support my work by clicking <a href=\"https://paypal.me/pools/c/8nDB1mCCQz\">here.</a>" +
             "  </body>" +
             "</html>";
 
