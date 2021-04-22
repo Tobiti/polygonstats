@@ -38,7 +38,6 @@ namespace PolygonStats
             LogEntry pokemonLogEntry = new LogEntry { LogEntryType = LogEntryType.Pokemon, CaughtSuccess = catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess, timestamp = DateTime.UtcNow };
             if (catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess)
             {
-                pokemonLogEntry.PokedexId = (int)catchedPokemon.DisplayPokedexId;
                 if (catchedPokemon.PokemonDisplay != null)
                 {
                     pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay.Shiny;
@@ -80,7 +79,7 @@ namespace PolygonStats
                 if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Candy)
                 {
                     questLogEntry.CandyAwarded += reward.Candy.Amount;
-                    questLogEntry.PokedexId = (int) reward.Candy.PokemonId;
+                    questLogEntry.PokemonName = reward.Candy.PokemonId;
                 }
             }
             dbSession.LogEntrys.Add(questLogEntry);
@@ -95,7 +94,7 @@ namespace PolygonStats
                 eggLogEntry.XpReward = getHatchedEggsProto.ExpAwarded[index];
                 eggLogEntry.StardustReward = getHatchedEggsProto.StardustAwarded[index];
                 eggLogEntry.CandyAwarded = getHatchedEggsProto.CandyAwarded[index];
-                eggLogEntry.PokedexId = (int) getHatchedEggsProto.HatchedPokemon[index].PokemonId;
+                eggLogEntry.PokemonName = getHatchedEggsProto.HatchedPokemon[index].PokemonId;
                 eggLogEntry.Attack = getHatchedEggsProto.HatchedPokemon[index].IndividualAttack;
                 eggLogEntry.Defense = getHatchedEggsProto.HatchedPokemon[index].IndividualDefense;
                 eggLogEntry.Stamina = getHatchedEggsProto.HatchedPokemon[index].IndividualStamina;
@@ -123,7 +122,7 @@ namespace PolygonStats
 
             evolveLogEntry.XpReward = evolvePokemon.ExpAwarded;
             evolveLogEntry.CandyAwarded = evolvePokemon.CandyAwarded;
-            evolveLogEntry.PokedexId = (int)evolvePokemon.EvolvedPokemon.PokemonId;
+            evolveLogEntry.PokemonName = evolvePokemon.EvolvedPokemon.PokemonId;
             evolveLogEntry.Attack = evolvePokemon.EvolvedPokemon.IndividualAttack;
             evolveLogEntry.Defense = evolvePokemon.EvolvedPokemon.IndividualDefense;
             evolveLogEntry.Stamina = evolvePokemon.EvolvedPokemon.IndividualStamina;

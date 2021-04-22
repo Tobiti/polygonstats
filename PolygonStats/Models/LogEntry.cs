@@ -1,4 +1,5 @@
-﻿using System;
+﻿using POGOProtos.Rpc;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -31,7 +32,8 @@ namespace PolygonStats.Models
         public bool CaughtSuccess { get; set; }
         public ulong PokemonUniqueId { get; set; }
 
-        public int PokedexId { get; set; }
+        [Column(TypeName = "nvarchar(24)")]
+        public HoloPokemonId PokemonName { get; set; }
         public int Attack { get; set; }
         public int Defense { get; set; }
         public int Stamina { get; set; }

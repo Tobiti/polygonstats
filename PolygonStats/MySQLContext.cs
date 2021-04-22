@@ -20,9 +20,6 @@ namespace PolygonStats
         {
             // Default values for LogEntry
             modelBuilder.Entity<LogEntry>()
-                .Property(l => l.PokedexId)
-                .HasDefaultValue(0);
-            modelBuilder.Entity<LogEntry>()
                 .Property(l => l.XpReward)
                 .HasDefaultValue(0);
             modelBuilder.Entity<LogEntry>()

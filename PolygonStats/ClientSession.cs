@@ -176,7 +176,7 @@ namespace PolygonStats
                 return;
             }
 
-                foreach (InventoryItemProto item in holoInventory.InventoryDelta.InventoryItem)
+            foreach (InventoryItemProto item in holoInventory.InventoryDelta.InventoryItem)
             {
                 if (item.InventoryItemData != null)
                 {
@@ -186,7 +186,7 @@ namespace PolygonStats
                         LogEntry log = dbSession.LogEntrys.Where(l => l.PokemonUniqueId == pokemon.Id).LastOrDefault();
                         if (log != null)
                         {
-                            log.PokedexId = (int) pokemon.PokemonId;
+                            log.PokemonName = pokemon.PokemonId;
                             log.Attack = pokemon.IndividualAttack;
                             log.Defense = pokemon.IndividualDefense;
                             log.Stamina = pokemon.IndividualStamina;
@@ -288,7 +288,6 @@ namespace PolygonStats
 
                     entry.addXp(caughtPokemon.Scores.Exp.Sum());
                     entry.addStardust(caughtPokemon.Scores.Stardust.Sum());
-                    Console.WriteLine($"Caught Pokemon ID: {caughtPokemon.CapturedPokemonId}");
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
