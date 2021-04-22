@@ -29,8 +29,12 @@ namespace PolygonStats.Models
         public LogEntryType LogEntryType { get; set; }
 
         public bool CaughtSuccess { get; set; }
+        public ulong PokemonUniqueId { get; set; }
 
         public int PokedexId { get; set; }
+        public int Attack { get; set; }
+        public int Defense { get; set; }
+        public int Stamina { get; set; }
 
         public int XpReward { get; set; }
 

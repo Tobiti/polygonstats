@@ -43,10 +43,11 @@ namespace PolygonStats
                 {
                     pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay.Shiny;
                 }
+                pokemonLogEntry.PokemonUniqueId = catchedPokemon.CapturedPokemonId;
+                pokemonLogEntry.CandyAwarded = catchedPokemon.Scores.Candy.Sum();
             }
             pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
             pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
-            pokemonLogEntry.CandyAwarded = catchedPokemon.Scores.Candy.Sum();
             dbSession.LogEntrys.Add(pokemonLogEntry);
             MySQLConnectionManager.shared.GetContext().SaveChanges();
         }
@@ -94,7 +95,11 @@ namespace PolygonStats
                 eggLogEntry.XpReward = getHatchedEggsProto.ExpAwarded[index];
                 eggLogEntry.StardustReward = getHatchedEggsProto.StardustAwarded[index];
                 eggLogEntry.CandyAwarded = getHatchedEggsProto.CandyAwarded[index];
-                eggLogEntry.PokedexId = getHatchedEggsProto.HatchedPokemon[index].DisplayPokemonId;
+                eggLogEntry.PokedexId = (int) getHatchedEggsProto.HatchedPokemon[index].PokemonId;
+                eggLogEntry.Attack = getHatchedEggsProto.HatchedPokemon[index].IndividualAttack;
+                eggLogEntry.Defense = getHatchedEggsProto.HatchedPokemon[index].IndividualDefense;
+                eggLogEntry.Stamina = getHatchedEggsProto.HatchedPokemon[index].IndividualStamina;
+                eggLogEntry.PokemonUniqueId = getHatchedEggsProto.HatchedPokemon[index].Id;
                 dbSession.LogEntrys.Add(eggLogEntry);
             }
 
@@ -118,9 +123,18 @@ namespace PolygonStats
 
             evolveLogEntry.XpReward = evolvePokemon.ExpAwarded;
             evolveLogEntry.CandyAwarded = evolvePokemon.CandyAwarded;
-            evolveLogEntry.PokedexId = evolvePokemon.EvolvedPokemon.DisplayPokemonId;
+            evolveLogEntry.PokedexId = (int)evolvePokemon.EvolvedPokemon.PokemonId;
+            evolveLogEntry.Attack = evolvePokemon.EvolvedPokemon.IndividualAttack;
+            evolveLogEntry.Defense = evolvePokemon.EvolvedPokemon.IndividualDefense;
+            evolveLogEntry.Stamina = evolvePokemon.EvolvedPokemon.IndividualStamina;
+            evolveLogEntry.PokemonUniqueId = evolvePokemon.EvolvedPokemon.Id;
 
             dbSession.LogEntrys.Add(evolveLogEntry);
+            MySQLConnectionManager.shared.GetContext().SaveChanges();
+        }
+
+        internal void SaveChanges()
+        {
             MySQLConnectionManager.shared.GetContext().SaveChanges();
         }
     }

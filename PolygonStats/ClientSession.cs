@@ -158,10 +158,42 @@ namespace PolygonStats
                         ProcessEvolvedPokemon(payload.account_name, evolvePokemon);
                     }
                     break;
+                case Method.GetHoloholoInventory:
+                    GetHoloholoInventoryOutProto holoInventory = GetHoloholoInventoryOutProto.Parser.ParseFrom(payload.getDate());
+                    ProcessHoloHoloInventory(payload.account_name, holoInventory);
+                    break;
                 default:
                     //Console.WriteLine($"Account: {payload.account_name}");
                     //Console.WriteLine($"Type: {payload.getMethodType().ToString("G")}");
                     break;
+            }
+        }
+
+        private void ProcessHoloHoloInventory(string account_name, GetHoloholoInventoryOutProto holoInventory)
+        {
+            if (!ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                return;
+            }
+
+                foreach (InventoryItemProto item in holoInventory.InventoryDelta.InventoryItem)
+            {
+                if (item.InventoryItemData != null)
+                {
+                    if (item.InventoryItemData.Pokemon != null)
+                    {
+                        PokemonProto pokemon = item.InventoryItemData.Pokemon;
+                        LogEntry log = dbSession.LogEntrys.Where(l => l.PokemonUniqueId == pokemon.Id).LastOrDefault();
+                        if (log != null)
+                        {
+                            log.PokedexId = (int) pokemon.PokemonId;
+                            log.Attack = pokemon.IndividualAttack;
+                            log.Defense = pokemon.IndividualDefense;
+                            log.Stamina = pokemon.IndividualStamina;
+                            MySQLConnectionManager.shared.SaveChanges();
+                        }
+                    }
+                }
             }
         }
 
@@ -242,33 +274,34 @@ namespace PolygonStats
             }
         }
 
-        public void ProcessCaughtPokemon(CatchPokemonOutProto catchedPokemon)
+        public void ProcessCaughtPokemon(CatchPokemonOutProto caughtPokemon)
         {
             Stats entry = getStatEntry();
-            switch (catchedPokemon.Status)
+            switch (caughtPokemon.Status)
             {
                 case CatchPokemonOutProto.Types.Status.CatchSuccess:
                     entry.caughtPokemon++;
-                    if (catchedPokemon.PokemonDisplay != null && catchedPokemon.PokemonDisplay.Shiny)
+                    if (caughtPokemon.PokemonDisplay != null && caughtPokemon.PokemonDisplay.Shiny)
                     {
                         entry.shinyPokemon++;
                     }
 
-                    entry.addXp(catchedPokemon.Scores.Exp.Sum());
-                    entry.addStardust(catchedPokemon.Scores.Stardust.Sum());
+                    entry.addXp(caughtPokemon.Scores.Exp.Sum());
+                    entry.addStardust(caughtPokemon.Scores.Stardust.Sum());
+                    Console.WriteLine($"Caught Pokemon ID: {caughtPokemon.CapturedPokemonId}");
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        MySQLConnectionManager.shared.AddPokemonToDatabase(dbSession, catchedPokemon);
+                        MySQLConnectionManager.shared.AddPokemonToDatabase(dbSession, caughtPokemon);
                     }
                     break;
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
-                    entry.addXp(catchedPokemon.Scores.Exp.Sum());
+                    entry.addXp(caughtPokemon.Scores.Exp.Sum());
                     entry.fleetPokemon++;
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        MySQLConnectionManager.shared.AddPokemonToDatabase(dbSession, catchedPokemon);
+                        MySQLConnectionManager.shared.AddPokemonToDatabase(dbSession, caughtPokemon);
                     }
                     break;
             }
