@@ -151,10 +151,28 @@ namespace PolygonStats
                         ProcessSpinnedFort(payload.account_name, fortSearchProto);
                     }
                     break;
+                case Method.EvolvePokemon:
+                    EvolvePokemonOutProto evolvePokemon = EvolvePokemonOutProto.Parser.ParseFrom(payload.getDate());
+                    if(evolvePokemon.Result == EvolvePokemonOutProto.Types.Result.Success)
+                    {
+                        ProcessEvolvedPokemon(payload.account_name, evolvePokemon);
+                    }
+                    break;
                 default:
                     //Console.WriteLine($"Account: {payload.account_name}");
                     //Console.WriteLine($"Type: {payload.getMethodType().ToString("G")}");
                     break;
+            }
+        }
+
+        private void ProcessEvolvedPokemon(string account_name, EvolvePokemonOutProto evolvePokemon)
+        {
+            Stats entry = getStatEntry();
+            entry.addXp(evolvePokemon.ExpAwarded);
+
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                MySQLConnectionManager.shared.AddEvolvePokemonToDatabase(dbSession, evolvePokemon);
             }
         }
 

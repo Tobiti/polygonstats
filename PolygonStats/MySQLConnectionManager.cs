@@ -46,6 +46,7 @@ namespace PolygonStats
             }
             pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
             pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
+            pokemonLogEntry.CandyAwarded = catchedPokemon.Scores.Candy.Sum();
             dbSession.LogEntrys.Add(pokemonLogEntry);
             MySQLConnectionManager.shared.GetContext().SaveChanges();
         }
@@ -56,6 +57,7 @@ namespace PolygonStats
 
             feedBerryLogEntry.XpReward = gymFeedPokemonProto.XpAwarded;
             feedBerryLogEntry.StardustReward = gymFeedPokemonProto.StardustAwarded;
+            feedBerryLogEntry.CandyAwarded = gymFeedPokemonProto.NumCandyAwarded;
 
             dbSession.LogEntrys.Add(feedBerryLogEntry);
             MySQLConnectionManager.shared.GetContext().SaveChanges();
@@ -74,30 +76,51 @@ namespace PolygonStats
                 {
                     questLogEntry.StardustReward += reward.Stardust;
                 }
+                if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Candy)
+                {
+                    questLogEntry.CandyAwarded += reward.Candy.Amount;
+                    questLogEntry.PokedexId = (int) reward.Candy.PokemonId;
+                }
             }
             dbSession.LogEntrys.Add(questLogEntry);
             MySQLConnectionManager.shared.GetContext().SaveChanges();
         }
 
-        internal void AddHatchedEggToDatabase(Session dbSession, GetHatchedEggsOutProto getHatchedEggsProto)
+        public void AddHatchedEggToDatabase(Session dbSession, GetHatchedEggsOutProto getHatchedEggsProto)
         {
-            LogEntry eggLogEntry = new LogEntry { LogEntryType = LogEntryType.Egg, timestamp = DateTime.UtcNow, XpReward = 0, StardustReward = 0 };
+            for(int index = 0; index < getHatchedEggsProto.HatchedPokemon.Count; index++)
+            {
+                LogEntry eggLogEntry = new LogEntry { LogEntryType = LogEntryType.Egg, timestamp = DateTime.UtcNow, XpReward = 0, StardustReward = 0 };
+                eggLogEntry.XpReward = getHatchedEggsProto.ExpAwarded[index];
+                eggLogEntry.StardustReward = getHatchedEggsProto.StardustAwarded[index];
+                eggLogEntry.CandyAwarded = getHatchedEggsProto.CandyAwarded[index];
+                eggLogEntry.PokedexId = getHatchedEggsProto.HatchedPokemon[index].DisplayPokemonId;
+                dbSession.LogEntrys.Add(eggLogEntry);
+            }
 
-            eggLogEntry.XpReward = getHatchedEggsProto.ExpAwarded.Sum();
-            eggLogEntry.StardustReward = getHatchedEggsProto.StardustAwarded.Sum();
-
-            dbSession.LogEntrys.Add(eggLogEntry);
             MySQLConnectionManager.shared.GetContext().SaveChanges();
 
         }
 
-        internal void AddSpinnedFortToDatabase(Session dbSession, FortSearchOutProto fortSearchProto)
+        public void AddSpinnedFortToDatabase(Session dbSession, FortSearchOutProto fortSearchProto)
         {
             LogEntry fortLogEntry = new LogEntry { LogEntryType = LogEntryType.Fort, timestamp = DateTime.UtcNow };
 
             fortLogEntry.XpReward = fortSearchProto.XpAwarded;
 
             dbSession.LogEntrys.Add(fortLogEntry);
+            MySQLConnectionManager.shared.GetContext().SaveChanges();
+        }
+
+        public void AddEvolvePokemonToDatabase(Session dbSession, EvolvePokemonOutProto evolvePokemon)
+        {
+            LogEntry evolveLogEntry = new LogEntry { LogEntryType = LogEntryType.EvolvePokemon, timestamp = DateTime.UtcNow };
+
+            evolveLogEntry.XpReward = evolvePokemon.ExpAwarded;
+            evolveLogEntry.CandyAwarded = evolvePokemon.CandyAwarded;
+            evolveLogEntry.PokedexId = evolvePokemon.EvolvedPokemon.DisplayPokemonId;
+
+            dbSession.LogEntrys.Add(evolveLogEntry);
             MySQLConnectionManager.shared.GetContext().SaveChanges();
         }
     }

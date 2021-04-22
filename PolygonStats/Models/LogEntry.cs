@@ -10,7 +10,8 @@ namespace PolygonStats.Models
         Quest,
         Egg,
         Fort,
-        FeedBerry
+        FeedBerry,
+        EvolvePokemon
     }
 
     [Table("SessionLogEntry")]
@@ -34,6 +35,8 @@ namespace PolygonStats.Models
         public int XpReward { get; set; }
 
         public int StardustReward { get; set; }
+
+        public int CandyAwarded { get; set; }
 
         public bool Shiny { get; set; }
 
