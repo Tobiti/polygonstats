@@ -177,6 +177,10 @@ namespace PolygonStats
             {
                 return;
             }
+            if (holoInventory.InventoryDelta == null || holoInventory.InventoryDelta.InventoryItem == null)
+            {
+                return;
+            }
 
             foreach (InventoryItemProto item in holoInventory.InventoryDelta.InventoryItem)
             {
