@@ -21,9 +21,7 @@ namespace PolygonStats.Models
 
         public DateTime EndTime { get; set; }
 
-        public IList<CaughtPokemon> CaughtPokemons { get; set; }
-        public IList<SpinnedFort> SpinnedForts { get; set; }
-        public IList<FinishedQuest> FinishedQuests { get; set; }
-        public IList<HatchedEgg> HatchedEggs { get; set; }
+
+        public IList<LogEntry> LogEntrys { get; set; } = new List<LogEntry>();
     }
 }

@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Net;
+using System.Threading;
 using PolygonStats.Configuration;
-using PolygonStats.HttpServer;
 
 namespace PolygonStats
 {
@@ -16,6 +17,12 @@ namespace PolygonStats
                 httpServer = new PolygonStats.HttpServer.HttpServer(ConfigurationManager.shared.config.httpSettings.port);
             }
 
+            // Init db
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                MySQLConnectionManager.shared.GetContext().Database.EnsureCreated();
+                MySQLConnectionManager.shared.GetContext().SaveChanges();
+            }
 
             Console.WriteLine($"TCP server port: {ConfigurationManager.shared.config.backendSettings.port}");
 
@@ -27,15 +34,15 @@ namespace PolygonStats
             server.Start();
             Console.WriteLine("Done!");
 
-            Console.WriteLine("Press Enter to stop the server!");
+            Console.WriteLine("Use CTRL+C to close the software!");
 
-            // Perform text input
-            for (; ; )
-            {
-                string line = Console.ReadLine();
-                if (string.IsNullOrEmpty(line))
-                    break;
-            }
+            var exitEvent = new ManualResetEvent(false);
+            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+                e.Cancel = true;
+                exitEvent.Set();
+            };
+
+            exitEvent.WaitOne();
 
             // Stop the server
             Console.Write("Server stopping...");

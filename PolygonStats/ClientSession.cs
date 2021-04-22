@@ -6,6 +6,9 @@ using System.Text.Json;
 using POGOProtos.Rpc;
 using Google.Protobuf.Collections;
 using System.Linq;
+using PolygonStats.Models;
+using PolygonStats.Configuration;
+using System.Collections.Generic;
 
 namespace PolygonStats
 {
@@ -13,6 +16,8 @@ namespace PolygonStats
     {
         private string messageBuffer = "";
         private string accountName = null;
+        private Session dbSession;
+
         public ClientSession(TcpServer server) : base(server) { }
 
         protected override void OnConnected()
@@ -23,6 +28,17 @@ namespace PolygonStats
         protected override void OnDisconnected()
         {
             Console.WriteLine($"Polygon TCP session with Id {Id} disconnected!");
+
+            // Add ent time to session
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                if(dbSession != null)
+                {
+                    dbSession.EndTime = DateTime.UtcNow;
+                    MySQLConnectionManager.shared.GetContext().SaveChanges();
+                }
+            }
+
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -55,6 +71,24 @@ namespace PolygonStats
                             {
                                 this.accountName = payload.account_name;
                                 getStatEntry();
+
+                                if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                                {
+                                    MySQLContext context = MySQLConnectionManager.shared.GetContext();
+                                    Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
+                                    if (acc == null)
+                                    {
+                                        acc = new Account();
+                                        acc.Name = this.accountName;
+                                        acc.HashedName = "";
+                                        //TODO: Add hashed name
+                                        //acc.HashedName =  this.accountName.get
+                                        context.Accounts.Add(acc);
+                                    }
+                                    dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
+                                    acc.Sessions.Add(dbSession);
+                                    context.SaveChanges();
+                                }
                             }
                             handlePayload(payload);
                         }
@@ -80,45 +114,41 @@ namespace PolygonStats
                 case Method.CatchPokemon:
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
                     //Console.WriteLine($"Pokemon {catchPokemonProto.DisplayPokedexId.ToString("G")} Status: {catchPokemonProto.Status.ToString("G")}.");
-                    addCatchedPokemon(catchPokemonProto);
+                    ProcessCaughtPokemon(catchPokemonProto);
                     break;
                 case Method.GymFeedPokemon:
                     GymFeedPokemonOutProto feedPokemonProto = GymFeedPokemonOutProto.Parser.ParseFrom(payload.getDate());
                     if (feedPokemonProto.Result == GymFeedPokemonOutProto.Types.Result.Success)
                     {
-                        Stats entry = getStatEntry();
-                        entry.addXp(feedPokemonProto.XpAwarded);
-                        entry.addStardust(feedPokemonProto.StardustAwarded);
+                        ProcessFeedBerry(payload.account_name, feedPokemonProto);
                     }
                     break;
                 case Method.CompleteQuest:
                     CompleteQuestOutProto questProto = CompleteQuestOutProto.Parser.ParseFrom(payload.getDate());
                     if (questProto.Status == CompleteQuestOutProto.Types.Status.Success)
                     {
-                        processQuestRewards(payload.account_name, questProto.Quest.Quest.QuestRewards);
+                        ProcessQuestRewards(payload.account_name, questProto.Quest.Quest.QuestRewards);
                     }
                     break;
                 case Method.CompleteQuestStampCard:
                     CompleteQuestStampCardOutProto completeQuestStampCardProto = CompleteQuestStampCardOutProto.Parser.ParseFrom(payload.getDate());
                     if (completeQuestStampCardProto.Status == CompleteQuestStampCardOutProto.Types.Status.Success)
                     {
-                        processQuestRewards(payload.account_name, completeQuestStampCardProto.Reward);
+                        ProcessQuestRewards(payload.account_name, completeQuestStampCardProto.Reward);
                     }
                     break;
                 case Method.GetHatchedEggs:
                     GetHatchedEggsOutProto getHatchedEggsProto = GetHatchedEggsOutProto.Parser.ParseFrom(payload.getDate());
                     if (getHatchedEggsProto.Success)
                     {
-                        processHatchedEggReward(payload.account_name, getHatchedEggsProto);
+                        ProcessHatchedEggReward(payload.account_name, getHatchedEggsProto);
                     }
                     break;
                 case Method.FortSearch:
                     FortSearchOutProto fortSearchProto = FortSearchOutProto.Parser.ParseFrom(payload.getDate());
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
                     {
-                        Stats entry = getStatEntry();
-                        entry.addSpinnedPokestop();
-                        entry.addXp(fortSearchProto.XpAwarded);
+                        ProcessSpinnedFort(payload.account_name, fortSearchProto);
                     }
                     break;
                 default:
@@ -128,12 +158,36 @@ namespace PolygonStats
             }
         }
 
+        private void ProcessFeedBerry(string account_name, GymFeedPokemonOutProto feedPokemonProto)
+        {
+            Stats entry = getStatEntry();
+            entry.addXp(feedPokemonProto.XpAwarded);
+            entry.addStardust(feedPokemonProto.StardustAwarded);
+
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                MySQLConnectionManager.shared.AddFeedBerryToDatabase(dbSession, feedPokemonProto);
+            }
+        }
+
+        private void ProcessSpinnedFort(string account_name, FortSearchOutProto fortSearchProto)
+        {
+            Stats entry = getStatEntry();
+            entry.addSpinnedPokestop();
+            entry.addXp(fortSearchProto.XpAwarded);
+
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                MySQLConnectionManager.shared.AddSpinnedFortToDatabase(dbSession, fortSearchProto);
+            }
+        }
+
         protected override void OnError(SocketError error)
         {
             Console.WriteLine($"Chat TCP session caught an error with code {error}");
         }
 
-        private void processQuestRewards(string acc, RepeatedField<QuestRewardProto> rewards)
+        private void ProcessQuestRewards(string acc, RepeatedField<QuestRewardProto> rewards)
         {
             Stats entry = getStatEntry();
             foreach (QuestRewardProto reward in rewards)
@@ -147,25 +201,30 @@ namespace PolygonStats
                     entry.addStardust(reward.Stardust);
                 }
             }
-        }
-        private void processHatchedEggReward(string acc, GetHatchedEggsOutProto getHatchedEggsProto)
-        {
-            Stats entry = getStatEntry();
-            int xpSum = 0;
-            foreach (int reward in getHatchedEggsProto.ExpAwarded)
-            {
-                xpSum += reward;
-            }
-            entry.addXp(xpSum);
 
-            int stardustSum = 0;
-            foreach (int reward in getHatchedEggsProto.StardustAwarded)
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                stardustSum += reward;
+                MySQLConnectionManager.shared.AddQuestToDatabase(dbSession, rewards);
             }
-            entry.addStardust(stardustSum);
         }
-        public void addCatchedPokemon(CatchPokemonOutProto catchedPokemon)
+        private void ProcessHatchedEggReward(string acc, GetHatchedEggsOutProto getHatchedEggsProto)
+        {
+            if (getHatchedEggsProto.HatchedPokemon.Count <= 0)
+            {
+                return;
+            }
+            Stats entry = getStatEntry();
+
+            entry.addXp(getHatchedEggsProto.ExpAwarded.Sum());
+            entry.addStardust(getHatchedEggsProto.StardustAwarded.Sum());
+
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                MySQLConnectionManager.shared.AddHatchedEggToDatabase(dbSession, getHatchedEggsProto);
+            }
+        }
+
+        public void ProcessCaughtPokemon(CatchPokemonOutProto catchedPokemon)
         {
             Stats entry = getStatEntry();
             switch (catchedPokemon.Status)
@@ -179,9 +238,19 @@ namespace PolygonStats
 
                     entry.addXp(catchedPokemon.Scores.Exp.Sum());
                     entry.addStardust(catchedPokemon.Scores.Stardust.Sum());
+
+                    if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                    {
+                        MySQLConnectionManager.shared.AddPokemonToDatabase(dbSession, catchedPokemon);
+                    }
                     break;
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
                     entry.fleetPokemon++;
+
+                    if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                    {
+                        MySQLConnectionManager.shared.AddPokemonToDatabase(dbSession, catchedPokemon);
+                    }
                     break;
             }
         }

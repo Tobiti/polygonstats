@@ -20,6 +20,6 @@ namespace PolygonStats.Models
         [MaxLength(50)]
         public string HashedName { get; set; }
 
-        public IList<Session> Sessions { get; set; }
+        public IList<Session> Sessions { get; set; } = new List<Session>();
     }
 }

@@ -4,19 +4,38 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PolygonStats.Models
 {
-    [Table("Fort")]
-    class SpinnedFort
+    public enum LogEntryType
+    {
+        Pokemon,
+        Quest,
+        Egg,
+        Fort,
+        FeedBerry
+    }
+
+    [Table("SessionLogEntry")]
+    class LogEntry
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required]
         public int SessionId { get; set; }
         public Session Session { get; set; }
 
         [Required]
+        [Column(TypeName = "nvarchar(24)")]
+        public LogEntryType LogEntryType { get; set; }
+
+        public bool CaughtSuccess { get; set; }
+
+        public int PokedexId { get; set; }
+
         public int XpReward { get; set; }
+
+        public int StardustReward { get; set; }
+
+        public bool Shiny { get; set; }
 
         [Required]
         public DateTime timestamp { get; set; }

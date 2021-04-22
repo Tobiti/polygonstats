@@ -62,17 +62,17 @@ namespace PolygonStats
 
         public void addStardust(long stardust)
         {
-            Interlocked.Add(ref stardustTotal, stardust);
+            stardustTotal = stardust;
         }
 
         public void addXp(long xp)
         {
-            Interlocked.Add(ref xpTotal, xp);
+            xpTotal = xp;
         }
 
         public void addSpinnedPokestop()
         {
-            Interlocked.Increment(ref this.spinnedPokestops);
+            spinnedPokestops += 1;
         }
 
         internal int getCaughtPokemonPerDay()
