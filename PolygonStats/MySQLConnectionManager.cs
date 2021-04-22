@@ -39,13 +39,13 @@ namespace PolygonStats
             if (catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess)
             {
                 pokemonLogEntry.PokedexId = (int)catchedPokemon.DisplayPokedexId;
-                pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
-                pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
                 if (catchedPokemon.PokemonDisplay != null)
                 {
                     pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay.Shiny;
                 }
             }
+            pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
+            pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
             dbSession.LogEntrys.Add(pokemonLogEntry);
             MySQLConnectionManager.shared.GetContext().SaveChanges();
         }

@@ -245,6 +245,7 @@ namespace PolygonStats
                     }
                     break;
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
+                    entry.addXp(catchedPokemon.Scores.Exp.Sum());
                     entry.fleetPokemon++;
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
