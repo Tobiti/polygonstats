@@ -99,6 +99,10 @@ namespace PolygonStats
                 eggLogEntry.Defense = getHatchedEggsProto.HatchedPokemon[index].IndividualDefense;
                 eggLogEntry.Stamina = getHatchedEggsProto.HatchedPokemon[index].IndividualStamina;
                 eggLogEntry.PokemonUniqueId = getHatchedEggsProto.HatchedPokemon[index].Id;
+                if (getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay != null)
+                {
+                    eggLogEntry.Shiny = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Shiny;
+                }
                 dbSession.LogEntrys.Add(eggLogEntry);
             }
 

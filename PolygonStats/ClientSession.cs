@@ -268,6 +268,14 @@ namespace PolygonStats
             entry.addXp(getHatchedEggsProto.ExpAwarded.Sum());
             entry.addStardust(getHatchedEggsProto.StardustAwarded.Sum());
 
+            foreach (PokemonProto pokemon in getHatchedEggsProto.HatchedPokemon)
+            {
+                if (pokemon.PokemonDisplay != null && pokemon.PokemonDisplay.Shiny)
+                {
+                    entry.shinyPokemon++;
+                }
+            }
+
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
                 MySQLConnectionManager.shared.AddHatchedEggToDatabase(dbSession, getHatchedEggsProto);
