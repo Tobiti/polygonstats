@@ -8,19 +8,6 @@ namespace PolygonStats
 {
     class MySQLConnectionManager
     {
-        private static MySQLConnectionManager _mysqlManager;
-        public static MySQLConnectionManager shared
-        {
-            get
-            {
-                if (_mysqlManager == null)
-                {
-                    _mysqlManager = new MySQLConnectionManager();
-                }
-                return _mysqlManager;
-            }
-        }
-
         private MySQLContext context;
 
         public MySQLConnectionManager()
@@ -48,7 +35,7 @@ namespace PolygonStats
             pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
             pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
             dbSession.LogEntrys.Add(pokemonLogEntry);
-            MySQLConnectionManager.shared.GetContext().SaveChanges();
+            SaveChanges();
         }
 
         public void AddFeedBerryToDatabase(Session dbSession, GymFeedPokemonOutProto gymFeedPokemonProto)
@@ -60,7 +47,7 @@ namespace PolygonStats
             feedBerryLogEntry.CandyAwarded = gymFeedPokemonProto.NumCandyAwarded;
 
             dbSession.LogEntrys.Add(feedBerryLogEntry);
-            MySQLConnectionManager.shared.GetContext().SaveChanges();
+            SaveChanges();
         }
 
         public void AddQuestToDatabase(Session dbSession, RepeatedField<QuestRewardProto> rewards)
@@ -83,7 +70,7 @@ namespace PolygonStats
                 }
             }
             dbSession.LogEntrys.Add(questLogEntry);
-            MySQLConnectionManager.shared.GetContext().SaveChanges();
+            SaveChanges();
         }
 
         public void AddHatchedEggToDatabase(Session dbSession, GetHatchedEggsOutProto getHatchedEggsProto)
@@ -106,7 +93,7 @@ namespace PolygonStats
                 dbSession.LogEntrys.Add(eggLogEntry);
             }
 
-            MySQLConnectionManager.shared.GetContext().SaveChanges();
+            SaveChanges();
 
         }
 
@@ -117,7 +104,7 @@ namespace PolygonStats
             fortLogEntry.XpReward = fortSearchProto.XpAwarded;
 
             dbSession.LogEntrys.Add(fortLogEntry);
-            MySQLConnectionManager.shared.GetContext().SaveChanges();
+            SaveChanges();
         }
 
         public void AddEvolvePokemonToDatabase(Session dbSession, EvolvePokemonOutProto evolvePokemon)
@@ -133,12 +120,12 @@ namespace PolygonStats
             evolveLogEntry.PokemonUniqueId = evolvePokemon.EvolvedPokemon.Id;
 
             dbSession.LogEntrys.Add(evolveLogEntry);
-            MySQLConnectionManager.shared.GetContext().SaveChanges();
+            SaveChanges();
         }
 
         internal void SaveChanges()
         {
-            MySQLConnectionManager.shared.GetContext().SaveChanges();
+            SaveChanges();
         }
     }
 }

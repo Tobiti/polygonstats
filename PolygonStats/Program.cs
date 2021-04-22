@@ -20,8 +20,9 @@ namespace PolygonStats
             // Init db
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                MySQLConnectionManager.shared.GetContext().Database.EnsureCreated();
-                MySQLConnectionManager.shared.GetContext().SaveChanges();
+                MySQLConnectionManager manager = new MySQLConnectionManager();
+                manager.GetContext().Database.EnsureCreated();
+                manager.GetContext().SaveChanges();
             }
 
             Console.WriteLine($"TCP server port: {ConfigurationManager.shared.config.backendSettings.port}");

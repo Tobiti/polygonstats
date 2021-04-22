@@ -16,7 +16,9 @@ namespace PolygonStats
     {
         private string messageBuffer = "";
         private string accountName = null;
+        private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private Session dbSession;
+
 
         public ClientSession(TcpServer server) : base(server) { }
 
@@ -35,7 +37,7 @@ namespace PolygonStats
                 if(dbSession != null)
                 {
                     dbSession.EndTime = DateTime.UtcNow;
-                    MySQLConnectionManager.shared.GetContext().SaveChanges();
+                    connectionManager.GetContext().SaveChanges();
                 }
             }
 
@@ -74,7 +76,7 @@ namespace PolygonStats
 
                                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                                 {
-                                    MySQLContext context = MySQLConnectionManager.shared.GetContext();
+                                    MySQLContext context = connectionManager.GetContext();
                                     Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
                                     if (acc == null)
                                     {
@@ -190,7 +192,7 @@ namespace PolygonStats
                             log.Attack = pokemon.IndividualAttack;
                             log.Defense = pokemon.IndividualDefense;
                             log.Stamina = pokemon.IndividualStamina;
-                            MySQLConnectionManager.shared.SaveChanges();
+                            connectionManager.SaveChanges();
                         }
                     }
                 }
@@ -204,7 +206,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                MySQLConnectionManager.shared.AddEvolvePokemonToDatabase(dbSession, evolvePokemon);
+                connectionManager.AddEvolvePokemonToDatabase(dbSession, evolvePokemon);
             }
         }
 
@@ -216,7 +218,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                MySQLConnectionManager.shared.AddFeedBerryToDatabase(dbSession, feedPokemonProto);
+                connectionManager.AddFeedBerryToDatabase(dbSession, feedPokemonProto);
             }
         }
 
@@ -228,7 +230,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                MySQLConnectionManager.shared.AddSpinnedFortToDatabase(dbSession, fortSearchProto);
+                connectionManager.AddSpinnedFortToDatabase(dbSession, fortSearchProto);
             }
         }
 
@@ -254,7 +256,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                MySQLConnectionManager.shared.AddQuestToDatabase(dbSession, rewards);
+                connectionManager.AddQuestToDatabase(dbSession, rewards);
             }
         }
         private void ProcessHatchedEggReward(string acc, GetHatchedEggsOutProto getHatchedEggsProto)
@@ -278,7 +280,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                MySQLConnectionManager.shared.AddHatchedEggToDatabase(dbSession, getHatchedEggsProto);
+                connectionManager.AddHatchedEggToDatabase(dbSession, getHatchedEggsProto);
             }
         }
 
@@ -299,7 +301,7 @@ namespace PolygonStats
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        MySQLConnectionManager.shared.AddPokemonToDatabase(dbSession, caughtPokemon);
+                        connectionManager.AddPokemonToDatabase(dbSession, caughtPokemon);
                     }
                     break;
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
@@ -308,7 +310,7 @@ namespace PolygonStats
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        MySQLConnectionManager.shared.AddPokemonToDatabase(dbSession, caughtPokemon);
+                        connectionManager.AddPokemonToDatabase(dbSession, caughtPokemon);
                     }
                     break;
             }
