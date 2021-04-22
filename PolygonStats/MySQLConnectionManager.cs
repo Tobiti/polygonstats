@@ -123,9 +123,9 @@ namespace PolygonStats
             SaveChanges();
         }
 
-        internal void SaveChanges()
+        public void SaveChanges()
         {
-            SaveChanges();
+            context.SaveChanges();
         }
     }
 }
