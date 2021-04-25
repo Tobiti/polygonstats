@@ -106,7 +106,13 @@ namespace PolygonStats
 
         private Stats getStatEntry()
         {
-            return StatManager.sharedInstance.getEntry(accountName);
+            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            {
+                return StatManager.sharedInstance.getEntry(accountName);
+            } else
+            {
+                return null;
+            }
         }
 
         private void handlePayload(Payload payload)
@@ -205,8 +211,11 @@ namespace PolygonStats
 
         private void ProcessEvolvedPokemon(string account_name, EvolvePokemonOutProto evolvePokemon)
         {
-            Stats entry = getStatEntry();
-            entry.addXp(evolvePokemon.ExpAwarded);
+            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            {
+                Stats entry = getStatEntry();
+                entry.addXp(evolvePokemon.ExpAwarded);
+            }
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
@@ -228,9 +237,12 @@ namespace PolygonStats
 
         private void ProcessSpinnedFort(string account_name, FortSearchOutProto fortSearchProto)
         {
-            Stats entry = getStatEntry();
-            entry.addSpinnedPokestop();
-            entry.addXp(fortSearchProto.XpAwarded);
+            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            {
+                Stats entry = getStatEntry();
+                entry.addSpinnedPokestop();
+                entry.addXp(fortSearchProto.XpAwarded);
+            }
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
@@ -245,16 +257,19 @@ namespace PolygonStats
 
         private void ProcessQuestRewards(string acc, RepeatedField<QuestRewardProto> rewards)
         {
-            Stats entry = getStatEntry();
-            foreach (QuestRewardProto reward in rewards)
+            if (ConfigurationManager.shared.config.httpSettings.enabled)
             {
-                if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Exp)
+                Stats entry = getStatEntry();
+                foreach (QuestRewardProto reward in rewards)
                 {
-                    entry.addXp(reward.Exp);
-                }
-                if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Stardust)
-                {
-                    entry.addStardust(reward.Stardust);
+                    if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Exp)
+                    {
+                        entry.addXp(reward.Exp);
+                    }
+                    if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Stardust)
+                    {
+                        entry.addStardust(reward.Stardust);
+                    }
                 }
             }
 
@@ -269,16 +284,19 @@ namespace PolygonStats
             {
                 return;
             }
-            Stats entry = getStatEntry();
-
-            entry.addXp(getHatchedEggsProto.ExpAwarded.Sum());
-            entry.addStardust(getHatchedEggsProto.StardustAwarded.Sum());
-
-            foreach (PokemonProto pokemon in getHatchedEggsProto.HatchedPokemon)
+            if (ConfigurationManager.shared.config.httpSettings.enabled)
             {
-                if (pokemon.PokemonDisplay != null && pokemon.PokemonDisplay.Shiny)
+                Stats entry = getStatEntry();
+
+                entry.addXp(getHatchedEggsProto.ExpAwarded.Sum());
+                entry.addStardust(getHatchedEggsProto.StardustAwarded.Sum());
+
+                foreach (PokemonProto pokemon in getHatchedEggsProto.HatchedPokemon)
                 {
-                    entry.shinyPokemon++;
+                    if (pokemon.PokemonDisplay != null && pokemon.PokemonDisplay.Shiny)
+                    {
+                        entry.shinyPokemon++;
+                    }
                 }
             }
 
@@ -294,14 +312,17 @@ namespace PolygonStats
             switch (caughtPokemon.Status)
             {
                 case CatchPokemonOutProto.Types.Status.CatchSuccess:
-                    entry.caughtPokemon++;
-                    if (caughtPokemon.PokemonDisplay != null && caughtPokemon.PokemonDisplay.Shiny)
+                    if (entry != null)
                     {
-                        entry.shinyPokemon++;
-                    }
+                        entry.caughtPokemon++;
+                        if (caughtPokemon.PokemonDisplay != null && caughtPokemon.PokemonDisplay.Shiny)
+                        {
+                            entry.shinyPokemon++;
+                        }
 
-                    entry.addXp(caughtPokemon.Scores.Exp.Sum());
-                    entry.addStardust(caughtPokemon.Scores.Stardust.Sum());
+                        entry.addXp(caughtPokemon.Scores.Exp.Sum());
+                        entry.addStardust(caughtPokemon.Scores.Stardust.Sum());
+                    }
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
@@ -309,8 +330,11 @@ namespace PolygonStats
                     }
                     break;
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
-                    entry.addXp(caughtPokemon.Scores.Exp.Sum());
-                    entry.fleetPokemon++;
+                    if (entry != null)
+                    {
+                        entry.addXp(caughtPokemon.Scores.Exp.Sum());
+                        entry.fleetPokemon++;
+                    }
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
