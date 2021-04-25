@@ -2,11 +2,10 @@
 
 PolygonStats is a backend server for polygon# to connect to. 
 
-
+### Requirement
+.Net 5: https://dotnet.microsoft.com/download/dotnet/5.0
 
 ## Run
-  ### Requirement
-  .Net 5: https://dotnet.microsoft.com/download/dotnet/5.0
 
 Compile the code or for windows get the compiled binary from the release page.
 
