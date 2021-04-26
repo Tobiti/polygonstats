@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PolygonStats.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -205,7 +206,7 @@ namespace PolygonStats.HttpServer
 
         private static string getName(bool isAdmin, Stats stat)
         {
-            if(isAdmin)
+            if(isAdmin || ConfigurationManager.shared.config.httpSettings.showAccountNames)
             {
                 return stat.accountName;
             }

@@ -24,6 +24,7 @@ namespace PolygonStats.Configuration
         {
             public bool enabled { get; set; }
             public int port { get; set; }
+            public bool showAccountNames { get; set; }
         }
         public HttpSettings httpSettings { get; set; }
         public class MysqlSettings
@@ -49,7 +50,8 @@ namespace PolygonStats.Configuration
             httpSettings = new HttpSettings()
             {
                 enabled = true,
-                port = 8888
+                port = 8888,
+                showAccountNames = false
             };
 
             mysqlSettings = new MysqlSettings()
