@@ -123,6 +123,44 @@ namespace PolygonStats
             SaveChanges();
         }
 
+        internal void AddRocketToDatabase(Session dbSession, UpdateInvasionBattleOutProto updateBattle)
+        {
+            LogEntry rocketLogEntry = new LogEntry { LogEntryType = LogEntryType.Rocket, timestamp = DateTime.UtcNow };
+
+            rocketLogEntry.XpReward = 0;
+            rocketLogEntry.StardustReward = 0;
+            rocketLogEntry.CandyAwarded = 0;
+            foreach (LootItemProto loot in updateBattle.Rewards.LootItem)
+            {
+                switch(loot.TypeCase)
+                {
+                    case LootItemProto.TypeOneofCase.Experience:
+                        rocketLogEntry.XpReward += loot.Count;
+                        break;
+                    case LootItemProto.TypeOneofCase.Stardust:
+                        rocketLogEntry.StardustReward += loot.Count;
+                        break;
+                    case LootItemProto.TypeOneofCase.PokemonCandy:
+                        rocketLogEntry.CandyAwarded += loot.Count;
+                        rocketLogEntry.PokemonName = loot.PokemonCandy;
+                        break;
+                }
+            }
+
+            dbSession.LogEntrys.Add(rocketLogEntry);
+            SaveChanges();
+        }
+
+        internal void AddRaidToDatabase(Session dbSession, int xp, int stardust)
+        {
+            LogEntry raidLogEntry = new LogEntry { LogEntryType = LogEntryType.Raid, timestamp = DateTime.UtcNow };
+
+            raidLogEntry.XpReward = xp;
+            raidLogEntry.StardustReward = stardust;
+            dbSession.LogEntrys.Add(raidLogEntry);
+            SaveChanges();
+        }
+
         public void SaveChanges()
         {
             context.SaveChanges();

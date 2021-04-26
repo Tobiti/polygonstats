@@ -8,6 +8,12 @@ namespace PolygonStats.Configuration
 {
     class Config
     {
+        public class DebugSettings
+        {
+            public bool debug { get; set; }
+            public bool toFiles { get; set; }
+        }
+        public DebugSettings debugSettings { get; set; }
         public class BackendSocketSettings
         {
             public int port { get; set; }
@@ -29,6 +35,12 @@ namespace PolygonStats.Configuration
 
         public Config()
         {
+            debugSettings = new DebugSettings()
+            {
+                debug = false,
+                toFiles = false
+            };
+
             backendSettings = new BackendSocketSettings()
             {
                 port = 9838

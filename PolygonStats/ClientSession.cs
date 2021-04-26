@@ -19,7 +19,6 @@ namespace PolygonStats
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private Session dbSession;
 
-
         public ClientSession(TcpServer server) : base(server) { }
 
         protected override void OnConnected()
@@ -170,10 +169,93 @@ namespace PolygonStats
                     GetHoloholoInventoryOutProto holoInventory = GetHoloholoInventoryOutProto.Parser.ParseFrom(payload.getDate());
                     ProcessHoloHoloInventory(payload.account_name, holoInventory);
                     break;
+                case Method.InvasionBattleUpdate:
+                    UpdateInvasionBattleOutProto updateBattle = UpdateInvasionBattleOutProto.Parser.ParseFrom(payload.getDate());
+                    ProcessUpdateInvasionBattle(payload.account_name, updateBattle);
+                    break;
+                case Method.AttackRaid:
+                    AttackRaidBattleOutProto attackRaidBattle = AttackRaidBattleOutProto.Parser.ParseFrom(payload.getDate());
+                    ProcessAttackRaidBattle(payload.account_name, attackRaidBattle);
+                    break;
                 default:
                     //Console.WriteLine($"Account: {payload.account_name}");
                     //Console.WriteLine($"Type: {payload.getMethodType().ToString("G")}");
                     break;
+            }
+        }
+
+        private void ProcessAttackRaidBattle(string account_name, AttackRaidBattleOutProto attackRaidBattle)
+        {
+            if (attackRaidBattle.Result != AttackRaidBattleOutProto.Types.Result.Success)
+            {
+                return;
+            }
+            if (attackRaidBattle.BattleUpdate == null || attackRaidBattle.BattleUpdate.BattleLog == null || attackRaidBattle.BattleUpdate.BattleLog.BattleActions == null || attackRaidBattle.BattleUpdate.BattleLog.BattleActions.Count == 0)
+            {
+                return;
+            }
+
+            BattleActionProto lastEntry = attackRaidBattle.BattleUpdate.BattleLog.BattleActions[attackRaidBattle.BattleUpdate.BattleLog.BattleActions.Count - 1];
+            if (lastEntry.BattleResults == null)
+            {
+                return;
+            }
+
+            // Get user
+            BattleParticipantProto ownParticipant = lastEntry.BattleResults.Attackers.FirstOrDefault(attacker => attacker.TrainerPublicProfile.Name == account_name);
+            if (ownParticipant != null)
+            {
+                int index = lastEntry.BattleResults.Attackers.IndexOf(ownParticipant);
+
+                if (ConfigurationManager.shared.config.httpSettings.enabled)
+                {
+                    Stats entry = getStatEntry();
+                    entry.addXp(lastEntry.BattleResults.PlayerXpAwarded[index]);
+                    int stardust = 0;
+                    stardust += lastEntry.BattleResults.RaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
+                    stardust += lastEntry.BattleResults.DefaultRaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
+                    entry.addStardust(stardust);
+                }
+
+                if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                {
+                    int stardust = 0;
+                    stardust += lastEntry.BattleResults.RaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
+                    stardust += lastEntry.BattleResults.DefaultRaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
+                    connectionManager.AddRaidToDatabase(dbSession,  lastEntry.BattleResults.PlayerXpAwarded[index], stardust);
+                }
+            }
+        }
+
+        private void ProcessUpdateInvasionBattle(string account_name, UpdateInvasionBattleOutProto updateBattle)
+        {
+            if (updateBattle.Status != InvasionStatus.Types.Status.Success || updateBattle.Rewards == null)
+            {
+                return;
+            }
+
+            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            {
+                Stats entry = getStatEntry();
+                foreach (LootItemProto loot in updateBattle.Rewards.LootItem)
+                {
+                    switch (loot.TypeCase)
+                    {
+                        case LootItemProto.TypeOneofCase.Experience:
+                            entry.addXp(loot.Count);
+                            break;
+                        case LootItemProto.TypeOneofCase.Stardust:
+                            entry.addStardust(loot.Count);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                connectionManager.AddRocketToDatabase(dbSession, updateBattle);
             }
         }
 
@@ -225,9 +307,12 @@ namespace PolygonStats
 
         private void ProcessFeedBerry(string account_name, GymFeedPokemonOutProto feedPokemonProto)
         {
-            Stats entry = getStatEntry();
-            entry.addXp(feedPokemonProto.XpAwarded);
-            entry.addStardust(feedPokemonProto.StardustAwarded);
+            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            {
+                Stats entry = getStatEntry();
+                entry.addXp(feedPokemonProto.XpAwarded);
+                entry.addStardust(feedPokemonProto.StardustAwarded);
+            }
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {

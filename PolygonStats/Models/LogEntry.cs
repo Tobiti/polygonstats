@@ -12,7 +12,9 @@ namespace PolygonStats.Models
         Egg,
         Fort,
         FeedBerry,
-        EvolvePokemon
+        EvolvePokemon,
+        Rocket,
+        Raid
     }
 
     [Table("SessionLogEntry")]
