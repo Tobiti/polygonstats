@@ -220,8 +220,14 @@ namespace PolygonStats
                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                 {
                     int stardust = 0;
-                    stardust += lastEntry.BattleResults.RaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
-                    stardust += lastEntry.BattleResults.DefaultRaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
+                    if (lastEntry.BattleResults.RaidItemRewards.Count > index)
+                    {
+                        stardust += lastEntry.BattleResults.RaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
+                    }
+                    if (lastEntry.BattleResults.DefaultRaidItemRewards.Count > index)
+                    {
+                        stardust += lastEntry.BattleResults.DefaultRaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
+                    }
                     connectionManager.AddRaidToDatabase(dbSession,  lastEntry.BattleResults.PlayerXpAwarded[index], stardust);
                 }
             }
