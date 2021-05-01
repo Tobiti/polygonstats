@@ -228,7 +228,13 @@ namespace PolygonStats
                     {
                         stardust += lastEntry.BattleResults.DefaultRaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
                     }
-                    connectionManager.AddRaidToDatabase(dbSession,  lastEntry.BattleResults.PlayerXpAwarded[index], stardust);
+                    int xp = 0;
+                    if(lastEntry.BattleResults.PlayerXpAwarded.Count > index)
+                    {
+                        xp = lastEntry.BattleResults.PlayerXpAwarded[index];
+                    }
+
+                    connectionManager.AddRaidToDatabase(dbSession, xp, stardust);
                 }
             }
         }
