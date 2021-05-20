@@ -94,10 +94,9 @@ namespace PolygonStats
                             handlePayload(payload);
                         }
                     }
-                    catch (JsonException e)
+                    catch (JsonException)
                     {
                         messageBuffer = jsonString;
-                        //Console.WriteLine(e.ToString());
                     }
                 }
             }
