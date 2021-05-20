@@ -2,6 +2,8 @@
 using System.Data.Entity;
 using System.Net;
 using System.Threading;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using PolygonStats.Configuration;
 
 namespace PolygonStats
@@ -21,6 +23,8 @@ namespace PolygonStats
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
                 MySQLConnectionManager manager = new MySQLConnectionManager();
+                var migrator = manager.GetContext().Database.GetService<IMigrator>();
+                migrator.Migrate();
                 manager.GetContext().Database.EnsureCreated();
                 manager.GetContext().SaveChanges();
             }

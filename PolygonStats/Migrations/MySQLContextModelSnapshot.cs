@@ -23,6 +23,12 @@ namespace PolygonStats.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int>("CaughtPokemon")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EscapedPokemon")
+                        .HasColumnType("int");
+
                     b.Property<string>("HashedName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -32,6 +38,24 @@ namespace PolygonStats.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50) CHARACTER SET utf8mb4");
+
+                    b.Property<int>("Pokestops")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Raids")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rockets")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShinyPokemon")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalStardust")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalXp")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
