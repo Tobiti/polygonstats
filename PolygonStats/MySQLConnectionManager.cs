@@ -2,6 +2,7 @@
 using POGOProtos.Rpc;
 using PolygonStats.Models;
 using System;
+using System.Data.Entity;
 using System.Linq;
 namespace PolygonStats
 {
@@ -15,29 +16,30 @@ namespace PolygonStats
             return context.Sessions.Where(s => s.Id == id).FirstOrDefault<Session>();
         }
 
-        public void AddLogEntry(Session session, LogEntry log) {
+        public void AddLogEntry(MySQLContext context, Session session, LogEntry log) {
 
+            Account account = context.Accounts.Where(a => a.Id == session.AccountId).Single();
             switch(log.LogEntryType) {
                 case LogEntryType.Pokemon:
                     if (log.PokemonUniqueId != 0) {
-                        session.Account.CaughtPokemon += 1;
-                        session.Account.ShinyPokemon += log.Shiny ? 1 : 0;
+                        account.CaughtPokemon += 1;
+                        account.ShinyPokemon += log.Shiny ? 1 : 0;
                     } else {
-                        session.Account.EscapedPokemon += 1;
+                        account.EscapedPokemon += 1;
                     }
                     break;
                 case LogEntryType.Egg:
-                    session.Account.ShinyPokemon += log.Shiny ? 1 : 0;
+                    account.ShinyPokemon += log.Shiny ? 1 : 0;
                     break;
                 case LogEntryType.Rocket:
-                    session.Account.Rockets += 1;
+                    account.Rockets += 1;
                     break;
                 case LogEntryType.Raid:
-                    session.Account.Raids += 1;
+                    account.Raids += 1;
                     break;
             }
-            session.Account.TotalXp += log.XpReward;
-            session.Account.TotalStardust += log.StardustReward;
+            account.TotalXp += log.XpReward;
+            account.TotalStardust += log.StardustReward;
             session.LogEntrys.Add(log);
         }
 
@@ -57,7 +59,7 @@ namespace PolygonStats
                 }
                 pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
                 pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
-                this.AddLogEntry(dbSession, pokemonLogEntry);
+                this.AddLogEntry(context, dbSession, pokemonLogEntry);
                 context.SaveChanges();
             }
         }
@@ -72,7 +74,7 @@ namespace PolygonStats
                 feedBerryLogEntry.StardustReward = gymFeedPokemonProto.StardustAwarded;
                 feedBerryLogEntry.CandyAwarded = gymFeedPokemonProto.NumCandyAwarded;
 
-                this.AddLogEntry(dbSession, feedBerryLogEntry);
+                this.AddLogEntry(context, dbSession, feedBerryLogEntry);
                 context.SaveChanges();
             }
         }
@@ -98,7 +100,7 @@ namespace PolygonStats
                         questLogEntry.PokemonName = reward.Candy.PokemonId;
                     }
                 }
-                this.AddLogEntry(dbSession, questLogEntry);
+                this.AddLogEntry(context, dbSession, questLogEntry);
                 context.SaveChanges();
             }
         }
@@ -122,7 +124,7 @@ namespace PolygonStats
                     {
                         eggLogEntry.Shiny = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Shiny;
                     }
-                    this.AddLogEntry(dbSession, eggLogEntry);
+                    this.AddLogEntry(context, dbSession, eggLogEntry);
                 }
 
                 context.SaveChanges();
@@ -137,7 +139,7 @@ namespace PolygonStats
 
                 fortLogEntry.XpReward = fortSearchProto.XpAwarded;
 
-                this.AddLogEntry(dbSession, fortLogEntry);
+                this.AddLogEntry(context, dbSession, fortLogEntry);
                 context.SaveChanges();
             }
         }
@@ -156,7 +158,7 @@ namespace PolygonStats
                 evolveLogEntry.Stamina = evolvePokemon.EvolvedPokemon.IndividualStamina;
                 evolveLogEntry.PokemonUniqueId = evolvePokemon.EvolvedPokemon.Id;
 
-                this.AddLogEntry(dbSession, evolveLogEntry);
+                this.AddLogEntry(context, dbSession, evolveLogEntry);
                 context.SaveChanges();
             }
         }
@@ -187,7 +189,7 @@ namespace PolygonStats
                     }
                 }
 
-                this.AddLogEntry(dbSession, rocketLogEntry);
+                this.AddLogEntry(context, dbSession, rocketLogEntry);
                 context.SaveChanges();
             }
         }
@@ -200,7 +202,7 @@ namespace PolygonStats
 
                 raidLogEntry.XpReward = xp;
                 raidLogEntry.StardustReward = stardust;
-                this.AddLogEntry(dbSession, raidLogEntry);
+                this.AddLogEntry(context, dbSession, raidLogEntry);
                 context.SaveChanges();
             }
         }

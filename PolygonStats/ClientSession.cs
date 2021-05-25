@@ -208,9 +208,14 @@ namespace PolygonStats
                 encounter.EncounterId = encounterProto.Pokemon.EncounterId;
                 encounter.PokemonName = encounterProto.Pokemon.Pokemon.PokemonId;
                 encounter.Form = encounterProto.Pokemon.Pokemon.PokemonDisplay.Form;
+                encounter.Stamina = encounterProto.Pokemon.Pokemon.IndividualStamina;
+                encounter.Attack = encounterProto.Pokemon.Pokemon.IndividualAttack;
+                encounter.Defense = encounterProto.Pokemon.Pokemon.IndividualDefense;
                 encounter.Latitude = encounterProto.Pokemon.Latitude;
                 encounter.Longitude = encounterProto.Pokemon.Longitude;
                 encounter.timestamp = DateTime.UtcNow;
+                //Console.WriteLine($"Millis: {encounterProto.Pokemon.TimeTillHiddenMs}");
+                //Console.WriteLine($"Creation Time: {encounterProto.Pokemon.Pokemon.CreationTimeMs}");
                 encounter.EndTime = DateTime.UtcNow.AddMilliseconds(encounterProto.Pokemon.TimeTillHiddenMs);
 
                 context.Encounters.Add(encounter);
