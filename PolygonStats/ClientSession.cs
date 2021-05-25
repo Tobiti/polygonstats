@@ -330,7 +330,7 @@ namespace PolygonStats
                         using (var context = connectionManager.GetContext()) {
                             Session dbSession = connectionManager.GetSession(context, dbSessionId);
                             PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                            LogEntry log = dbSession.LogEntrys.Where(l => l.PokemonUniqueId == pokemon.Id).LastOrDefault();
+                            LogEntry log = context.Logs.Where(l => l.PokemonUniqueId == pokemon.Id).LastOrDefault();
                             if (log != null)
                             {
                                 log.PokemonName = pokemon.PokemonId;
