@@ -17,7 +17,7 @@ namespace PolygonStats
         private string messageBuffer = "";
         private string accountName = null;
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
-        private Session dbSession;
+        private int dbSessionId = -1;
 
         public ClientSession(TcpServer server) : base(server) { }
 
@@ -33,10 +33,13 @@ namespace PolygonStats
             // Add ent time to session
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                if(dbSession != null)
+                if(dbSessionId != -1)
                 {
-                    dbSession.EndTime = DateTime.UtcNow;
-                    connectionManager.GetContext().SaveChanges();
+                    using (var context = connectionManager.GetContext()) {
+                        Session dbSession = connectionManager.GetSession(context, dbSessionId);
+                        dbSession.EndTime = DateTime.UtcNow;
+                        context.SaveChanges();
+                    }
                 }
             }
 
@@ -75,20 +78,23 @@ namespace PolygonStats
 
                                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                                 {
-                                    MySQLContext context = connectionManager.GetContext();
-                                    Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
-                                    if (acc == null)
-                                    {
-                                        acc = new Account();
-                                        acc.Name = this.accountName;
-                                        acc.HashedName = "";
-                                        //TODO: Add hashed name
-                                        //acc.HashedName =  this.accountName.get
-                                        context.Accounts.Add(acc);
+                                    using(var context = connectionManager.GetContext()) {
+                                        Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
+                                        if (acc == null)
+                                        {
+                                            acc = new Account();
+                                            acc.Name = this.accountName;
+                                            acc.HashedName = "";
+                                            //TODO: Add hashed name
+                                            //acc.HashedName =  this.accountName.get
+                                            context.Accounts.Add(acc);
+                                        }
+                                        Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
+                                        acc.Sessions.Add(dbSession);
+                                        context.SaveChanges();
+
+                                        dbSessionId = dbSession.Id;
                                     }
-                                    dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
-                                    acc.Sessions.Add(dbSession);
-                                    context.SaveChanges();
                                 }
                             }
                             handlePayload(payload);
@@ -117,6 +123,10 @@ namespace PolygonStats
         {
             switch (payload.getMethodType())
             {
+                case Method.Encounter:
+                    EncounterOutProto encounterProto = EncounterOutProto.Parser.ParseFrom(payload.getDate());
+                    ProcessEncounter(payload.account_name, encounterProto);
+                    break;
                 case Method.CatchPokemon:
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
                     //Console.WriteLine($"Pokemon {catchPokemonProto.DisplayPokedexId.ToString("G")} Status: {catchPokemonProto.Status.ToString("G")}.");
@@ -183,6 +193,31 @@ namespace PolygonStats
             }
         }
 
+        private void ProcessEncounter(string account_name, EncounterOutProto encounterProto)
+        {
+            if (!ConfigurationManager.shared.config.mysqlSettings.enabled || encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null)
+            {
+                return;
+            }
+            using (var context = connectionManager.GetContext()) {
+                if (context.Encounters.Where(e => e.EncounterId == encounterProto.Pokemon.EncounterId).FirstOrDefault() != null ) {
+                    return;
+                }
+
+                Encounter encounter = new Encounter();
+                encounter.EncounterId = encounterProto.Pokemon.EncounterId;
+                encounter.PokemonName = encounterProto.Pokemon.Pokemon.PokemonId;
+                encounter.Form = encounterProto.Pokemon.Pokemon.PokemonDisplay.Form;
+                encounter.Latitude = encounterProto.Pokemon.Latitude;
+                encounter.Longitude = encounterProto.Pokemon.Longitude;
+                encounter.timestamp = DateTime.UtcNow;
+                encounter.EndTime = DateTime.UtcNow.AddMilliseconds(encounterProto.Pokemon.TimeTillHiddenMs);
+
+                context.Encounters.Add(encounter);
+                context.SaveChanges();
+            }
+        }
+
         private void ProcessAttackRaidBattle(string account_name, AttackRaidBattleOutProto attackRaidBattle)
         {
             if (attackRaidBattle.Result != AttackRaidBattleOutProto.Types.Result.Success)
@@ -233,7 +268,7 @@ namespace PolygonStats
                         xp = lastEntry.BattleResults.PlayerXpAwarded[index];
                     }
 
-                    connectionManager.AddRaidToDatabase(dbSession, xp, stardust);
+                    connectionManager.AddRaidToDatabase(dbSessionId, xp, stardust);
                 }
             }
         }
@@ -266,7 +301,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddRocketToDatabase(dbSession, updateBattle);
+                connectionManager.AddRocketToDatabase(dbSessionId, updateBattle);
             }
         }
 
@@ -287,15 +322,18 @@ namespace PolygonStats
                 {
                     if (item.InventoryItemData.Pokemon != null)
                     {
-                        PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                        LogEntry log = dbSession.LogEntrys.Where(l => l.PokemonUniqueId == pokemon.Id).LastOrDefault();
-                        if (log != null)
-                        {
-                            log.PokemonName = pokemon.PokemonId;
-                            log.Attack = pokemon.IndividualAttack;
-                            log.Defense = pokemon.IndividualDefense;
-                            log.Stamina = pokemon.IndividualStamina;
-                            connectionManager.SaveChanges();
+                        using (var context = connectionManager.GetContext()) {
+                            Session dbSession = connectionManager.GetSession(context, dbSessionId);
+                            PokemonProto pokemon = item.InventoryItemData.Pokemon;
+                            LogEntry log = dbSession.LogEntrys.Where(l => l.PokemonUniqueId == pokemon.Id).LastOrDefault();
+                            if (log != null)
+                            {
+                                log.PokemonName = pokemon.PokemonId;
+                                log.Attack = pokemon.IndividualAttack;
+                                log.Defense = pokemon.IndividualDefense;
+                                log.Stamina = pokemon.IndividualStamina;
+                                context.SaveChanges();
+                            }
                         }
                     }
                 }
@@ -312,7 +350,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddEvolvePokemonToDatabase(dbSession, evolvePokemon);
+                connectionManager.AddEvolvePokemonToDatabase(dbSessionId, evolvePokemon);
             }
         }
 
@@ -327,7 +365,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddFeedBerryToDatabase(dbSession, feedPokemonProto);
+                connectionManager.AddFeedBerryToDatabase(dbSessionId, feedPokemonProto);
             }
         }
 
@@ -342,7 +380,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddSpinnedFortToDatabase(dbSession, fortSearchProto);
+                connectionManager.AddSpinnedFortToDatabase(dbSessionId, fortSearchProto);
             }
         }
 
@@ -371,7 +409,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddQuestToDatabase(dbSession, rewards);
+                connectionManager.AddQuestToDatabase(dbSessionId, rewards);
             }
         }
         private void ProcessHatchedEggReward(string acc, GetHatchedEggsOutProto getHatchedEggsProto)
@@ -398,7 +436,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddHatchedEggToDatabase(dbSession, getHatchedEggsProto);
+                connectionManager.AddHatchedEggToDatabase(dbSessionId, getHatchedEggsProto);
             }
         }
 
@@ -422,7 +460,7 @@ namespace PolygonStats
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        connectionManager.AddPokemonToDatabase(dbSession, caughtPokemon);
+                        connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon);
                     }
                     break;
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
@@ -434,7 +472,7 @@ namespace PolygonStats
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        connectionManager.AddPokemonToDatabase(dbSession, caughtPokemon);
+                        connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon);
                     }
                     break;
             }

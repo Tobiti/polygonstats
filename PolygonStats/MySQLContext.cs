@@ -7,6 +7,7 @@ namespace PolygonStats
 {
     class MySQLContext : DbContext
     {
+        public DbSet<Encounter> Encounters { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<LogEntry> Logs { get; set; }
