@@ -30,10 +30,6 @@ namespace PolygonStats.Models
         public double Longitude {get; set; }
         public double Latitude {get; set; }
 
-
-        [Required]
-        public DateTime EndTime { get; set; }
-
         [Required]
         public DateTime timestamp { get; set; }
     }

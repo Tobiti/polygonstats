@@ -2,8 +2,9 @@
 using POGOProtos.Rpc;
 using PolygonStats.Models;
 using System;
-using System.Data.Entity;
-using System.Linq;
+using static System.Linq.Queryable;
+using static System.Linq.Enumerable;
+
 namespace PolygonStats
 {
     class MySQLConnectionManager
@@ -41,6 +42,28 @@ namespace PolygonStats
             account.TotalXp += log.XpReward;
             account.TotalStardust += log.StardustReward;
             session.LogEntrys.Add(log);
+        }
+
+        public void AddEncounterToDatabase(EncounterOutProto encounterProto) {
+            using (var context = GetContext()) {
+                if (context.Encounters.Where(e => e.EncounterId == encounterProto.Pokemon.EncounterId).FirstOrDefault() != null ) {
+                    return;
+                }
+
+                Encounter encounter = new Encounter();
+                encounter.EncounterId = encounterProto.Pokemon.EncounterId;
+                encounter.PokemonName = encounterProto.Pokemon.Pokemon.PokemonId;
+                encounter.Form = encounterProto.Pokemon.Pokemon.PokemonDisplay.Form;
+                encounter.Stamina = encounterProto.Pokemon.Pokemon.IndividualStamina;
+                encounter.Attack = encounterProto.Pokemon.Pokemon.IndividualAttack;
+                encounter.Defense = encounterProto.Pokemon.Pokemon.IndividualDefense;
+                encounter.Latitude = encounterProto.Pokemon.Latitude;
+                encounter.Longitude = encounterProto.Pokemon.Longitude;
+                encounter.timestamp = DateTime.UtcNow;
+
+                context.Encounters.Add(encounter);
+                context.SaveChanges();
+            }
         }
 
         public void AddPokemonToDatabase(int dbSessionId, CatchPokemonOutProto catchedPokemon)

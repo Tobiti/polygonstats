@@ -34,6 +34,27 @@ namespace PolygonStats.Configuration
         }
         public MysqlSettings mysqlSettings { get; set; }
 
+        public class EncounterSettings {
+            public class WebhookSettings {
+                public string webhookUrl { get; set; }
+                public bool filterByIV { get; set; }
+                public int minAttackIV { get; set; }
+                public int minDefenseIV { get; set; }
+                public int minStaminaIV { get; set; }
+
+                public bool filterByLocation { get; set; }
+                public double latitude { get; set; }
+                public double longitude { get; set; }
+                public double distanceInKm { get; set; }
+            }
+
+            public bool enabled { get; set; }
+            public bool saveToDatabase { get; set; }
+            public List<WebhookSettings> discordWebhooks { get; set; }
+        }
+
+        public EncounterSettings encounterSettings { get; set; }
+
         public Config()
         {
             debugSettings = new DebugSettings()
@@ -58,6 +79,25 @@ namespace PolygonStats.Configuration
             {
                 enabled = false,
                 dbConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
+            };
+
+            encounterSettings = new EncounterSettings() 
+            {
+                enabled = false,
+                saveToDatabase = false,
+                discordWebhooks = new List<EncounterSettings.WebhookSettings>(){
+                    new EncounterSettings.WebhookSettings() {
+                        webhookUrl = "discord webhook url",
+                        filterByIV = false,
+                        minAttackIV = 0,
+                        minDefenseIV = 0,
+                        minStaminaIV = 0,
+                        filterByLocation = false,
+                        latitude = 0.1,
+                        longitude = 0.1,
+                        distanceInKm = 20
+                    }
+                }
             };
         }
     }

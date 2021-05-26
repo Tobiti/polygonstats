@@ -5,7 +5,8 @@ using NetCoreServer;
 using System.Text.Json;
 using POGOProtos.Rpc;
 using Google.Protobuf.Collections;
-using System.Linq;
+using static System.Linq.Queryable;
+using static System.Linq.Enumerable;
 using PolygonStats.Models;
 using PolygonStats.Configuration;
 using System.Collections.Generic;
@@ -195,32 +196,10 @@ namespace PolygonStats
 
         private void ProcessEncounter(string account_name, EncounterOutProto encounterProto)
         {
-            if (!ConfigurationManager.shared.config.mysqlSettings.enabled || encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null)
-            {
+            if (!ConfigurationManager.shared.config.encounterSettings.enabled || encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null) {
                 return;
             }
-            using (var context = connectionManager.GetContext()) {
-                if (context.Encounters.Where(e => e.EncounterId == encounterProto.Pokemon.EncounterId).FirstOrDefault() != null ) {
-                    return;
-                }
-
-                Encounter encounter = new Encounter();
-                encounter.EncounterId = encounterProto.Pokemon.EncounterId;
-                encounter.PokemonName = encounterProto.Pokemon.Pokemon.PokemonId;
-                encounter.Form = encounterProto.Pokemon.Pokemon.PokemonDisplay.Form;
-                encounter.Stamina = encounterProto.Pokemon.Pokemon.IndividualStamina;
-                encounter.Attack = encounterProto.Pokemon.Pokemon.IndividualAttack;
-                encounter.Defense = encounterProto.Pokemon.Pokemon.IndividualDefense;
-                encounter.Latitude = encounterProto.Pokemon.Latitude;
-                encounter.Longitude = encounterProto.Pokemon.Longitude;
-                encounter.timestamp = DateTime.UtcNow;
-                //Console.WriteLine($"Millis: {encounterProto.Pokemon.TimeTillHiddenMs}");
-                //Console.WriteLine($"Creation Time: {encounterProto.Pokemon.Pokemon.CreationTimeMs}");
-                encounter.EndTime = DateTime.UtcNow.AddMilliseconds(encounterProto.Pokemon.TimeTillHiddenMs);
-
-                context.Encounters.Add(encounter);
-                context.SaveChanges();
-            }
+            EncounterManager.shared.AddEncounter(encounterProto);
         }
 
         private void ProcessAttackRaidBattle(string account_name, AttackRaidBattleOutProto attackRaidBattle)
@@ -324,7 +303,7 @@ namespace PolygonStats
             foreach (InventoryItemProto item in holoInventory.InventoryDelta.InventoryItem)
             {
                 if (item.InventoryItemData != null)
-                {
+                { 
                     if (item.InventoryItemData.Pokemon != null)
                     {
                         using (var context = connectionManager.GetContext()) {

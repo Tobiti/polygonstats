@@ -42,6 +42,7 @@ namespace PolygonStats.Configuration
             {
                 Save();
             }
+            config.encounterSettings.discordWebhooks.RemoveAt(0);
 
             Console.WriteLine("Config was loaded!");
         }
