@@ -24,12 +24,12 @@ namespace PolygonStats
 
         protected override void OnConnected()
         {
-            Console.WriteLine($"Polygon TCP session with Id {Id} connected!");
+            Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} connected!");
         }
 
         protected override void OnDisconnected()
         {
-            Console.WriteLine($"Polygon TCP session with Id {Id} disconnected!");
+            Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} disconnected!");
 
             // Add ent time to session
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
