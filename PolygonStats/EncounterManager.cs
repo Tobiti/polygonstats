@@ -140,8 +140,18 @@ namespace PolygonStats
                 return;
             }
 
-            using(DiscordWebhookClient client = new DiscordWebhookClient(webhook.webhookUrl)) {
-                client.SendMessageAsync(null, false, embeds);
+            int errors = 0;
+            bool wasSended = false;
+            
+            while(!wasSended && errors <= 5) {
+                try {
+                    using(DiscordWebhookClient client = new DiscordWebhookClient(webhook.webhookUrl)) {
+                        client.SendMessageAsync(null, false, embeds);
+                        wasSended = true;
+                    }
+                } catch (Exception) {
+                    errors++;
+                }
             }
         }
 
