@@ -70,45 +70,52 @@ namespace PolygonStats
         }
 
         private void EncounterConsumer() {
-            EncounterOutProto encounter;
-
-            while (blockingEncounterQueue.TryTake(out encounter, TimeSpan.FromMilliseconds(100)))
-            {
-                if (alreadySendEncounters.ContainsKey(encounter.Pokemon.EncounterId)) {
-                    continue;
-                }
-                alreadySendEncounters.Add(encounter.Pokemon.EncounterId, DateTime.Now);
-                ConfigurationManager.shared.config.encounterSettings.discordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounter));
-
-                if (!ConfigurationManager.shared.config.mysqlSettings.enabled || !ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
+            while(true) {
+                List<EncounterOutProto> encounterList = new List<EncounterOutProto>();
+                while (blockingEncounterQueue.Count > 0)
                 {
-                    continue;
+                    EncounterOutProto encounter = blockingEncounterQueue.Take();
+                    if (alreadySendEncounters.ContainsKey(encounter.Pokemon.EncounterId)) {
+                        continue;
+                    }
+                    alreadySendEncounters.Add(encounter.Pokemon.EncounterId, DateTime.Now);
+                    encounterList.Add(encounter);
+
+                    if (!ConfigurationManager.shared.config.mysqlSettings.enabled || !ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
+                    {
+                        continue;
+                    }
+                    connectionManager.AddEncounterToDatabase(encounter);
                 }
-                connectionManager.AddEncounterToDatabase(encounter);
+                if(encounterList.Count > 0) {
+                    ConfigurationManager.shared.config.encounterSettings.discordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounterList));
+                    Thread.Sleep(3000);
+                }
+                Thread.Sleep(1000);
             }
         }
 
-        private void SendDiscordWebhooks(Config.EncounterSettings.WebhookSettings webhook, EncounterOutProto encounter) {
-            if(webhook.filterByIV) {
-                if(encounter.Pokemon.Pokemon.IndividualAttack < webhook.minAttackIV) {
-                    return;
-                }
-                if(encounter.Pokemon.Pokemon.IndividualDefense < webhook.minDefenseIV) {
-                    return;
-                }
-                if(encounter.Pokemon.Pokemon.IndividualStamina < webhook.minStaminaIV) {
-                    return;
-                }
-            }
-            if(webhook.filterByLocation) {
-                if(DistanceTo(webhook.latitude, webhook.longitude, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude) > webhook.distanceInKm) {
-                    return;
-                }
-            }
-
-            using(DiscordWebhookClient client = new DiscordWebhookClient(webhook.webhookUrl)) {
-                List<Discord.Embed> embeds = new List<Discord.Embed>();
+        private void SendDiscordWebhooks(Config.EncounterSettings.WebhookSettings webhook, List<EncounterOutProto> encounterList) {
+            List<Discord.Embed> embeds = new List<Discord.Embed>();
+            foreach(EncounterOutProto encounter in encounterList) {
                 PokemonProto pokemon = encounter.Pokemon.Pokemon;
+                if(webhook.filterByIV) {
+                    if(pokemon.IndividualAttack < webhook.minAttackIV) {
+                        continue;
+                    }
+                    if(pokemon.IndividualDefense < webhook.minDefenseIV) {
+                        continue;
+                    }
+                    if(pokemon.IndividualStamina < webhook.minStaminaIV) {
+                        continue;
+                    }
+                }
+                if(webhook.filterByLocation) {
+                    if(DistanceTo(webhook.latitude, webhook.longitude, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude) > webhook.distanceInKm) {
+                        continue;
+                    }
+                }
+
                 EmbedBuilder eb = new EmbedBuilder(){
                     Author = new EmbedAuthorBuilder(){
                         Name = $"{pokemon.PokemonId.ToString("g")} (#{(int) pokemon.PokemonId})",
@@ -127,6 +134,13 @@ namespace PolygonStats
                 };
 
                 embeds.Add(eb.Build());
+            }
+
+            if(embeds.Count <= 0) {
+                return;
+            }
+
+            using(DiscordWebhookClient client = new DiscordWebhookClient(webhook.webhookUrl)) {
                 client.SendMessageAsync(null, false, embeds);
             }
         }
