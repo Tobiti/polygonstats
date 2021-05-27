@@ -52,6 +52,7 @@ namespace PolygonStats
             // Stop the server
             Console.Write("Server stopping...");
             server.Stop();
+            EncounterManager.shared.Dispose();
             if (httpServer != null)
             {
                 httpServer.Stop();

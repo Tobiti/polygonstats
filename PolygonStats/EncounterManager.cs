@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace PolygonStats
 {
-    public class EncounterManager {
+    public class EncounterManager : IDisposable {
 
         private static EncounterManager _shared;
         public static EncounterManager shared
@@ -177,6 +177,13 @@ namespace PolygonStats
             }
 
             return dist;
+        }
+
+        public void Dispose()
+        {
+            cleanTimer?.Dispose();
+            consumerThread.Interrupt();
+            consumerThread.Join();
         }
     }
 }
