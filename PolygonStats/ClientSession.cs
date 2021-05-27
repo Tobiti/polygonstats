@@ -24,13 +24,12 @@ namespace PolygonStats
 
         protected override void OnConnected()
         {
-            Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} connected!");
+            //Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} connected!");
         }
 
         protected override void OnDisconnected()
         {
-            Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} has disconnected.");
-            Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} disconnected!");
+            Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has disconnected.");
 
             // Add ent time to session
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
@@ -91,7 +90,7 @@ namespace PolygonStats
                                             //acc.HashedName =  this.accountName.get
                                             context.Accounts.Add(acc);
                                         }
-                                        Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} has connected.");
+                                        Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has connected.");
                                         Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
                                         acc.Sessions.Add(dbSession);
                                         context.SaveChanges();
