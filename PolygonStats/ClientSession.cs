@@ -15,7 +15,7 @@ namespace PolygonStats
 {
     class ClientSession : TcpSession
     {
-        private string messageBuffer = "";
+        private StringBuilder messageBuffer = new StringBuilder();
         private string accountName = null;
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private int dbSessionId = -1;
@@ -51,60 +51,70 @@ namespace PolygonStats
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             //Console.WriteLine($"Message: {currentMessage}");
 
-            messageBuffer += currentMessage;
-            var jsonStrings = messageBuffer.Split("\n", StringSplitOptions.RemoveEmptyEntries);
-            foreach (string jsonString in jsonStrings)
+            messageBuffer.Append(currentMessage);
+            var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
+            messageBuffer.Clear();
+            for(int index = 0; index < jsonStrings.Length; index++)
             {
-                if(!jsonString.StartsWith("{"))
+                string jsonString = jsonStrings[index];
+                string trimedJsonString = jsonString.Trim('\r', '\n');
+                if(!trimedJsonString.StartsWith("{"))
                 {
                     continue;
                 }
-                if (!jsonString.Equals(""))
-                {
-                    string trimedJsonString = jsonString.Trim('\r', '\n'); ;
-                    try
-                    {
-                        messageBuffer = "";
-                        MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
-                        foreach (Payload payload in message.payloads)
-                        {
-                            if(payload.account_name == null || payload.account_name.Equals("null"))
-                            {
-                                continue;
-                            }
-                            if (this.accountName != payload.account_name)
-                            {
-                                this.accountName = payload.account_name;
-                                getStatEntry();
-
-                                if (ConfigurationManager.shared.config.mysqlSettings.enabled)
-                                {
-                                    using(var context = connectionManager.GetContext()) {
-                                        Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
-                                        if (acc == null)
-                                        {
-                                            acc = new Account();
-                                            acc.Name = this.accountName;
-                                            acc.HashedName = "";
-                                            //TODO: Add hashed name
-                                            //acc.HashedName =  this.accountName.get
-                                            context.Accounts.Add(acc);
-                                        }
-                                        Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has connected.");
-                                        Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
-                                        acc.Sessions.Add(dbSession);
-                                        context.SaveChanges();
-
-                                        dbSessionId = dbSession.Id;
-                                    }
-                                }
-                            }
-                            handlePayload(payload);
-                        }
+                if(!trimedJsonString.EndsWith("}")) {
+                    if(index == jsonStrings.Length - 1){
+                        messageBuffer.Append(jsonString);
                     }
-                    catch (JsonException)
+                    continue;
+                }
+                try
+                {
+                    MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
+                    foreach (Payload payload in message.payloads)
                     {
-                        messageBuffer = jsonString;
+                        if(payload.account_name == null || payload.account_name.Equals("null"))
+                        {
+                            continue;
+                        }
+                        AddAccountAndSessionIfNeeded(payload);
+                        handlePayload(payload);
+                    }
+                }
+                catch (JsonException)
+                {
+                    if(index == jsonStrings.Length - 1){
+                        messageBuffer.Append(jsonString);
+                    }
+                }
+            }
+        }
+
+        private void AddAccountAndSessionIfNeeded(Payload payload) {
+            if (this.accountName != payload.account_name)
+            {
+                this.accountName = payload.account_name;
+                getStatEntry();
+
+                if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                {
+                    using(var context = connectionManager.GetContext()) {
+                        Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
+                        if (acc == null)
+                        {
+                            acc = new Account();
+                            acc.Name = this.accountName;
+                            acc.HashedName = "";
+                            //TODO: Add hashed name
+                            //acc.HashedName =  this.accountName.get
+                            context.Accounts.Add(acc);
+                        }
+                        Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has connected.");
+                        Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
+                        acc.Sessions.Add(dbSession);
+                        context.SaveChanges();
+
+                        dbSessionId = dbSession.Id;
                     }
                 }
             }
