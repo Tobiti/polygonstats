@@ -29,6 +29,7 @@ namespace PolygonStats
 
         protected override void OnDisconnected()
         {
+            Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} has disconnected.");
             Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} disconnected!");
 
             // Add ent time to session
@@ -90,6 +91,7 @@ namespace PolygonStats
                                             //acc.HashedName =  this.accountName.get
                                             context.Accounts.Add(acc);
                                         }
+                                        Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} has connected.");
                                         Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
                                         acc.Sessions.Add(dbSession);
                                         context.SaveChanges();
