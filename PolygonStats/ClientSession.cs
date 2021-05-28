@@ -25,8 +25,6 @@ namespace PolygonStats
         private ILogger fileLogger;
 
         public ClientSession(TcpServer server) : base(server) {
-            this.Socket.ReceiveBufferSize = 8192 * 4;
-            this.Socket.ReceiveTimeout = 10000;
             fileLogger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day)
@@ -35,6 +33,8 @@ namespace PolygonStats
 
         protected override void OnConnected()
         {
+            this.Socket.ReceiveBufferSize = 8192 * 4;
+            this.Socket.ReceiveTimeout = 10000;
             //Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} connected!");
         }
 
