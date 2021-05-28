@@ -26,6 +26,7 @@ namespace PolygonStats
 
         public ClientSession(TcpServer server) : base(server) { 
             fileLogger = new LoggerConfiguration()
+                .MinimumLevel.Error()
                 .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
         }
@@ -37,7 +38,7 @@ namespace PolygonStats
 
         protected override void OnDisconnected()
         {
-            Log.Information($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has disconnected.");
+            Log.Information($"User {this.accountName} with sessionId {Id} has disconnected.");
 
             // Add ent time to session
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
@@ -122,7 +123,7 @@ namespace PolygonStats
                             //acc.HashedName =  this.accountName.get
                             context.Accounts.Add(acc);
                         }
-                        Log.Information($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has connected.");
+                        Log.Information($"User {this.accountName} with sessionId {Id} has connected.");
                         Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
                         acc.Sessions.Add(dbSession);
                         context.SaveChanges();
