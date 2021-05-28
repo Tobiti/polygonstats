@@ -76,7 +76,6 @@ namespace PolygonStats
                 }
                 if(!trimedJsonString.EndsWith("}")) {
                     fileLogger.Debug("Json string didnt end with a }.");
-                    fileLogger.Debug($"{trimedJsonString}");
                     if(index == jsonStrings.Length - 1){
                         messageBuffer.Append(jsonString);
                     }
