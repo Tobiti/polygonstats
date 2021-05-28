@@ -64,15 +64,18 @@ namespace PolygonStats
             messageBuffer.Append(currentMessage);
             var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
             messageBuffer.Clear();
+            fileLogger.Debug($"Message was splitted into {jsonStrings.Length} jsonObjects.");
             for(int index = 0; index < jsonStrings.Length; index++)
             {
                 string jsonString = jsonStrings[index];
                 string trimedJsonString = jsonString.Trim('\r', '\n');
                 if(!trimedJsonString.StartsWith("{"))
                 {
+                    fileLogger.Debug("Json string didnt start with a {.");
                     continue;
                 }
                 if(!trimedJsonString.EndsWith("}")) {
+                    fileLogger.Debug("Json string didnt end with a }.");
                     if(index == jsonStrings.Length - 1){
                         messageBuffer.Append(jsonString);
                     }
