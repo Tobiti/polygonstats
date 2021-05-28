@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using NetCoreServer;
+using Serilog;
 
 namespace PolygonStats
 {
@@ -13,7 +14,7 @@ namespace PolygonStats
 
         protected override void OnError(SocketError error)
         {
-            Console.WriteLine($"Chat TCP server caught an error with code {error}");
+            Log.Error($"Chat TCP server caught an error with code {error}");
         }
     }
 }

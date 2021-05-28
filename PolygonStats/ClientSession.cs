@@ -10,6 +10,7 @@ using static System.Linq.Enumerable;
 using PolygonStats.Models;
 using PolygonStats.Configuration;
 using System.Collections.Generic;
+using Serilog;
 
 namespace PolygonStats
 {
@@ -20,7 +21,14 @@ namespace PolygonStats
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private int dbSessionId = -1;
 
-        public ClientSession(TcpServer server) : base(server) { }
+        private int messageCount = 0;
+        private ILogger fileLogger;
+
+        public ClientSession(TcpServer server) : base(server) { 
+            fileLogger = new LoggerConfiguration()
+                .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+        }
 
         protected override void OnConnected()
         {
@@ -29,7 +37,7 @@ namespace PolygonStats
 
         protected override void OnDisconnected()
         {
-            Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has disconnected.");
+            Log.Information($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has disconnected.");
 
             // Add ent time to session
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
@@ -49,7 +57,8 @@ namespace PolygonStats
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            //Console.WriteLine($"Message: {currentMessage}");
+            
+            fileLogger.Debug($"Message #{messageCount++} was received!");
 
             messageBuffer.Append(currentMessage);
             var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
@@ -71,6 +80,8 @@ namespace PolygonStats
                 try
                 {
                     MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
+                    
+                    fileLogger.Debug($"Handle JsonObject #{index} with {message.payloads.Count} payloads.");
                     foreach (Payload payload in message.payloads)
                     {
                         if(payload.account_name == null || payload.account_name.Equals("null"))
@@ -88,6 +99,8 @@ namespace PolygonStats
                     }
                 }
             }
+            
+            fileLogger.Debug($"Message #{messageCount++} was handled!");
         }
 
         private void AddAccountAndSessionIfNeeded(Payload payload) {
@@ -109,7 +122,7 @@ namespace PolygonStats
                             //acc.HashedName =  this.accountName.get
                             context.Accounts.Add(acc);
                         }
-                        Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has connected.");
+                        Log.Information($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: User {this.accountName} with sessionId {Id} has connected.");
                         Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
                         acc.Sessions.Add(dbSession);
                         context.SaveChanges();
@@ -133,6 +146,7 @@ namespace PolygonStats
 
         private void handlePayload(Payload payload)
         {
+            fileLogger.Debug($"Payload with type {payload.getMethodType().ToString("g")}");
             switch (payload.getMethodType())
             {
                 case Method.Encounter:
@@ -199,8 +213,6 @@ namespace PolygonStats
                     ProcessAttackRaidBattle(payload.account_name, attackRaidBattle);
                     break;
                 default:
-                    //Console.WriteLine($"Account: {payload.account_name}");
-                    //Console.WriteLine($"Type: {payload.getMethodType().ToString("G")}");
                     break;
             }
         }
