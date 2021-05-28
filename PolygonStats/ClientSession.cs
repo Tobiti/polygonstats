@@ -59,7 +59,7 @@ namespace PolygonStats
         {
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             
-            fileLogger.Debug($"Message #{messageCount++} was received!");
+            fileLogger.Debug($"Message #{++messageCount} was received!");
 
             messageBuffer.Append(currentMessage);
             var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
@@ -76,6 +76,7 @@ namespace PolygonStats
                 }
                 if(!trimedJsonString.EndsWith("}")) {
                     fileLogger.Debug("Json string didnt end with a }.");
+                    fileLogger.Debug($"{trimedJsonString}");
                     if(index == jsonStrings.Length - 1){
                         messageBuffer.Append(jsonString);
                     }
@@ -104,7 +105,7 @@ namespace PolygonStats
                 }
             }
             
-            fileLogger.Debug($"Message #{messageCount++} was handled!");
+            fileLogger.Debug($"Message #{messageCount} was handled!");
         }
 
         private void AddAccountAndSessionIfNeeded(Payload payload) {
