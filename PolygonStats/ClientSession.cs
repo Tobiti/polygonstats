@@ -26,7 +26,7 @@ namespace PolygonStats
 
         public ClientSession(TcpServer server) : base(server) {
             fileLogger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Information()
                 .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
         }
