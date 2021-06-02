@@ -213,7 +213,7 @@ namespace PolygonStats
                     int stardust = 0;
                     stardust += lastEntry.BattleResults.RaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
                     stardust += lastEntry.BattleResults.DefaultRaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
-                    entry.addStardust(stardust);
+                    entry.AddStardust(stardust);
                 }
 
                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
@@ -336,7 +336,7 @@ namespace PolygonStats
             if (ConfigurationManager.shared.config.httpSettings.enabled)
             {
                 Stats entry = getStatEntry();
-                entry.addSpinnedPokestop();
+                entry.AddSpinnedPokestop();
                 entry.addXp(fortSearchProto.XpAwarded);
             }
 
@@ -391,7 +391,7 @@ namespace PolygonStats
                 {
                     if (pokemon.PokemonDisplay != null && pokemon.PokemonDisplay.Shiny)
                     {
-                        entry.shinyPokemon++;
+                        entry.ShinyPokemon++;
                     }
                 }
             }
@@ -410,10 +410,10 @@ namespace PolygonStats
                 case CatchPokemonOutProto.Types.Status.CatchSuccess:
                     if (entry != null)
                     {
-                        entry.caughtPokemon++;
+                        entry.CaughtPokemon++;
                         if (caughtPokemon.PokemonDisplay != null && caughtPokemon.PokemonDisplay.Shiny)
                         {
-                            entry.shinyPokemon++;
+                            entry.ShinyPokemon++;
                         }
 
                         entry.addXp(caughtPokemon.Scores.Exp.Sum());
@@ -429,7 +429,7 @@ namespace PolygonStats
                     if (entry != null)
                     {
                         entry.addXp(caughtPokemon.Scores.Exp.Sum());
-                        entry.fleetPokemon++;
+                        entry.FleetPokemon++;
                     }
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)

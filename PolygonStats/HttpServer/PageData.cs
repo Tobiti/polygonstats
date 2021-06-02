@@ -92,45 +92,45 @@ namespace PolygonStats.HttpServer
             sb.Append(getName(isAdmin, stat));
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append(stat.caughtPokemon.ToString());
+            sb.Append(stat.CaughtPokemon.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append(stat.fleetPokemon.ToString());
+            sb.Append(stat.FleetPokemon.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append(stat.shinyPokemon.ToString());
+            sb.Append(stat.ShinyPokemon.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append(stat.spinnedPokestops.ToString());
+            sb.Append(stat.SpinnedPokestops.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getXpPerHour().ToString());
+            sb.Append(stat.XpPerHour.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getXpPerDay().ToString());
+            sb.Append(stat.XpPerDay.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.xpTotal.ToString());
+            sb.Append(stat.XpTotal.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getStardustPerHour().ToString());
+            sb.Append(stat.StardustPerHour.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getStardustPerDay().ToString());
+            sb.Append(stat.StardustPerDay.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.stardustTotal.ToString());
+            sb.Append(stat.StardustTotal.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getCaughtPokemonPerDay().ToString());
+            sb.Append(stat.CaughtPokemonPerDay.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getSpinnedPokestopsPerDay().ToString());
+            sb.Append(stat.SpinnedPokestopsPerDay.ToString());
             sb.Append("</td>");
             if (isAdmin)
             {
                 sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-                sb.Append($"<form method=\"post\" action=\"remove-{stat.accountName}\"><input type=\"submit\" value=\"Remove\"> </form>");
+                sb.Append($"<form method=\"post\" action=\"remove-{stat.AccountName}\"><input type=\"submit\" value=\"Remove\"> </form>");
                 sb.Append("</td>");
             }
             sb.Append("</tr>");
@@ -208,9 +208,9 @@ namespace PolygonStats.HttpServer
         {
             if(isAdmin || ConfigurationManager.shared.config.httpSettings.showAccountNames)
             {
-                return stat.accountName;
+                return stat.AccountName;
             }
-            return $"{stat.accountName.Substring(0, 2)}XXXXXX{stat.accountName.Substring(stat.accountName.Length-2, 2)}";
+            return $"{stat.AccountName.Substring(0, 2)}XXXXXX{stat.AccountName.Substring(stat.AccountName.Length-2, 2)}";
         }
     }
 }
