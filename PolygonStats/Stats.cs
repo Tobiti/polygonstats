@@ -2,7 +2,7 @@
 {
     class Stats
     {
-        private string accountName = null;
+        private string _accountName = null;
         private long _connectionTimestamp = 0;
         private long _caughtPokemon = 0;
         private long _xpTotal = 0;
@@ -18,7 +18,7 @@
         private long Now => new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
 
         public Int64 ShinyPokemon { get => _shinyPokemon; set => _shinyPokemon = value; }
-        public String AccountName { get => accountName; set => accountName = value; }
+        public String AccountName { get => _accountName; set => _accountName = value; }
         public Int64 ConnectionTimestamp { get => _connectionTimestamp; set => _connectionTimestamp = value; }
         public Int64 CaughtPokemon { get => _caughtPokemon; set => _caughtPokemon = value; }
         public Int64 XpTotal { get => _xpTotal; set => _xpTotal = value; }
