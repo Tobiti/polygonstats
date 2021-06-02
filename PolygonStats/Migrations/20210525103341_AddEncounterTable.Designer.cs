@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PolygonStats;
 
 namespace PolygonStats.Migrations
 {
     [DbContext(typeof(MySQLContext))]
-    partial class MySQLContextModelSnapshot : ModelSnapshot
+    [Migration("20210525103341_AddEncounterTable")]
+    partial class AddEncounterTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,6 +78,9 @@ namespace PolygonStats.Migrations
 
                     b.Property<ulong>("EncounterId")
                         .HasColumnType("bigint unsigned");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Form")
                         .IsRequired()

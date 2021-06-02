@@ -1,169 +1,233 @@
 ﻿using Google.Protobuf.Collections;
 using POGOProtos.Rpc;
-using PolygonStats.Configuration;
 using PolygonStats.Models;
 using System;
-using System.Linq;
+using static System.Linq.Queryable;
+using static System.Linq.Enumerable;
+
 namespace PolygonStats
 {
     class MySQLConnectionManager
     {
-        private MySQLContext context;
-
-        public MySQLConnectionManager()
-        {
-            context = new MySQLContext();
+        public MySQLContext GetContext() {
+            return new MySQLContext();
         }
 
-        public MySQLContext GetContext()
-        {
-            return context;
+        public Session GetSession(MySQLContext context, int id) {
+            return context.Sessions.Where(s => s.Id == id).FirstOrDefault<Session>();
         }
 
-        public void AddPokemonToDatabase(Session dbSession, CatchPokemonOutProto catchedPokemon)
-        {
-            LogEntry pokemonLogEntry = new LogEntry { LogEntryType = LogEntryType.Pokemon, CaughtSuccess = catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess, timestamp = DateTime.UtcNow };
-            if (catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess)
-            {
-                if (catchedPokemon.PokemonDisplay != null)
-                {
-                    pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay.Shiny;
-                }
-                pokemonLogEntry.PokemonUniqueId = catchedPokemon.CapturedPokemonId;
-                pokemonLogEntry.CandyAwarded = catchedPokemon.Scores.Candy.Sum();
+        public void AddLogEntry(MySQLContext context, Session session, LogEntry log) {
+
+            Account account = context.Accounts.Where(a => a.Id == session.AccountId).Single();
+            switch(log.LogEntryType) {
+                case LogEntryType.Pokemon:
+                    if (log.PokemonUniqueId != 0) {
+                        account.CaughtPokemon += 1;
+                        account.ShinyPokemon += log.Shiny ? 1 : 0;
+                    } else {
+                        account.EscapedPokemon += 1;
+                    }
+                    break;
+                case LogEntryType.Egg:
+                    account.ShinyPokemon += log.Shiny ? 1 : 0;
+                    break;
+                case LogEntryType.Rocket:
+                    account.Rockets += 1;
+                    break;
+                case LogEntryType.Raid:
+                    account.Raids += 1;
+                    break;
             }
-            pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
-            pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
-            dbSession.LogEntrys.Add(pokemonLogEntry);
-            SaveChanges();
+            account.TotalXp += log.XpReward;
+            account.TotalStardust += log.StardustReward;
+            session.LogEntrys.Add(log);
         }
 
-        public void AddFeedBerryToDatabase(Session dbSession, GymFeedPokemonOutProto gymFeedPokemonProto)
-        {
-            LogEntry feedBerryLogEntry = new LogEntry { LogEntryType = LogEntryType.FeedBerry, timestamp = DateTime.UtcNow };
-
-            feedBerryLogEntry.XpReward = gymFeedPokemonProto.XpAwarded;
-            feedBerryLogEntry.StardustReward = gymFeedPokemonProto.StardustAwarded;
-            feedBerryLogEntry.CandyAwarded = gymFeedPokemonProto.NumCandyAwarded;
-
-            dbSession.LogEntrys.Add(feedBerryLogEntry);
-            SaveChanges();
-        }
-
-        public void AddQuestToDatabase(Session dbSession, RepeatedField<QuestRewardProto> rewards)
-        {
-            LogEntry questLogEntry = new LogEntry { LogEntryType = LogEntryType.Quest, timestamp = DateTime.UtcNow, XpReward = 0, StardustReward = 0 };
-            foreach (QuestRewardProto reward in rewards)
-            {
-                if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Exp)
-                {
-                    questLogEntry.XpReward += reward.Exp;
+        public void AddEncounterToDatabase(EncounterOutProto encounterProto) {
+            using (var context = GetContext()) {
+                if (context.Encounters.Where(e => e.EncounterId == encounterProto.Pokemon.EncounterId).FirstOrDefault() != null ) {
+                    return;
                 }
-                if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Stardust)
-                {
-                    questLogEntry.StardustReward += reward.Stardust;
-                }
-                if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Candy)
-                {
-                    questLogEntry.CandyAwarded += reward.Candy.Amount;
-                    questLogEntry.PokemonName = reward.Candy.PokemonId;
-                }
+
+                Encounter encounter = new Encounter();
+                encounter.EncounterId = encounterProto.Pokemon.EncounterId;
+                encounter.PokemonName = encounterProto.Pokemon.Pokemon.PokemonId;
+                encounter.Form = encounterProto.Pokemon.Pokemon.PokemonDisplay.Form;
+                encounter.Stamina = encounterProto.Pokemon.Pokemon.IndividualStamina;
+                encounter.Attack = encounterProto.Pokemon.Pokemon.IndividualAttack;
+                encounter.Defense = encounterProto.Pokemon.Pokemon.IndividualDefense;
+                encounter.Latitude = encounterProto.Pokemon.Latitude;
+                encounter.Longitude = encounterProto.Pokemon.Longitude;
+                encounter.timestamp = DateTime.UtcNow;
+
+                context.Encounters.Add(encounter);
+                context.SaveChanges();
             }
-            dbSession.LogEntrys.Add(questLogEntry);
-            SaveChanges();
         }
 
-        public void AddHatchedEggToDatabase(Session dbSession, GetHatchedEggsOutProto getHatchedEggsProto)
+        public void AddPokemonToDatabase(int dbSessionId, CatchPokemonOutProto catchedPokemon)
         {
-            for(int index = 0; index < getHatchedEggsProto.HatchedPokemon.Count; index++)
-            {
-                LogEntry eggLogEntry = new LogEntry { LogEntryType = LogEntryType.Egg, timestamp = DateTime.UtcNow, XpReward = 0, StardustReward = 0 };
-                eggLogEntry.XpReward = getHatchedEggsProto.ExpAwarded[index];
-                eggLogEntry.StardustReward = getHatchedEggsProto.StardustAwarded[index];
-                eggLogEntry.CandyAwarded = getHatchedEggsProto.CandyAwarded[index];
-                eggLogEntry.PokemonName = getHatchedEggsProto.HatchedPokemon[index].PokemonId;
-                eggLogEntry.Attack = getHatchedEggsProto.HatchedPokemon[index].IndividualAttack;
-                eggLogEntry.Defense = getHatchedEggsProto.HatchedPokemon[index].IndividualDefense;
-                eggLogEntry.Stamina = getHatchedEggsProto.HatchedPokemon[index].IndividualStamina;
-                eggLogEntry.PokemonUniqueId = getHatchedEggsProto.HatchedPokemon[index].Id;
-                if (getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay != null)
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                LogEntry pokemonLogEntry = new LogEntry { LogEntryType = LogEntryType.Pokemon, CaughtSuccess = catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess, timestamp = DateTime.UtcNow };
+                if (catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess)
                 {
-                    eggLogEntry.Shiny = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Shiny;
+                    if (catchedPokemon.PokemonDisplay != null)
+                    {
+                        pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay.Shiny;
+                    }
+                    pokemonLogEntry.PokemonUniqueId = catchedPokemon.CapturedPokemonId;
+                    pokemonLogEntry.CandyAwarded = catchedPokemon.Scores.Candy.Sum();
                 }
-                dbSession.LogEntrys.Add(eggLogEntry);
+                pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
+                pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
+                this.AddLogEntry(context, dbSession, pokemonLogEntry);
+                context.SaveChanges();
             }
-
-            SaveChanges();
-
         }
 
-        public void AddSpinnedFortToDatabase(Session dbSession, FortSearchOutProto fortSearchProto)
+        public void AddFeedBerryToDatabase(int dbSessionId, GymFeedPokemonOutProto gymFeedPokemonProto)
         {
-            LogEntry fortLogEntry = new LogEntry { LogEntryType = LogEntryType.Fort, timestamp = DateTime.UtcNow };
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                LogEntry feedBerryLogEntry = new LogEntry { LogEntryType = LogEntryType.FeedBerry, timestamp = DateTime.UtcNow };
 
-            fortLogEntry.XpReward = fortSearchProto.XpAwarded;
+                feedBerryLogEntry.XpReward = gymFeedPokemonProto.XpAwarded;
+                feedBerryLogEntry.StardustReward = gymFeedPokemonProto.StardustAwarded;
+                feedBerryLogEntry.CandyAwarded = gymFeedPokemonProto.NumCandyAwarded;
 
-            dbSession.LogEntrys.Add(fortLogEntry);
-            SaveChanges();
+                this.AddLogEntry(context, dbSession, feedBerryLogEntry);
+                context.SaveChanges();
+            }
         }
 
-        public void AddEvolvePokemonToDatabase(Session dbSession, EvolvePokemonOutProto evolvePokemon)
+        public void AddQuestToDatabase(int dbSessionId, RepeatedField<QuestRewardProto> rewards)
         {
-            LogEntry evolveLogEntry = new LogEntry { LogEntryType = LogEntryType.EvolvePokemon, timestamp = DateTime.UtcNow };
-
-            evolveLogEntry.XpReward = evolvePokemon.ExpAwarded;
-            evolveLogEntry.CandyAwarded = evolvePokemon.CandyAwarded;
-            evolveLogEntry.PokemonName = evolvePokemon.EvolvedPokemon.PokemonId;
-            evolveLogEntry.Attack = evolvePokemon.EvolvedPokemon.IndividualAttack;
-            evolveLogEntry.Defense = evolvePokemon.EvolvedPokemon.IndividualDefense;
-            evolveLogEntry.Stamina = evolvePokemon.EvolvedPokemon.IndividualStamina;
-            evolveLogEntry.PokemonUniqueId = evolvePokemon.EvolvedPokemon.Id;
-
-            dbSession.LogEntrys.Add(evolveLogEntry);
-            SaveChanges();
-        }
-
-        internal void AddRocketToDatabase(Session dbSession, UpdateInvasionBattleOutProto updateBattle)
-        {
-            LogEntry rocketLogEntry = new LogEntry { LogEntryType = LogEntryType.Rocket, timestamp = DateTime.UtcNow };
-
-            rocketLogEntry.XpReward = 0;
-            rocketLogEntry.StardustReward = 0;
-            rocketLogEntry.CandyAwarded = 0;
-            foreach (LootItemProto loot in updateBattle.Rewards.LootItem)
-            {
-                switch(loot.TypeCase)
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                LogEntry questLogEntry = new LogEntry { LogEntryType = LogEntryType.Quest, timestamp = DateTime.UtcNow, XpReward = 0, StardustReward = 0 };
+                foreach (QuestRewardProto reward in rewards)
                 {
-                    case LootItemProto.TypeOneofCase.Experience:
-                        rocketLogEntry.XpReward += loot.Count;
-                        break;
-                    case LootItemProto.TypeOneofCase.Stardust:
-                        rocketLogEntry.StardustReward += loot.Count;
-                        break;
-                    case LootItemProto.TypeOneofCase.PokemonCandy:
-                        rocketLogEntry.CandyAwarded += loot.Count;
-                        rocketLogEntry.PokemonName = loot.PokemonCandy;
-                        break;
+                    if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Exp)
+                    {
+                        questLogEntry.XpReward += reward.Exp;
+                    }
+                    if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Stardust)
+                    {
+                        questLogEntry.StardustReward += reward.Stardust;
+                    }
+                    if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Candy)
+                    {
+                        questLogEntry.CandyAwarded += reward.Candy.Amount;
+                        questLogEntry.PokemonName = reward.Candy.PokemonId;
+                    }
                 }
+                this.AddLogEntry(context, dbSession, questLogEntry);
+                context.SaveChanges();
             }
-
-            dbSession.LogEntrys.Add(rocketLogEntry);
-            SaveChanges();
         }
 
-        internal void AddRaidToDatabase(Session dbSession, int xp, int stardust)
+        public void AddHatchedEggToDatabase(int dbSessionId, GetHatchedEggsOutProto getHatchedEggsProto)
         {
-            LogEntry raidLogEntry = new LogEntry { LogEntryType = LogEntryType.Raid, timestamp = DateTime.UtcNow };
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                for(int index = 0; index < getHatchedEggsProto.HatchedPokemon.Count; index++)
+                {
+                    LogEntry eggLogEntry = new LogEntry { LogEntryType = LogEntryType.Egg, timestamp = DateTime.UtcNow, XpReward = 0, StardustReward = 0 };
+                    eggLogEntry.XpReward = getHatchedEggsProto.ExpAwarded[index];
+                    eggLogEntry.StardustReward = getHatchedEggsProto.StardustAwarded[index];
+                    eggLogEntry.CandyAwarded = getHatchedEggsProto.CandyAwarded[index];
+                    eggLogEntry.PokemonName = getHatchedEggsProto.HatchedPokemon[index].PokemonId;
+                    eggLogEntry.Attack = getHatchedEggsProto.HatchedPokemon[index].IndividualAttack;
+                    eggLogEntry.Defense = getHatchedEggsProto.HatchedPokemon[index].IndividualDefense;
+                    eggLogEntry.Stamina = getHatchedEggsProto.HatchedPokemon[index].IndividualStamina;
+                    eggLogEntry.PokemonUniqueId = getHatchedEggsProto.HatchedPokemon[index].Id;
+                    if (getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay != null)
+                    {
+                        eggLogEntry.Shiny = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Shiny;
+                    }
+                    this.AddLogEntry(context, dbSession, eggLogEntry);
+                }
 
-            raidLogEntry.XpReward = xp;
-            raidLogEntry.StardustReward = stardust;
-            dbSession.LogEntrys.Add(raidLogEntry);
-            SaveChanges();
+                context.SaveChanges();
+            }
         }
 
-        public void SaveChanges()
+        public void AddSpinnedFortToDatabase(int dbSessionId, FortSearchOutProto fortSearchProto)
         {
-            context.SaveChanges();
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                LogEntry fortLogEntry = new LogEntry { LogEntryType = LogEntryType.Fort, timestamp = DateTime.UtcNow };
+
+                fortLogEntry.XpReward = fortSearchProto.XpAwarded;
+
+                this.AddLogEntry(context, dbSession, fortLogEntry);
+                context.SaveChanges();
+            }
+        }
+
+        public void AddEvolvePokemonToDatabase(int dbSessionId, EvolvePokemonOutProto evolvePokemon)
+        {
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                LogEntry evolveLogEntry = new LogEntry { LogEntryType = LogEntryType.EvolvePokemon, timestamp = DateTime.UtcNow };
+
+                evolveLogEntry.XpReward = evolvePokemon.ExpAwarded;
+                evolveLogEntry.CandyAwarded = evolvePokemon.CandyAwarded;
+                evolveLogEntry.PokemonName = evolvePokemon.EvolvedPokemon.PokemonId;
+                evolveLogEntry.Attack = evolvePokemon.EvolvedPokemon.IndividualAttack;
+                evolveLogEntry.Defense = evolvePokemon.EvolvedPokemon.IndividualDefense;
+                evolveLogEntry.Stamina = evolvePokemon.EvolvedPokemon.IndividualStamina;
+                evolveLogEntry.PokemonUniqueId = evolvePokemon.EvolvedPokemon.Id;
+
+                this.AddLogEntry(context, dbSession, evolveLogEntry);
+                context.SaveChanges();
+            }
+        }
+
+        internal void AddRocketToDatabase(int dbSessionId, UpdateInvasionBattleOutProto updateBattle)
+        {
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                LogEntry rocketLogEntry = new LogEntry { LogEntryType = LogEntryType.Rocket, timestamp = DateTime.UtcNow };
+
+                rocketLogEntry.XpReward = 0;
+                rocketLogEntry.StardustReward = 0;
+                rocketLogEntry.CandyAwarded = 0;
+                foreach (LootItemProto loot in updateBattle.Rewards.LootItem)
+                {
+                    switch(loot.TypeCase)
+                    {
+                        case LootItemProto.TypeOneofCase.Experience:
+                            rocketLogEntry.XpReward += loot.Count;
+                            break;
+                        case LootItemProto.TypeOneofCase.Stardust:
+                            rocketLogEntry.StardustReward += loot.Count;
+                            break;
+                        case LootItemProto.TypeOneofCase.PokemonCandy:
+                            rocketLogEntry.CandyAwarded += loot.Count;
+                            rocketLogEntry.PokemonName = loot.PokemonCandy;
+                            break;
+                    }
+                }
+
+                this.AddLogEntry(context, dbSession, rocketLogEntry);
+                context.SaveChanges();
+            }
+        }
+
+        internal void AddRaidToDatabase(int dbSessionId, int xp, int stardust)
+        {
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                LogEntry raidLogEntry = new LogEntry { LogEntryType = LogEntryType.Raid, timestamp = DateTime.UtcNow };
+
+                raidLogEntry.XpReward = xp;
+                raidLogEntry.StardustReward = stardust;
+                this.AddLogEntry(context, dbSession, raidLogEntry);
+                context.SaveChanges();
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.Entity;
+using Serilog;
 using System.Net;
 using System.Threading;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -12,6 +12,13 @@ namespace PolygonStats
     {
         static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.Console()
+                .WriteTo.File("logs/main.log", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+
+
             PolygonStats.HttpServer.HttpServer httpServer = null;
             if (ConfigurationManager.shared.config.httpSettings.enabled)
             {
@@ -29,17 +36,17 @@ namespace PolygonStats
                 manager.GetContext().SaveChanges();
             }
 
-            Console.WriteLine($"TCP server port: {ConfigurationManager.shared.config.backendSettings.port}");
+            Log.Information($"TCP server port: {ConfigurationManager.shared.config.backendSettings.port}");
 
             // Create a new TCP chat server
             var server = new PolygonStatServer(IPAddress.Any, ConfigurationManager.shared.config.backendSettings.port);
 
             // Start the server
-            Console.Write("Server starting...");
+            Log.Information("Server starting...");
             server.Start();
-            Console.WriteLine("Done!");
+            Log.Information("Done!");
 
-            Console.WriteLine("Use CTRL+C to close the software!");
+            Log.Information("Use CTRL+C to close the software!");
 
             var exitEvent = new ManualResetEvent(false);
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
@@ -50,13 +57,14 @@ namespace PolygonStats
             exitEvent.WaitOne();
 
             // Stop the server
-            Console.Write("Server stopping...");
+            Log.Information("Server stopping...");
             server.Stop();
+            EncounterManager.shared.Dispose();
             if (httpServer != null)
             {
                 httpServer.Stop();
             }
-            Console.WriteLine("Done!");
+            Log.Information("Done!");
         }
     }
 }

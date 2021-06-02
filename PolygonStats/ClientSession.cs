@@ -5,38 +5,53 @@ using NetCoreServer;
 using System.Text.Json;
 using POGOProtos.Rpc;
 using Google.Protobuf.Collections;
-using System.Linq;
+using static System.Linq.Queryable;
+using static System.Linq.Enumerable;
 using PolygonStats.Models;
 using PolygonStats.Configuration;
 using System.Collections.Generic;
+using Serilog;
 
 namespace PolygonStats
 {
     class ClientSession : TcpSession
     {
-        private string messageBuffer = "";
+        private StringBuilder messageBuffer = new StringBuilder();
         private string accountName = null;
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
-        private Session dbSession;
+        private int dbSessionId = -1;
 
-        public ClientSession(TcpServer server) : base(server) { }
+        private int messageCount = 0;
+        private ILogger fileLogger;
+
+        public ClientSession(TcpServer server) : base(server) {
+            fileLogger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+        }
 
         protected override void OnConnected()
         {
-            Console.WriteLine($"Polygon TCP session with Id {Id} connected!");
+            this.Socket.ReceiveBufferSize = 8192 * 4;
+            this.Socket.ReceiveTimeout = 10000;
+            //Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} connected!");
         }
 
         protected override void OnDisconnected()
         {
-            Console.WriteLine($"Polygon TCP session with Id {Id} disconnected!");
+            Log.Information($"User {this.accountName} with sessionId {Id} has disconnected.");
 
             // Add ent time to session
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                if(dbSession != null)
+                if(dbSessionId != -1)
                 {
-                    dbSession.EndTime = DateTime.UtcNow;
-                    connectionManager.GetContext().SaveChanges();
+                    using (var context = connectionManager.GetContext()) {
+                        Session dbSession = connectionManager.GetSession(context, dbSessionId);
+                        dbSession.EndTime = DateTime.UtcNow;
+                        context.SaveChanges();
+                    }
                 }
             }
 
@@ -45,58 +60,80 @@ namespace PolygonStats
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            //Console.WriteLine($"Message: {currentMessage}");
+            
+            fileLogger.Debug($"Message #{++messageCount} was received!");
 
-            messageBuffer += currentMessage;
-            var jsonStrings = messageBuffer.Split("\n", StringSplitOptions.RemoveEmptyEntries);
-            foreach (string jsonString in jsonStrings)
+            messageBuffer.Append(currentMessage);
+            var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
+            messageBuffer.Clear();
+            fileLogger.Debug($"Message was splitted into {jsonStrings.Length} jsonObjects.");
+            for(int index = 0; index < jsonStrings.Length; index++)
             {
-                if(!jsonString.StartsWith("{"))
+                string jsonString = jsonStrings[index];
+                string trimedJsonString = jsonString.Trim('\r', '\n');
+                if(!trimedJsonString.StartsWith("{"))
                 {
+                    fileLogger.Debug("Json string didnt start with a {.");
                     continue;
                 }
-                if (!jsonString.Equals(""))
-                {
-                    string trimedJsonString = jsonString.Trim('\r', '\n'); ;
-                    try
-                    {
-                        messageBuffer = "";
-                        MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
-                        foreach (Payload payload in message.payloads)
-                        {
-                            if(payload.account_name == null || payload.account_name.Equals("null"))
-                            {
-                                continue;
-                            }
-                            if (this.accountName != payload.account_name)
-                            {
-                                this.accountName = payload.account_name;
-                                getStatEntry();
-
-                                if (ConfigurationManager.shared.config.mysqlSettings.enabled)
-                                {
-                                    MySQLContext context = connectionManager.GetContext();
-                                    Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
-                                    if (acc == null)
-                                    {
-                                        acc = new Account();
-                                        acc.Name = this.accountName;
-                                        acc.HashedName = "";
-                                        //TODO: Add hashed name
-                                        //acc.HashedName =  this.accountName.get
-                                        context.Accounts.Add(acc);
-                                    }
-                                    dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
-                                    acc.Sessions.Add(dbSession);
-                                    context.SaveChanges();
-                                }
-                            }
-                            handlePayload(payload);
-                        }
+                if(!trimedJsonString.EndsWith("}")) {
+                    fileLogger.Debug("Json string didnt end with a }.");
+                    if(index == jsonStrings.Length - 1){
+                        messageBuffer.Append(jsonString);
                     }
-                    catch (JsonException)
+                    continue;
+                }
+                try
+                {
+                    MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
+                    
+                    fileLogger.Debug($"Handle JsonObject #{index} with {message.payloads.Count} payloads.");
+                    foreach (Payload payload in message.payloads)
                     {
-                        messageBuffer = jsonString;
+                        if(payload.account_name == null || payload.account_name.Equals("null"))
+                        {
+                            continue;
+                        }
+                        AddAccountAndSessionIfNeeded(payload);
+                        handlePayload(payload);
+                    }
+                }
+                catch (JsonException)
+                {
+                    if(index == jsonStrings.Length - 1){
+                        messageBuffer.Append(jsonString);
+                    }
+                }
+            }
+            
+            fileLogger.Debug($"Message #{messageCount} was handled!");
+        }
+
+        private void AddAccountAndSessionIfNeeded(Payload payload) {
+            if (this.accountName != payload.account_name)
+            {
+                this.accountName = payload.account_name;
+                getStatEntry();
+
+                if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                {
+                    using(var context = connectionManager.GetContext()) {
+                        Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
+                        if (acc == null)
+                        {
+                            acc = new Account();
+                            acc.Name = this.accountName;
+                            acc.HashedName = "";
+                            //TODO: Add hashed name
+                            //acc.HashedName =  this.accountName.get
+                            context.Accounts.Add(acc);
+                        }
+                        Log.Information($"User {this.accountName} with sessionId {Id} has connected.");
+                        Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
+                        acc.Sessions.Add(dbSession);
+                        context.SaveChanges();
+
+                        dbSessionId = dbSession.Id;
                     }
                 }
             }
@@ -115,8 +152,13 @@ namespace PolygonStats
 
         private void handlePayload(Payload payload)
         {
+            fileLogger.Debug($"Payload with type {payload.getMethodType().ToString("g")}");
             switch (payload.getMethodType())
             {
+                case Method.Encounter:
+                    EncounterOutProto encounterProto = EncounterOutProto.Parser.ParseFrom(payload.getDate());
+                    ProcessEncounter(payload.account_name, encounterProto);
+                    break;
                 case Method.CatchPokemon:
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
                     //Console.WriteLine($"Pokemon {catchPokemonProto.DisplayPokedexId.ToString("G")} Status: {catchPokemonProto.Status.ToString("G")}.");
@@ -177,10 +219,16 @@ namespace PolygonStats
                     ProcessAttackRaidBattle(payload.account_name, attackRaidBattle);
                     break;
                 default:
-                    //Console.WriteLine($"Account: {payload.account_name}");
-                    //Console.WriteLine($"Type: {payload.getMethodType().ToString("G")}");
                     break;
             }
+        }
+
+        private void ProcessEncounter(string account_name, EncounterOutProto encounterProto)
+        {
+            if (!ConfigurationManager.shared.config.encounterSettings.enabled || encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null) {
+                return;
+            }
+            EncounterManager.shared.AddEncounter(encounterProto);
         }
 
         private void ProcessAttackRaidBattle(string account_name, AttackRaidBattleOutProto attackRaidBattle)
@@ -233,7 +281,7 @@ namespace PolygonStats
                         xp = lastEntry.BattleResults.PlayerXpAwarded[index];
                     }
 
-                    connectionManager.AddRaidToDatabase(dbSession, xp, stardust);
+                    connectionManager.AddRaidToDatabase(dbSessionId, xp, stardust);
                 }
             }
         }
@@ -266,7 +314,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddRocketToDatabase(dbSession, updateBattle);
+                connectionManager.AddRocketToDatabase(dbSessionId, updateBattle);
             }
         }
 
@@ -284,18 +332,21 @@ namespace PolygonStats
             foreach (InventoryItemProto item in holoInventory.InventoryDelta.InventoryItem)
             {
                 if (item.InventoryItemData != null)
-                {
+                { 
                     if (item.InventoryItemData.Pokemon != null)
                     {
-                        PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                        LogEntry log = dbSession.LogEntrys.Where(l => l.PokemonUniqueId == pokemon.Id).LastOrDefault();
-                        if (log != null)
-                        {
-                            log.PokemonName = pokemon.PokemonId;
-                            log.Attack = pokemon.IndividualAttack;
-                            log.Defense = pokemon.IndividualDefense;
-                            log.Stamina = pokemon.IndividualStamina;
-                            connectionManager.SaveChanges();
+                        using (var context = connectionManager.GetContext()) {
+                            Session dbSession = connectionManager.GetSession(context, dbSessionId);
+                            PokemonProto pokemon = item.InventoryItemData.Pokemon;
+                            LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
+                            if (log != null)
+                            {
+                                log.PokemonName = pokemon.PokemonId;
+                                log.Attack = pokemon.IndividualAttack;
+                                log.Defense = pokemon.IndividualDefense;
+                                log.Stamina = pokemon.IndividualStamina;
+                                context.SaveChanges();
+                            }
                         }
                     }
                 }
@@ -312,7 +363,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddEvolvePokemonToDatabase(dbSession, evolvePokemon);
+                connectionManager.AddEvolvePokemonToDatabase(dbSessionId, evolvePokemon);
             }
         }
 
@@ -327,7 +378,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddFeedBerryToDatabase(dbSession, feedPokemonProto);
+                connectionManager.AddFeedBerryToDatabase(dbSessionId, feedPokemonProto);
             }
         }
 
@@ -342,7 +393,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddSpinnedFortToDatabase(dbSession, fortSearchProto);
+                connectionManager.AddSpinnedFortToDatabase(dbSessionId, fortSearchProto);
             }
         }
 
@@ -371,7 +422,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddQuestToDatabase(dbSession, rewards);
+                connectionManager.AddQuestToDatabase(dbSessionId, rewards);
             }
         }
         private void ProcessHatchedEggReward(string acc, GetHatchedEggsOutProto getHatchedEggsProto)
@@ -398,7 +449,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddHatchedEggToDatabase(dbSession, getHatchedEggsProto);
+                connectionManager.AddHatchedEggToDatabase(dbSessionId, getHatchedEggsProto);
             }
         }
 
@@ -422,7 +473,7 @@ namespace PolygonStats
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        connectionManager.AddPokemonToDatabase(dbSession, caughtPokemon);
+                        connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon);
                     }
                     break;
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
@@ -434,7 +485,7 @@ namespace PolygonStats
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        connectionManager.AddPokemonToDatabase(dbSession, caughtPokemon);
+                        connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon);
                     }
                     break;
             }
