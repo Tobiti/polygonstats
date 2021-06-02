@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace PolygonStats
+﻿namespace PolygonStats
 {
     class Stats
     {
@@ -18,77 +11,28 @@ namespace PolygonStats
         public long fleetPokemon = 0;
         public long shinyPokemon = 0;
 
-        public Stats()
-        {
-            this.connectionTimestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-        }
-        public Stats(string acc)
-        {
-            this.connectionTimestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            this.accountName = acc;
-        }
+        public Stats() => connectionTimestamp = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+        public Stats(string acc) : this() => accountName = acc;
+        private float Days => (Now - connectionTimestamp) / 60f / 60f / 24f;
+        private float Hours => (Now - connectionTimestamp) / 60f / 60f;
+        private long Now => new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
 
-        public int getXpPerHour()
-        {
-            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            float hours = ((now - connectionTimestamp) / 60f) / 60f;
+        public int getXpPerHour() => (int)(xpTotal / Hours);
 
-            return (int)(xpTotal / hours);
-        }
+        public int getStardustPerHour() => (int)(stardustTotal / Hours);
 
-        public int getStardustPerHour()
-        {
-            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            float hours = ((now - connectionTimestamp) / 60f) / 60f;
+        public int getXpPerDay() => (int)(xpTotal / Days);
 
-            return (int)(stardustTotal / hours);
-        }
+        public int getStardustPerDay() => (int)(stardustTotal / Days);
 
-        public int getXpPerDay()
-        {
-            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            float days = (((now - connectionTimestamp) / 60f) / 60f) / 24f;
+        public void addStardust(long stardust) => stardustTotal += stardust;
 
-            return (int)(xpTotal / days);
-        }
+        public void addXp(long xp) => xpTotal += xp;
 
-        public int getStardustPerDay()
-        {
-            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            float days = (((now - connectionTimestamp) / 60f) / 60f) / 24f;
+        public void addSpinnedPokestop() => spinnedPokestops += 1;
 
-            return (int)(stardustTotal / days);
-        }
+        internal int getCaughtPokemonPerDay() => (int)(caughtPokemon / Days);
 
-        public void addStardust(long stardust)
-        {
-            stardustTotal += stardust;
-        }
-
-        public void addXp(long xp)
-        {
-            xpTotal += xp;
-        }
-
-        public void addSpinnedPokestop()
-        {
-            spinnedPokestops += 1;
-        }
-
-        internal int getCaughtPokemonPerDay()
-        {
-            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            float days = (((now - connectionTimestamp) / 60f) / 60f) / 24f;
-
-            return (int)(caughtPokemon / days);
-        }
-
-        internal int getSpinnedPokestopsPerDay()
-        {
-            long now = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            float days = (((now - connectionTimestamp) / 60f) / 60f) / 24f;
-
-            return (int)(spinnedPokestops / days);
-        }
+        internal int getSpinnedPokestopsPerDay() => (int)(spinnedPokestops / Days);
     }
 }
