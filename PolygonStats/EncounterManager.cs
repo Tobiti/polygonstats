@@ -182,8 +182,8 @@ namespace PolygonStats
         public void Dispose()
         {
             cleanTimer?.Dispose();
-            consumerThread.Interrupt();
-            consumerThread.Join();
+            consumerThread?.Interrupt();
+            consumerThread?.Join();
         }
     }
 }
