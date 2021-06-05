@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using POGOProtos.Rpc;
 
 namespace PolygonStats.Models
 {
@@ -21,11 +22,26 @@ namespace PolygonStats.Models
         [MaxLength(50)]
         public string HashedName { get; set; }
 
-        [DefaultValue(0)]
-        public int TotalXp { get; set; }
+        [DefaultValue(1)]
+        public int Level { get; set; }
+        
+        [Column(TypeName = "nvarchar(24)")]
+        public Team Team { get; set; }
 
         [DefaultValue(0)]
-        public int TotalStardust { get; set; }
+        public int Pokecoins { get; set; }
+        
+        [DefaultValue(0)]
+        public int Experience { get; set; }
+
+        [DefaultValue(0)]
+        public int Stardust { get; set; }
+
+        [DefaultValue(0)]
+        public int TotalGainedXp { get; set; }
+
+        [DefaultValue(0)]
+        public int TotalGainedStardust { get; set; }
 
         [DefaultValue(0)]
         public int CaughtPokemon { get; set; }

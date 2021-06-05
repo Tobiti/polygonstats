@@ -4,6 +4,7 @@ using PolygonStats.Models;
 using System;
 using static System.Linq.Queryable;
 using static System.Linq.Enumerable;
+using Serilog;
 
 namespace PolygonStats
 {
@@ -17,9 +18,13 @@ namespace PolygonStats
             return context.Sessions.Where(s => s.Id == id).FirstOrDefault<Session>();
         }
 
+        public Account GetAccount(MySQLContext context, int accountId) {
+            return context.Accounts.Where(a => a.Id == accountId).Single();
+        }
+
         public void AddLogEntry(MySQLContext context, Session session, LogEntry log) {
 
-            Account account = context.Accounts.Where(a => a.Id == session.AccountId).Single();
+            Account account = GetAccount(context, session.AccountId);
             switch(log.LogEntryType) {
                 case LogEntryType.Pokemon:
                     if (log.PokemonUniqueId != 0) {
@@ -39,8 +44,8 @@ namespace PolygonStats
                     account.Raids += 1;
                     break;
             }
-            account.TotalXp += log.XpReward;
-            account.TotalStardust += log.StardustReward;
+            account.TotalGainedXp += log.XpReward;
+            account.TotalGainedStardust += log.StardustReward;
             session.LogEntrys.Add(log);
         }
 
@@ -226,6 +231,24 @@ namespace PolygonStats
                 raidLogEntry.XpReward = xp;
                 raidLogEntry.StardustReward = stardust;
                 this.AddLogEntry(context, dbSession, raidLogEntry);
+                context.SaveChanges();
+            }
+        }
+
+        internal void AddPlayerInfoToDatabase(int dbSessionId, GetPlayerOutProto player, int level)
+        {
+            if (player.Player == null) {
+                return;
+            }
+
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                Account dbAccount = this.GetAccount(context, dbSession.AccountId);
+                dbAccount.Team = player.Player.Team;
+                dbAccount.Level = level;
+                foreach(CurrencyQuantityProto currency in player.Player.CurrencyBalance) {
+                    Log.Information($"Currency: {currency.CurrencyType} Value: {currency.Quantity}");
+                }
                 context.SaveChanges();
             }
         }

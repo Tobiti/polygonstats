@@ -218,6 +218,10 @@ namespace PolygonStats
                     AttackRaidBattleOutProto attackRaidBattle = AttackRaidBattleOutProto.Parser.ParseFrom(payload.getDate());
                     ProcessAttackRaidBattle(payload.account_name, attackRaidBattle);
                     break;
+                case Method.GetPlayer:
+                    GetPlayerOutProto player = GetPlayerOutProto.Parser.ParseFrom(payload.getDate());
+                    ProcessPlayer(payload.account_name, player, int.Parse(payload.level));
+                    break;
                 default:
                     break;
             }
@@ -450,6 +454,18 @@ namespace PolygonStats
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
                 connectionManager.AddHatchedEggToDatabase(dbSessionId, getHatchedEggsProto);
+            }
+        }
+        private void ProcessPlayer(string acc, GetPlayerOutProto player, int level)
+        {
+            if (!player.Success)
+            {
+                return;
+            }
+
+            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            {
+                connectionManager.AddPlayerInfoToDatabase(dbSessionId, player, level);
             }
         }
 
