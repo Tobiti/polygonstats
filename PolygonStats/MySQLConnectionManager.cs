@@ -257,5 +257,21 @@ namespace PolygonStats
                 context.SaveChanges();
             }
         }
+
+        internal void UpdateLevelAndExp(int dbSessionId, PlayerStatsProto playerStats)
+        {
+            if (playerStats == null) {
+                return;
+            }
+
+            using (var context = new MySQLContext()) {
+                Session dbSession = this.GetSession(context, dbSessionId);
+                Account dbAccount = this.GetAccount(context, dbSession.AccountId);
+                dbAccount.Level = playerStats.Level;
+                dbAccount.Experience = (int) playerStats.Experience;
+                dbAccount.NextLevelExp = playerStats.NextLevelExp;
+                context.SaveChanges();
+            }
+        }
     }
 }

@@ -33,6 +33,9 @@ namespace PolygonStats.Models
         
         [DefaultValue(0)]
         public int Experience { get; set; }
+        
+        [DefaultValue(0)]
+        public long NextLevelExp { get; set; }
 
         [DefaultValue(0)]
         public int Stardust { get; set; }

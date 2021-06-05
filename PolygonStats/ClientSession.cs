@@ -353,6 +353,9 @@ namespace PolygonStats
                             }
                         }
                     }
+                    if (item.InventoryItemData.PlayerStats != null) {
+                        connectionManager.UpdateLevelAndExp(dbSessionId, item.InventoryItemData.PlayerStats);
+                    }
                 }
             }
         }
