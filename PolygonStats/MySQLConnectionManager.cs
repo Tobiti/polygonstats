@@ -246,8 +246,13 @@ namespace PolygonStats
                 Account dbAccount = this.GetAccount(context, dbSession.AccountId);
                 dbAccount.Team = player.Player.Team;
                 dbAccount.Level = level;
-                foreach(CurrencyQuantityProto currency in player.Player.CurrencyBalance) {
-                    Log.Information($"Currency: {currency.CurrencyType} Value: {currency.Quantity}");
+                var currency = player.Player.CurrencyBalance.FirstOrDefault(c => c.CurrencyType.Equals("POKECOIN"));
+                if (currency != null) {
+                    dbAccount.Pokecoins = currency.Quantity;
+                }
+                currency = player.Player.CurrencyBalance.FirstOrDefault(c => c.CurrencyType.Equals("STARDUST"));
+                if (currency != null) {
+                    dbAccount.Stardust = currency.Quantity;
                 }
                 context.SaveChanges();
             }
