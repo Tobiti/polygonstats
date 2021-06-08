@@ -31,6 +31,7 @@ namespace PolygonStats
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private BlockingCollection<EncounterOutProto> blockingEncounterQueue = new BlockingCollection<EncounterOutProto>();
         private Dictionary<ulong, DateTime> alreadySendEncounters = new Dictionary<ulong, DateTime>();
+        private readonly Object lockObj = new Object();
 
         public EncounterManager() {
             if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
@@ -48,10 +49,14 @@ namespace PolygonStats
             consumerThread.Join();
         }
         private void DoCleanTimer(object state) {
-            List<ulong> deleteEncounters = alreadySendEncounters.Keys.Where(key => {
-                return alreadySendEncounters[key].CompareTo(DateTime.Now.Subtract(TimeSpan.FromMinutes(20))) < 0;
-            }).ToList();
-            deleteEncounters.ForEach(id => alreadySendEncounters.Remove(id));
+            lock (lockObj)
+            {
+                List<ulong> deleteEncounters = alreadySendEncounters.Keys.Where(key =>
+                {
+                    return alreadySendEncounters[key].CompareTo(DateTime.Now.Subtract(TimeSpan.FromMinutes(20))) < 0;
+                }).ToList();
+                deleteEncounters.ForEach(id => alreadySendEncounters.Remove(id));
+            }
 
             // Delete all encounter older than 20 minutes from db
             if (ConfigurationManager.shared.config.mysqlSettings.enabled 
@@ -78,7 +83,10 @@ namespace PolygonStats
                     if (alreadySendEncounters.ContainsKey(encounter.Pokemon.EncounterId)) {
                         continue;
                     }
-                    alreadySendEncounters.Add(encounter.Pokemon.EncounterId, DateTime.Now);
+                    lock (lockObj)
+                    {
+                        alreadySendEncounters.Add(encounter.Pokemon.EncounterId, DateTime.Now);
+                    }
                     encounterList.Add(encounter);
 
                     if (!ConfigurationManager.shared.config.mysqlSettings.enabled || !ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
