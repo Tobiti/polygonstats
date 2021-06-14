@@ -24,11 +24,22 @@ namespace PolygonStats
         private int messageCount = 0;
         private ILogger fileLogger;
 
+        private DateTime lastMessageDateTime = DateTime.UtcNow;
+
         public ClientSession(TcpServer server) : base(server) {
             fileLogger = new LoggerConfiguration()
                 .MinimumLevel.Information()
                 .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
+        }
+
+        public bool isConnected()
+        {
+            if ((DateTime.UtcNow - lastMessageDateTime).TotalMinutes <= 1)
+            {
+                return true;
+            }
+            return false;
         }
 
         protected override void OnConnected()
@@ -59,6 +70,7 @@ namespace PolygonStats
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
+            lastMessageDateTime = DateTime.UtcNow;
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             
             fileLogger.Debug($"Message #{++messageCount} was received!");
