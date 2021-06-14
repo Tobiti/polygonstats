@@ -35,7 +35,7 @@ namespace PolygonStats
 
         public bool isConnected()
         {
-            if ((DateTime.UtcNow - lastMessageDateTime).TotalMinutes <= 1)
+            if ((DateTime.UtcNow - lastMessageDateTime).TotalMinutes <= 5)
             {
                 return true;
             }
