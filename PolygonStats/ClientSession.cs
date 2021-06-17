@@ -25,6 +25,7 @@ namespace PolygonStats
         private ILogger logger;
 
         private DateTime lastMessageDateTime = DateTime.UtcNow;
+        private WildPokemonProto lastEncounterPokemon = null;
 
         public ClientSession(TcpServer server) : base(server) {
             if (ConfigurationManager.shared.config.debugSettings.toFiles)
@@ -278,6 +279,7 @@ namespace PolygonStats
             if (!ConfigurationManager.shared.config.encounterSettings.enabled || encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null) {
                 return;
             }
+            lastEncounterPokemon = encounterProto.Pokemon;
             EncounterManager.shared.AddEncounter(encounterProto);
         }
 
@@ -538,7 +540,7 @@ namespace PolygonStats
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon);
+                        connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon, null);
                     }
                     break;
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
@@ -550,7 +552,7 @@ namespace PolygonStats
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
-                        connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon);
+                        connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon, lastEncounterPokemon);
                     }
                     break;
             }

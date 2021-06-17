@@ -71,7 +71,7 @@ namespace PolygonStats
             }
         }
 
-        public void AddPokemonToDatabase(int dbSessionId, CatchPokemonOutProto catchedPokemon)
+        public void AddPokemonToDatabase(int dbSessionId, CatchPokemonOutProto catchedPokemon, WildPokemonProto lastEncounter)
         {
             using (var context = new MySQLContext()) {
                 Session dbSession = this.GetSession(context, dbSessionId);
@@ -84,6 +84,14 @@ namespace PolygonStats
                     }
                     pokemonLogEntry.PokemonUniqueId = catchedPokemon.CapturedPokemonId;
                     pokemonLogEntry.CandyAwarded = catchedPokemon.Scores.Candy.Sum();
+                }
+                if (catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchFlee && lastEncounter != null)
+                {
+                    if (lastEncounter.Pokemon.PokemonDisplay != null)
+                    {
+                        pokemonLogEntry.Shiny = lastEncounter.Pokemon.PokemonDisplay.Shiny;
+                    }
+                    pokemonLogEntry.PokemonName = lastEncounter.Pokemon.PokemonId;
                 }
                 pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
                 pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
