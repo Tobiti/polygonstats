@@ -12,6 +12,7 @@ namespace PolygonStats.Configuration
         {
             public bool debug { get; set; }
             public bool toFiles { get; set; }
+            public bool debugMessages { get; set; }
         }
         public DebugSettings debugSettings { get; set; }
         public class BackendSocketSettings
@@ -60,7 +61,8 @@ namespace PolygonStats.Configuration
             debugSettings = new DebugSettings()
             {
                 debug = false,
-                toFiles = false
+                toFiles = false,
+                debugMessages = false
             };
 
             backendSettings = new BackendSocketSettings()

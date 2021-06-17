@@ -58,7 +58,6 @@ namespace PolygonStats
         {
             this.Socket.ReceiveBufferSize = 8192 * 4;
             this.Socket.ReceiveTimeout = 10000;
-            //Console.WriteLine($"{DateTime.Now.ToString("dd.MM.yy HH:mm")}: Polygon TCP session with Id {Id} connected!");
         }
 
         protected override void OnDisconnected()
@@ -84,24 +83,37 @@ namespace PolygonStats
         {
             lastMessageDateTime = DateTime.UtcNow;
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            
-            logger.Debug($"Message #{++messageCount} was received!");
+
+            if (ConfigurationManager.shared.config.debugSettings.toFiles)
+            {
+                logger.Debug($"Message #{++messageCount} was received!");
+            }
 
             messageBuffer.Append(currentMessage);
             var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
             messageBuffer.Clear();
-            logger.Debug($"Message was splitted into {jsonStrings.Length} jsonObjects.");
+            if (ConfigurationManager.shared.config.debugSettings.toFiles)
+            {
+                logger.Debug($"Message was splitted into {jsonStrings.Length} jsonObjects.");
+            }
             for(int index = 0; index < jsonStrings.Length; index++)
             {
                 string jsonString = jsonStrings[index];
                 string trimedJsonString = jsonString.Trim('\r', '\n');
                 if(!trimedJsonString.StartsWith("{"))
                 {
-                    logger.Debug("Json string didnt start with a {.");
+                    if (ConfigurationManager.shared.config.debugSettings.toFiles)
+                    {
+                        logger.Debug("Json string didnt start with a {.");
+                    }
                     continue;
                 }
-                if(!trimedJsonString.EndsWith("}")) {
-                    logger.Debug("Json string didnt end with a }.");
+                if(!trimedJsonString.EndsWith("}"))
+                {
+                    if (ConfigurationManager.shared.config.debugSettings.toFiles)
+                    {
+                        logger.Debug("Json string didnt end with a }.");
+                    }
                     if(index == jsonStrings.Length - 1){
                         messageBuffer.Append(jsonString);
                     }
@@ -110,8 +122,11 @@ namespace PolygonStats
                 try
                 {
                     MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
-                    
-                    logger.Debug($"Handle JsonObject #{index} with {message.payloads.Count} payloads.");
+
+                    if (ConfigurationManager.shared.config.debugSettings.toFiles)
+                    {
+                        logger.Debug($"Handle JsonObject #{index} with {message.payloads.Count} payloads.");
+                    }
                     foreach (Payload payload in message.payloads)
                     {
                         if(payload.account_name == null || payload.account_name.Equals("null"))
@@ -129,8 +144,11 @@ namespace PolygonStats
                     }
                 }
             }
-            
-            logger.Debug($"Message #{messageCount} was handled!");
+
+            if (ConfigurationManager.shared.config.debugSettings.toFiles)
+            {
+                logger.Debug($"Message #{messageCount} was handled!");
+            }
         }
 
         private void AddAccountAndSessionIfNeeded(Payload payload) {
@@ -175,6 +193,7 @@ namespace PolygonStats
         private void handlePayload(Payload payload)
         {
             logger.Debug($"Payload with type {payload.getMethodType().ToString("g")}");
+            logger.Information($"Payload: \n {JsonSerializer.Serialize(payload)}");
             switch (payload.getMethodType())
             {
                 case Method.Encounter:
@@ -522,8 +541,6 @@ namespace PolygonStats
                         entry.addXp(caughtPokemon.Scores.Exp.Sum());
                         entry.fleetPokemon++;
                     }
-
-                    logger.Information($"A pokemon fleet. Message: \n {JsonSerializer.Serialize(caughtPokemon)}");
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
