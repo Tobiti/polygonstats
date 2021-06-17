@@ -148,8 +148,6 @@ namespace PolygonStats
                             acc = new Account();
                             acc.Name = this.accountName;
                             acc.HashedName = "";
-                            //TODO: Add hashed name
-                            //acc.HashedName =  this.accountName.get
                             context.Accounts.Add(acc);
                         }
                         Log.Information($"User {this.accountName} with sessionId {Id} has connected.");
@@ -524,6 +522,8 @@ namespace PolygonStats
                         entry.addXp(caughtPokemon.Scores.Exp.Sum());
                         entry.fleetPokemon++;
                     }
+
+                    logger.Information($"A pokemon fleet. Message: \n {JsonSerializer.Serialize(caughtPokemon)}");
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                     {
