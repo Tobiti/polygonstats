@@ -193,7 +193,7 @@ namespace PolygonStats
         private void handlePayload(Payload payload)
         {
             logger.Debug($"Payload with type {payload.getMethodType().ToString("g")}");
-            logger.Information($"Payload: \n {JsonSerializer.Serialize(payload)}");
+            logger.Debug($"Payload: \n {JsonSerializer.Serialize(payload)}");
             switch (payload.getMethodType())
             {
                 case Method.Encounter:
