@@ -193,15 +193,20 @@ namespace PolygonStats
         private void handlePayload(Payload payload)
         {
             logger.Debug($"Payload with type {payload.getMethodType().ToString("g")}");
-            logger.Debug($"Payload: \n {JsonSerializer.Serialize(payload)}");
             switch (payload.getMethodType())
             {
+                case Method.CheckAwardedBadges:
+                    CheckAwardedBadgesOutProto badge = CheckAwardedBadgesOutProto.Parser.ParseFrom(payload.getDate());
+                    logger.Debug($"Proto: {JsonSerializer.Serialize(badge)}");
+                    break;
                 case Method.Encounter:
                     EncounterOutProto encounterProto = EncounterOutProto.Parser.ParseFrom(payload.getDate());
+                    logger.Debug($"Proto: {JsonSerializer.Serialize(encounterProto)}");
                     ProcessEncounter(payload.account_name, encounterProto);
                     break;
                 case Method.CatchPokemon:
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
+                    logger.Debug($"Proto: {JsonSerializer.Serialize(catchPokemonProto)}");
                     ProcessCaughtPokemon(catchPokemonProto);
                     break;
                 case Method.GymFeedPokemon:
@@ -248,6 +253,7 @@ namespace PolygonStats
                     break;
                 case Method.GetHoloholoInventory:
                     GetHoloholoInventoryOutProto holoInventory = GetHoloholoInventoryOutProto.Parser.ParseFrom(payload.getDate());
+                    logger.Debug($"Proto: {JsonSerializer.Serialize(holoInventory)}");
                     ProcessHoloHoloInventory(payload.account_name, holoInventory);
                     break;
                 case Method.InvasionBattleUpdate:
