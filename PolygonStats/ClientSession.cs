@@ -84,7 +84,7 @@ namespace PolygonStats
             lastMessageDateTime = DateTime.UtcNow;
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
 
-            if (ConfigurationManager.shared.config.debugSettings.toFiles)
+            if (ConfigurationManager.shared.config.debugSettings.debugMessages)
             {
                 logger.Debug($"Message #{++messageCount} was received!");
             }
@@ -92,7 +92,7 @@ namespace PolygonStats
             messageBuffer.Append(currentMessage);
             var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
             messageBuffer.Clear();
-            if (ConfigurationManager.shared.config.debugSettings.toFiles)
+            if (ConfigurationManager.shared.config.debugSettings.debugMessages)
             {
                 logger.Debug($"Message was splitted into {jsonStrings.Length} jsonObjects.");
             }
@@ -102,7 +102,7 @@ namespace PolygonStats
                 string trimedJsonString = jsonString.Trim('\r', '\n');
                 if(!trimedJsonString.StartsWith("{"))
                 {
-                    if (ConfigurationManager.shared.config.debugSettings.toFiles)
+                    if (ConfigurationManager.shared.config.debugSettings.debugMessages)
                     {
                         logger.Debug("Json string didnt start with a {.");
                     }
@@ -110,7 +110,7 @@ namespace PolygonStats
                 }
                 if(!trimedJsonString.EndsWith("}"))
                 {
-                    if (ConfigurationManager.shared.config.debugSettings.toFiles)
+                    if (ConfigurationManager.shared.config.debugSettings.debugMessages)
                     {
                         logger.Debug("Json string didnt end with a }.");
                     }
@@ -123,7 +123,7 @@ namespace PolygonStats
                 {
                     MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
 
-                    if (ConfigurationManager.shared.config.debugSettings.toFiles)
+                    if (ConfigurationManager.shared.config.debugSettings.debugMessages)
                     {
                         logger.Debug($"Handle JsonObject #{index} with {message.payloads.Count} payloads.");
                     }
@@ -145,7 +145,7 @@ namespace PolygonStats
                 }
             }
 
-            if (ConfigurationManager.shared.config.debugSettings.toFiles)
+            if (ConfigurationManager.shared.config.debugSettings.debugMessages)
             {
                 logger.Debug($"Message #{messageCount} was handled!");
             }
