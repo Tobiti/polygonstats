@@ -22,15 +22,27 @@ namespace PolygonStats
         private int dbSessionId = -1;
 
         private int messageCount = 0;
-        private ILogger fileLogger;
+        private ILogger logger;
 
         private DateTime lastMessageDateTime = DateTime.UtcNow;
 
         public ClientSession(TcpServer server) : base(server) {
-            fileLogger = new LoggerConfiguration()
-                .MinimumLevel.Information()
-                .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
+            if (ConfigurationManager.shared.config.debugSettings.toFiles)
+            {
+                LoggerConfiguration configuration = new LoggerConfiguration()
+                    .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day);
+                if (ConfigurationManager.shared.config.debugSettings.debug)
+                {
+                    configuration = configuration.MinimumLevel.Debug();
+                } else
+                {
+                    configuration = configuration.MinimumLevel.Information();
+                }
+                logger = configuration.CreateLogger();
+            } else
+            {
+                logger = Log.Logger;
+            }
         }
 
         public bool isConnected()
@@ -73,23 +85,23 @@ namespace PolygonStats
             lastMessageDateTime = DateTime.UtcNow;
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             
-            fileLogger.Debug($"Message #{++messageCount} was received!");
+            logger.Debug($"Message #{++messageCount} was received!");
 
             messageBuffer.Append(currentMessage);
             var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
             messageBuffer.Clear();
-            fileLogger.Debug($"Message was splitted into {jsonStrings.Length} jsonObjects.");
+            logger.Debug($"Message was splitted into {jsonStrings.Length} jsonObjects.");
             for(int index = 0; index < jsonStrings.Length; index++)
             {
                 string jsonString = jsonStrings[index];
                 string trimedJsonString = jsonString.Trim('\r', '\n');
                 if(!trimedJsonString.StartsWith("{"))
                 {
-                    fileLogger.Debug("Json string didnt start with a {.");
+                    logger.Debug("Json string didnt start with a {.");
                     continue;
                 }
                 if(!trimedJsonString.EndsWith("}")) {
-                    fileLogger.Debug("Json string didnt end with a }.");
+                    logger.Debug("Json string didnt end with a }.");
                     if(index == jsonStrings.Length - 1){
                         messageBuffer.Append(jsonString);
                     }
@@ -99,7 +111,7 @@ namespace PolygonStats
                 {
                     MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
                     
-                    fileLogger.Debug($"Handle JsonObject #{index} with {message.payloads.Count} payloads.");
+                    logger.Debug($"Handle JsonObject #{index} with {message.payloads.Count} payloads.");
                     foreach (Payload payload in message.payloads)
                     {
                         if(payload.account_name == null || payload.account_name.Equals("null"))
@@ -118,7 +130,7 @@ namespace PolygonStats
                 }
             }
             
-            fileLogger.Debug($"Message #{messageCount} was handled!");
+            logger.Debug($"Message #{messageCount} was handled!");
         }
 
         private void AddAccountAndSessionIfNeeded(Payload payload) {
@@ -164,7 +176,7 @@ namespace PolygonStats
 
         private void handlePayload(Payload payload)
         {
-            fileLogger.Debug($"Payload with type {payload.getMethodType().ToString("g")}");
+            logger.Debug($"Payload with type {payload.getMethodType().ToString("g")}");
             switch (payload.getMethodType())
             {
                 case Method.Encounter:
@@ -173,7 +185,6 @@ namespace PolygonStats
                     break;
                 case Method.CatchPokemon:
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
-                    //Console.WriteLine($"Pokemon {catchPokemonProto.DisplayPokedexId.ToString("G")} Status: {catchPokemonProto.Status.ToString("G")}.");
                     ProcessCaughtPokemon(catchPokemonProto);
                     break;
                 case Method.GymFeedPokemon:

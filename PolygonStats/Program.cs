@@ -12,12 +12,19 @@ namespace PolygonStats
     {
         static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
+            LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
                 .WriteTo.Console()
-                .WriteTo.File("logs/main.log", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
+                .WriteTo.File("logs/main.log", rollingInterval: RollingInterval.Day);
 
+            if (ConfigurationManager.shared.config.debugSettings.debug)
+            {
+                loggerConfiguration = loggerConfiguration.MinimumLevel.Debug();
+            }
+            else
+            {
+                loggerConfiguration = loggerConfiguration.MinimumLevel.Information();
+            }
+            Log.Logger = loggerConfiguration.CreateLogger();
 
             PolygonStats.HttpServer.HttpServer httpServer = null;
             if (ConfigurationManager.shared.config.httpSettings.enabled)
