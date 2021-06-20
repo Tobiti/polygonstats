@@ -128,7 +128,7 @@ namespace PolygonStats
                     Author = new EmbedAuthorBuilder(){
                         Name = $"{pokemon.PokemonId.ToString("g")} (#{(int) pokemon.PokemonId})",
                     },
-                    ThumbnailUrl = $"https://img.pokemondb.net/sprites/bank/normal/{pokemon.PokemonId.ToString("g").ToLower().Replace("female", "-f").Replace("male", "-m")}.png",
+                    ThumbnailUrl = getPokemonImageUrl(pokemon.PokemonId),
                     Fields = new List<EmbedFieldBuilder>(){
                         new EmbedFieldBuilder(){
                             Name = "IV",
@@ -160,6 +160,21 @@ namespace PolygonStats
                 } catch (Exception) {
                     errors++;
                 }
+            }
+        }
+
+        private string getPokemonImageUrl(HoloPokemonId pokemon)
+        {
+            switch (pokemon)
+            {
+                case HoloPokemonId.MrRime:
+                    return $"https://img.pokemondb.net/sprites/go/normal/mr-rime.png";
+                case HoloPokemonId.MrMime:
+                    return $"https://img.pokemondb.net/sprites/bank/normal/mr-mime.png";
+                case HoloPokemonId.MimeJr:
+                    return $"https://img.pokemondb.net/sprites/bank/normal/mime-jr.png";
+                default:
+                    return $"https://img.pokemondb.net/sprites/bank/normal/{pokemon.ToString("g").ToLower().Replace("female", "-f").Replace("male", "-m")}.png";
             }
         }
 
