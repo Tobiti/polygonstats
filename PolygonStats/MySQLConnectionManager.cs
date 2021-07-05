@@ -23,29 +23,6 @@ namespace PolygonStats
         }
 
         public void AddLogEntry(MySQLContext context, Session session, LogEntry log) {
-
-            Account account = GetAccount(context, session.AccountId);
-            switch(log.LogEntryType) {
-                case LogEntryType.Pokemon:
-                    if (log.PokemonUniqueId != 0) {
-                        account.CaughtPokemon += 1;
-                        account.ShinyPokemon += log.Shiny ? 1 : 0;
-                    } else {
-                        account.EscapedPokemon += 1;
-                    }
-                    break;
-                case LogEntryType.Egg:
-                    account.ShinyPokemon += log.Shiny ? 1 : 0;
-                    break;
-                case LogEntryType.Rocket:
-                    account.Rockets += 1;
-                    break;
-                case LogEntryType.Raid:
-                    account.Raids += 1;
-                    break;
-            }
-            account.TotalGainedXp += log.XpReward;
-            account.TotalGainedStardust += log.StardustReward;
             session.LogEntrys.Add(log);
         }
 
