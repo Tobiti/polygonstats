@@ -47,6 +47,9 @@ namespace PolygonStats.Models
         public int TotalGainedStardust { get; set; }
 
         [DefaultValue(0)]
+        public int TotalMinutes { get; set; }
+
+        [DefaultValue(0)]
         public int CaughtPokemon { get; set; }
 
         [DefaultValue(0)]
