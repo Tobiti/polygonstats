@@ -274,11 +274,14 @@ namespace PolygonStats
 
             using (var context = new MySQLContext()) {
                 Session dbSession = this.GetSession(context, dbSessionId);
-                Account dbAccount = this.GetAccount(context, dbSession.AccountId);
-                dbAccount.Level = playerStats.Level;
-                dbAccount.Experience = (int) playerStats.Experience;
-                dbAccount.NextLevelExp = playerStats.NextLevelExp;
-                context.SaveChanges();
+                if (dbSession != null)
+                {
+                    Account dbAccount = this.GetAccount(context, dbSession.AccountId);
+                    dbAccount.Level = playerStats.Level;
+                    dbAccount.Experience = (int)playerStats.Experience;
+                    dbAccount.NextLevelExp = playerStats.NextLevelExp;
+                    context.SaveChanges();
+                }
             }
         }
     }
