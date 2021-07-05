@@ -67,6 +67,12 @@ namespace PolygonStats.Models
         [DefaultValue(0)]
         public int Raids { get; set; }
 
+        [DefaultValue(0)]
+        public int MaxIV { get; set; }
+
+        [DefaultValue(0)]
+        public int Shadow { get; set; }
+
         public IList<Session> Sessions { get; set; } = new List<Session>();
     }
 }
