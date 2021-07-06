@@ -35,7 +35,7 @@ namespace PolygonStats
             session.LogEntrys.Add(log);
         }
 
-        public void AddEncounterToDatabase(EncounterOutProto encounterProto) {
+        public void AddEncounterToDatabase(EncounterOutProto encounterProto, MySQLContext context) {
             if (context.Encounters.Where(e => e.EncounterId == encounterProto.Pokemon.EncounterId).FirstOrDefault() != null ) {
                 return;
             }
@@ -52,8 +52,6 @@ namespace PolygonStats
             encounter.timestamp = DateTime.UtcNow;
 
             context.Encounters.Add(encounter);
-
-            SaveChanges();
         }
 
         public void AddPokemonToDatabase(int dbSessionId, CatchPokemonOutProto catchedPokemon, WildPokemonProto lastEncounter)

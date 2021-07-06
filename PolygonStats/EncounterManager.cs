@@ -77,25 +77,30 @@ namespace PolygonStats
         private void EncounterConsumer() {
             while(true) {
                 List<EncounterOutProto> encounterList = new List<EncounterOutProto>();
-                while (blockingEncounterQueue.Count > 0)
+                using (var context = connectionManager.GetOwnContext())
                 {
-                    EncounterOutProto encounter = blockingEncounterQueue.Take();
-                    if (alreadySendEncounters.ContainsKey(encounter.Pokemon.EncounterId)) {
-                        continue;
-                    }
-                    lock (lockObj)
+                    while (blockingEncounterQueue.Count > 0)
                     {
-                        alreadySendEncounters.Add(encounter.Pokemon.EncounterId, DateTime.Now);
-                    }
-                    encounterList.Add(encounter);
+                        EncounterOutProto encounter = blockingEncounterQueue.Take();
+                        if (alreadySendEncounters.ContainsKey(encounter.Pokemon.EncounterId))
+                        {
+                            continue;
+                        }
+                        lock (lockObj)
+                        {
+                            alreadySendEncounters.Add(encounter.Pokemon.EncounterId, DateTime.Now);
+                        }
+                        encounterList.Add(encounter);
 
-                    if (!ConfigurationManager.shared.config.mysqlSettings.enabled || !ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
-                    {
-                        continue;
+                        if (!ConfigurationManager.shared.config.mysqlSettings.enabled || !ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
+                        {
+                            continue;
+                        }
+                        connectionManager.AddEncounterToDatabase(encounter, context);
                     }
-                    connectionManager.AddEncounterToDatabase(encounter);
+                    context.SaveChanges();
                 }
-                if(encounterList.Count > 0) {
+                if (encounterList.Count > 0) {
                     ConfigurationManager.shared.config.encounterSettings.discordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounterList));
                     Thread.Sleep(3000);
                 }
