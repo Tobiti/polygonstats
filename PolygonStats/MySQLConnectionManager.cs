@@ -264,8 +264,9 @@ namespace PolygonStats
             {
                 queryCount = 0;
                 context.SaveChanges();
-                context.Dispose();
+                MySQLContext oldContext = context;
                 context = new MySQLContext();
+                oldContext.Dispose();
             }
         }
 
