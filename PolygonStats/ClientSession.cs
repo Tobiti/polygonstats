@@ -48,7 +48,7 @@ namespace PolygonStats
 
         public bool isConnected()
         {
-            if ((DateTime.UtcNow - lastMessageDateTime).TotalMinutes <= 5)
+            if ((DateTime.UtcNow - lastMessageDateTime).TotalMinutes <= 20)
             {
                 return true;
             }
@@ -70,19 +70,14 @@ namespace PolygonStats
             {
                 if(dbSessionId != -1)
                 {
-                    using (var context = connectionManager.GetOwnContext()) {
+                    using (var context = connectionManager.GetContext()) {
                         Session dbSession = connectionManager.GetSession(context, dbSessionId);
-                        dbSession.EndTime = DateTime.UtcNow;
+                        dbSession.EndTime = lastMessageDateTime;
                         context.SaveChanges();
                     }
                 }
             }
-        }
 
-        protected override void Dispose(bool disposingManagedResources)
-        {
-            base.Dispose(disposingManagedResources);
-            connectionManager.Dispose();
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -165,7 +160,7 @@ namespace PolygonStats
 
                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                 {
-                    using(var context = connectionManager.GetOwnContext()) {
+                    using(var context = connectionManager.GetContext()) {
                         Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
                         if (acc == null)
                         {
@@ -392,17 +387,18 @@ namespace PolygonStats
                 { 
                     if (item.InventoryItemData.Pokemon != null)
                     {
-                        var context = connectionManager.GetContext();
-                        Session dbSession = connectionManager.GetSession(context, dbSessionId);
-                        PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                        LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
-                        if (log != null)
-                        {
-                            log.PokemonName = pokemon.PokemonId;
-                            log.Attack = pokemon.IndividualAttack;
-                            log.Defense = pokemon.IndividualDefense;
-                            log.Stamina = pokemon.IndividualStamina;
-                            connectionManager.SaveChanges();
+                        using (var context = connectionManager.GetContext()) {
+                            Session dbSession = connectionManager.GetSession(context, dbSessionId);
+                            PokemonProto pokemon = item.InventoryItemData.Pokemon;
+                            LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
+                            if (log != null)
+                            {
+                                log.PokemonName = pokemon.PokemonId;
+                                log.Attack = pokemon.IndividualAttack;
+                                log.Defense = pokemon.IndividualDefense;
+                                log.Stamina = pokemon.IndividualStamina;
+                                context.SaveChanges();
+                            }
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {

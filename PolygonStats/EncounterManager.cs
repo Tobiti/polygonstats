@@ -77,7 +77,8 @@ namespace PolygonStats
         private void EncounterConsumer() {
             while(true) {
                 List<EncounterOutProto> encounterList = new List<EncounterOutProto>();
-                using (var context = connectionManager.GetOwnContext())
+
+                using (var context = new MySQLContext())
                 {
                     while (blockingEncounterQueue.Count > 0)
                     {
@@ -100,7 +101,7 @@ namespace PolygonStats
                     }
                     context.SaveChanges();
                 }
-                if (encounterList.Count > 0) {
+                if(encounterList.Count > 0) {
                     ConfigurationManager.shared.config.encounterSettings.discordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounterList));
                     Thread.Sleep(3000);
                 }
@@ -212,7 +213,6 @@ namespace PolygonStats
             cleanTimer?.Dispose();
             consumerThread?.Interrupt();
             consumerThread?.Join();
-            connectionManager.Dispose();
         }
     }
 }
