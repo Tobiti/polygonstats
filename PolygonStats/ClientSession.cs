@@ -392,18 +392,17 @@ namespace PolygonStats
                 { 
                     if (item.InventoryItemData.Pokemon != null)
                     {
-                        using (var context = connectionManager.GetContext()) {
-                            Session dbSession = connectionManager.GetSession(context, dbSessionId);
-                            PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                            LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
-                            if (log != null)
-                            {
-                                log.PokemonName = pokemon.PokemonId;
-                                log.Attack = pokemon.IndividualAttack;
-                                log.Defense = pokemon.IndividualDefense;
-                                log.Stamina = pokemon.IndividualStamina;
-                                connectionManager.SaveChanges();
-                            }
+                        var context = connectionManager.GetContext()
+                        Session dbSession = connectionManager.GetSession(context, dbSessionId);
+                        PokemonProto pokemon = item.InventoryItemData.Pokemon;
+                        LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
+                        if (log != null)
+                        {
+                            log.PokemonName = pokemon.PokemonId;
+                            log.Attack = pokemon.IndividualAttack;
+                            log.Defense = pokemon.IndividualDefense;
+                            log.Stamina = pokemon.IndividualStamina;
+                            connectionManager.SaveChanges();
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {
