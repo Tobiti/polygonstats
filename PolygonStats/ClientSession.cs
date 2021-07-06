@@ -389,7 +389,6 @@ namespace PolygonStats
                     if (item.InventoryItemData.Pokemon != null)
                     {
                         using (var context = connectionManager.GetContext()) {
-                            Session dbSession = connectionManager.GetSession(context, dbSessionId);
                             PokemonProto pokemon = item.InventoryItemData.Pokemon;
                             LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
                             if (log != null)
@@ -403,7 +402,7 @@ namespace PolygonStats
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {
-                        connectionManager.UpdateLevelAndExp(dbSessionId, item.InventoryItemData.PlayerStats);
+                        connectionManager.UpdateLevelAndExp(account, item.InventoryItemData.PlayerStats);
                     }
                 }
             }
@@ -517,7 +516,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddPlayerInfoToDatabase(dbSessionId, player, level);
+                connectionManager.AddPlayerInfoToDatabase(account, player, level);
             }
         }
 

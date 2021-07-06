@@ -14,8 +14,9 @@ namespace PolygonStats
             return new MySQLContext();
         }
 
-        public Account GetAccount(MySQLContext context, int accountId) {
-            return context.Accounts.Where(a => a.Id == accountId).Single();
+        public Session GetSession(MySQLContext context, int id)
+        {
+            return context.Sessions.Where(s => s.Id == id).FirstOrDefault<Session>();
         }
 
         public void AddLogEntry(MySQLContext context, int SessionId, LogEntry log) {
