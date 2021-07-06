@@ -392,7 +392,7 @@ namespace PolygonStats
                 { 
                     if (item.InventoryItemData.Pokemon != null)
                     {
-                        var context = connectionManager.GetContext()
+                        var context = connectionManager.GetContext();
                         Session dbSession = connectionManager.GetSession(context, dbSessionId);
                         PokemonProto pokemon = item.InventoryItemData.Pokemon;
                         LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
