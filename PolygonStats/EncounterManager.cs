@@ -207,6 +207,7 @@ namespace PolygonStats
             cleanTimer?.Dispose();
             consumerThread?.Interrupt();
             consumerThread?.Join();
+            connectionManager.Dispose();
         }
     }
 }

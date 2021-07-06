@@ -70,14 +70,19 @@ namespace PolygonStats
             {
                 if(dbSessionId != -1)
                 {
-                    using (var context = connectionManager.GetContext()) {
+                    using (var context = connectionManager.GetOwnContext()) {
                         Session dbSession = connectionManager.GetSession(context, dbSessionId);
                         dbSession.EndTime = DateTime.UtcNow;
                         context.SaveChanges();
                     }
                 }
             }
+        }
 
+        protected override void Dispose(bool disposingManagedResources)
+        {
+            base.Dispose(disposingManagedResources);
+            connectionManager.Dispose();
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
@@ -160,7 +165,7 @@ namespace PolygonStats
 
                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                 {
-                    using(var context = connectionManager.GetContext()) {
+                    using(var context = connectionManager.GetOwnContext()) {
                         Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
                         if (acc == null)
                         {
@@ -397,7 +402,7 @@ namespace PolygonStats
                                 log.Attack = pokemon.IndividualAttack;
                                 log.Defense = pokemon.IndividualDefense;
                                 log.Stamina = pokemon.IndividualStamina;
-                                context.SaveChanges();
+                                connectionManager.SaveChanges();
                             }
                         }
                     }
