@@ -391,7 +391,7 @@ namespace PolygonStats
                     {
                         using (var context = connectionManager.GetContext()) {
                             PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                            context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName={pokemon.PokemonId.ToString("G")}, Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id}");
+                            context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName="{pokemon.PokemonId.ToString("G")}", Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id}");
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {
