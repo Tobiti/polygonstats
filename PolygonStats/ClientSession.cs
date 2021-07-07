@@ -11,6 +11,7 @@ using PolygonStats.Models;
 using PolygonStats.Configuration;
 using System.Collections.Generic;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 namespace PolygonStats
 {
@@ -390,19 +391,16 @@ namespace PolygonStats
                     {
                         using (var context = connectionManager.GetContext()) {
                             PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                            LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
-                            if (log != null)
-                            {
-                                log.PokemonName = pokemon.PokemonId;
-                                log.Attack = pokemon.IndividualAttack;
-                                log.Defense = pokemon.IndividualDefense;
-                                log.Stamina = pokemon.IndividualStamina;
-                                context.SaveChanges();
-                            }
+                            context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName={pokemon.PokemonId.ToString("G")}, Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id}");
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {
                         connectionManager.UpdateLevelAndExp(account, item.InventoryItemData.PlayerStats);
+                    }
+                    if (item.InventoryItemData.Item != null)
+                    {
+                        var itemData = item.InventoryItemData.Item;
+                        logger.Information($"Item: {itemData.ItemId.ToString("G")} Count: {itemData.Count}");
                     }
                 }
             }
