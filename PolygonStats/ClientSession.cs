@@ -397,11 +397,6 @@ namespace PolygonStats
                     if (item.InventoryItemData.PlayerStats != null) {
                         connectionManager.UpdateLevelAndExp(account, item.InventoryItemData.PlayerStats);
                     }
-                    if (item.InventoryItemData.Item != null)
-                    {
-                        var itemData = item.InventoryItemData.Item;
-                        logger.Information($"Item: {itemData.ItemId.ToString("G")} Count: {itemData.Count}");
-                    }
                 }
             }
         }
