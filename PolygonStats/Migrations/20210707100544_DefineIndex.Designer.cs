@@ -9,8 +9,8 @@ using PolygonStats;
 namespace PolygonStats.Migrations
 {
     [DbContext(typeof(MySQLContext))]
-    [Migration("20210707100253_RevertUnique")]
-    partial class RevertUnique
+    [Migration("20210707100544_DefineIndex")]
+    partial class DefineIndex
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

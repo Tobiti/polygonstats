@@ -9,8 +9,7 @@ namespace PolygonStats.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_SessionLogEntry_PokemonUniqueId",
                 table: "SessionLogEntry",
-                column: "PokemonUniqueId",
-                unique: true);
+                column: "PokemonUniqueId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
