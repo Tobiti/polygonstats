@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using static POGOProtos.Rpc.PokemonDisplayProto.Types;
 
 namespace PolygonStats.Models
 {
@@ -48,6 +49,14 @@ namespace PolygonStats.Models
         public int CandyAwarded { get; set; }
 
         public bool Shiny { get; set; }
+
+        public bool Shadow { get; set; }
+
+        [Column(TypeName = "nvarchar(50)")]
+        public Costume Costume { get; set; }
+
+        [Column(TypeName = "nvarchar(50)")]
+        public Form Form { get; set; }
 
         [Required]
         public DateTime timestamp { get; set; }

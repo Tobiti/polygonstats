@@ -308,6 +308,13 @@ namespace PolygonStats
             {
                 int index = lastEntry.BattleResults.Attackers.IndexOf(ownParticipant);
 
+                if (lastEntry.BattleResults.PostRaidEncounter != null && lastEntry.BattleResults.PostRaidEncounter.Count > 0)
+                {
+                    lastEncounterPokemon = new WildPokemonProto() {
+                        Pokemon = lastEntry.BattleResults.PostRaidEncounter.First().Pokemon
+                    };
+                }
+
                 if (ConfigurationManager.shared.config.httpSettings.enabled)
                 {
                     Stats entry = getStatEntry();

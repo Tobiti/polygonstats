@@ -52,6 +52,9 @@ namespace PolygonStats
                     if (catchedPokemon.PokemonDisplay != null)
                     {
                         pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay.Shiny;
+                        pokemonLogEntry.Shadow = catchedPokemon.PokemonDisplay.Alignment == PokemonDisplayProto.Types.Alignment.Shadow;
+                        pokemonLogEntry.Form = catchedPokemon.PokemonDisplay.Form;
+                        pokemonLogEntry.Costume = catchedPokemon.PokemonDisplay.Costume;
                     }
                     pokemonLogEntry.PokemonUniqueId = catchedPokemon.CapturedPokemonId;
                     pokemonLogEntry.CandyAwarded = catchedPokemon.Scores.Candy.Sum();
@@ -61,6 +64,9 @@ namespace PolygonStats
                     if (lastEncounter.Pokemon.PokemonDisplay != null)
                     {
                         pokemonLogEntry.Shiny = lastEncounter.Pokemon.PokemonDisplay.Shiny;
+                        pokemonLogEntry.Shadow = lastEncounter.Pokemon.PokemonDisplay.Alignment == PokemonDisplayProto.Types.Alignment.Shadow;
+                        pokemonLogEntry.Form = lastEncounter.Pokemon.PokemonDisplay.Form;
+                        pokemonLogEntry.Costume = lastEncounter.Pokemon.PokemonDisplay.Costume;
                     }
                     pokemonLogEntry.PokemonName = lastEncounter.Pokemon.PokemonId;
                 }
@@ -127,6 +133,9 @@ namespace PolygonStats
                     if (getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay != null)
                     {
                         eggLogEntry.Shiny = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Shiny;
+                        eggLogEntry.Shadow = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Alignment == PokemonDisplayProto.Types.Alignment.Shadow;
+                        eggLogEntry.Form = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Form;
+                        eggLogEntry.Costume = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Costume;
                     }
                     this.AddLogEntry(context, dbSessionId, eggLogEntry);
                 }
@@ -159,6 +168,12 @@ namespace PolygonStats
                 evolveLogEntry.Defense = evolvePokemon.EvolvedPokemon.IndividualDefense;
                 evolveLogEntry.Stamina = evolvePokemon.EvolvedPokemon.IndividualStamina;
                 evolveLogEntry.PokemonUniqueId = evolvePokemon.EvolvedPokemon.Id;
+                if (evolvePokemon.EvolvedPokemon.PokemonDisplay != null)
+                {
+                    evolveLogEntry.Shadow = evolvePokemon.EvolvedPokemon.PokemonDisplay.Alignment == PokemonDisplayProto.Types.Alignment.Shadow;
+                    evolveLogEntry.Form = evolvePokemon.EvolvedPokemon.PokemonDisplay.Form;
+                    evolveLogEntry.Costume = evolvePokemon.EvolvedPokemon.PokemonDisplay.Costume;
+                }
 
                 this.AddLogEntry(context, dbSessionId, evolveLogEntry);
                 context.SaveChanges();
