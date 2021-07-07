@@ -31,7 +31,7 @@ namespace PolygonStats
                 .HasDefaultValue(false);
             modelBuilder.Entity<LogEntry>()
                 .HasIndex(l => new { l.PokemonUniqueId })
-                .IsUnique(true);
+                .IsUnique(false);
         }
     }
 }
