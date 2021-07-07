@@ -32,6 +32,7 @@ namespace PolygonStats.Models
         public LogEntryType LogEntryType { get; set; }
 
         public bool CaughtSuccess { get; set; }
+
         public ulong PokemonUniqueId { get; set; }
 
         [Column(TypeName = "nvarchar(24)")]

@@ -14,16 +14,14 @@ namespace PolygonStats
             return new MySQLContext();
         }
 
-        public Session GetSession(MySQLContext context, int id) {
+        public Session GetSession(MySQLContext context, int id)
+        {
             return context.Sessions.Where(s => s.Id == id).FirstOrDefault<Session>();
         }
 
-        public Account GetAccount(MySQLContext context, int accountId) {
-            return context.Accounts.Where(a => a.Id == accountId).Single();
-        }
-
-        public void AddLogEntry(MySQLContext context, Session session, LogEntry log) {
-            session.LogEntrys.Add(log);
+        public void AddLogEntry(MySQLContext context, int SessionId, LogEntry log) {
+            log.SessionId = SessionId;
+            context.Logs.Add(log);
         }
 
         public void AddEncounterToDatabase(EncounterOutProto encounterProto, MySQLContext context) {
@@ -48,7 +46,6 @@ namespace PolygonStats
         public void AddPokemonToDatabase(int dbSessionId, CatchPokemonOutProto catchedPokemon, WildPokemonProto lastEncounter)
         {
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
                 LogEntry pokemonLogEntry = new LogEntry { LogEntryType = LogEntryType.Pokemon, CaughtSuccess = catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess, timestamp = DateTime.UtcNow };
                 if (catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess)
                 {
@@ -69,7 +66,7 @@ namespace PolygonStats
                 }
                 pokemonLogEntry.XpReward = catchedPokemon.Scores.Exp.Sum();
                 pokemonLogEntry.StardustReward = catchedPokemon.Scores.Stardust.Sum();
-                this.AddLogEntry(context, dbSession, pokemonLogEntry);
+                this.AddLogEntry(context, dbSessionId, pokemonLogEntry);
                 context.SaveChanges();
             }
         }
@@ -77,14 +74,13 @@ namespace PolygonStats
         public void AddFeedBerryToDatabase(int dbSessionId, GymFeedPokemonOutProto gymFeedPokemonProto)
         {
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
                 LogEntry feedBerryLogEntry = new LogEntry { LogEntryType = LogEntryType.FeedBerry, timestamp = DateTime.UtcNow };
 
                 feedBerryLogEntry.XpReward = gymFeedPokemonProto.XpAwarded;
                 feedBerryLogEntry.StardustReward = gymFeedPokemonProto.StardustAwarded;
                 feedBerryLogEntry.CandyAwarded = gymFeedPokemonProto.NumCandyAwarded;
 
-                this.AddLogEntry(context, dbSession, feedBerryLogEntry);
+                this.AddLogEntry(context, dbSessionId, feedBerryLogEntry);
                 context.SaveChanges();
             }
         }
@@ -92,7 +88,6 @@ namespace PolygonStats
         public void AddQuestToDatabase(int dbSessionId, RepeatedField<QuestRewardProto> rewards)
         {
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
                 LogEntry questLogEntry = new LogEntry { LogEntryType = LogEntryType.Quest, timestamp = DateTime.UtcNow, XpReward = 0, StardustReward = 0 };
                 foreach (QuestRewardProto reward in rewards)
                 {
@@ -110,7 +105,7 @@ namespace PolygonStats
                         questLogEntry.PokemonName = reward.Candy.PokemonId;
                     }
                 }
-                this.AddLogEntry(context, dbSession, questLogEntry);
+                this.AddLogEntry(context, dbSessionId, questLogEntry);
                 context.SaveChanges();
             }
         }
@@ -118,7 +113,6 @@ namespace PolygonStats
         public void AddHatchedEggToDatabase(int dbSessionId, GetHatchedEggsOutProto getHatchedEggsProto)
         {
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
                 for(int index = 0; index < getHatchedEggsProto.HatchedPokemon.Count; index++)
                 {
                     LogEntry eggLogEntry = new LogEntry { LogEntryType = LogEntryType.Egg, timestamp = DateTime.UtcNow, XpReward = 0, StardustReward = 0 };
@@ -134,7 +128,7 @@ namespace PolygonStats
                     {
                         eggLogEntry.Shiny = getHatchedEggsProto.HatchedPokemon[index].PokemonDisplay.Shiny;
                     }
-                    this.AddLogEntry(context, dbSession, eggLogEntry);
+                    this.AddLogEntry(context, dbSessionId, eggLogEntry);
                 }
 
                 context.SaveChanges();
@@ -144,12 +138,11 @@ namespace PolygonStats
         public void AddSpinnedFortToDatabase(int dbSessionId, FortSearchOutProto fortSearchProto)
         {
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
                 LogEntry fortLogEntry = new LogEntry { LogEntryType = LogEntryType.Fort, timestamp = DateTime.UtcNow };
 
                 fortLogEntry.XpReward = fortSearchProto.XpAwarded;
 
-                this.AddLogEntry(context, dbSession, fortLogEntry);
+                this.AddLogEntry(context, dbSessionId, fortLogEntry);
                 context.SaveChanges();
             }
         }
@@ -157,7 +150,6 @@ namespace PolygonStats
         public void AddEvolvePokemonToDatabase(int dbSessionId, EvolvePokemonOutProto evolvePokemon)
         {
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
                 LogEntry evolveLogEntry = new LogEntry { LogEntryType = LogEntryType.EvolvePokemon, timestamp = DateTime.UtcNow };
 
                 evolveLogEntry.XpReward = evolvePokemon.ExpAwarded;
@@ -168,7 +160,7 @@ namespace PolygonStats
                 evolveLogEntry.Stamina = evolvePokemon.EvolvedPokemon.IndividualStamina;
                 evolveLogEntry.PokemonUniqueId = evolvePokemon.EvolvedPokemon.Id;
 
-                this.AddLogEntry(context, dbSession, evolveLogEntry);
+                this.AddLogEntry(context, dbSessionId, evolveLogEntry);
                 context.SaveChanges();
             }
         }
@@ -176,7 +168,6 @@ namespace PolygonStats
         internal void AddRocketToDatabase(int dbSessionId, UpdateInvasionBattleOutProto updateBattle)
         {
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
                 LogEntry rocketLogEntry = new LogEntry { LogEntryType = LogEntryType.Rocket, timestamp = DateTime.UtcNow };
 
                 rocketLogEntry.XpReward = 0;
@@ -199,7 +190,7 @@ namespace PolygonStats
                     }
                 }
 
-                this.AddLogEntry(context, dbSession, rocketLogEntry);
+                this.AddLogEntry(context, dbSessionId, rocketLogEntry);
                 context.SaveChanges();
             }
         }
@@ -207,55 +198,49 @@ namespace PolygonStats
         internal void AddRaidToDatabase(int dbSessionId, int xp, int stardust)
         {
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
                 LogEntry raidLogEntry = new LogEntry { LogEntryType = LogEntryType.Raid, timestamp = DateTime.UtcNow };
 
                 raidLogEntry.XpReward = xp;
                 raidLogEntry.StardustReward = stardust;
-                this.AddLogEntry(context, dbSession, raidLogEntry);
+                this.AddLogEntry(context, dbSessionId, raidLogEntry);
                 context.SaveChanges();
             }
         }
 
-        internal void AddPlayerInfoToDatabase(int dbSessionId, GetPlayerOutProto player, int level)
+        internal void AddPlayerInfoToDatabase(Account account, GetPlayerOutProto player, int level)
         {
             if (player.Player == null) {
                 return;
             }
 
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
-                Account dbAccount = this.GetAccount(context, dbSession.AccountId);
-                dbAccount.Team = player.Player.Team;
-                dbAccount.Level = level;
+                account.Team = player.Player.Team;
+                account.Level = level;
                 var currency = player.Player.CurrencyBalance.FirstOrDefault(c => c.CurrencyType.Equals("POKECOIN"));
                 if (currency != null) {
-                    dbAccount.Pokecoins = currency.Quantity;
+                    account.Pokecoins = currency.Quantity;
                 }
                 currency = player.Player.CurrencyBalance.FirstOrDefault(c => c.CurrencyType.Equals("STARDUST"));
                 if (currency != null) {
-                    dbAccount.Stardust = currency.Quantity;
+                    account.Stardust = currency.Quantity;
                 }
+                context.Accounts.Update(account);
                 context.SaveChanges();
             }
         }
 
-        internal void UpdateLevelAndExp(int dbSessionId, PlayerStatsProto playerStats)
+        internal void UpdateLevelAndExp(Account account, PlayerStatsProto playerStats)
         {
             if (playerStats == null) {
                 return;
             }
 
             using (var context = new MySQLContext()) {
-                Session dbSession = this.GetSession(context, dbSessionId);
-                if (dbSession != null)
-                {
-                    Account dbAccount = this.GetAccount(context, dbSession.AccountId);
-                    dbAccount.Level = playerStats.Level;
-                    dbAccount.Experience = (int)playerStats.Experience;
-                    dbAccount.NextLevelExp = playerStats.NextLevelExp;
-                    context.SaveChanges();
-                }
+                account.Level = playerStats.Level;
+                account.Experience = (int)playerStats.Experience;
+                account.NextLevelExp = playerStats.NextLevelExp;
+                context.Accounts.Update(account);
+                context.SaveChanges();
             }
         }
     }

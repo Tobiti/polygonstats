@@ -29,6 +29,9 @@ namespace PolygonStats
             modelBuilder.Entity<LogEntry>()
                 .Property(l => l.Shiny)
                 .HasDefaultValue(false);
+            modelBuilder.Entity<LogEntry>()
+                .HasIndex(l => new { l.PokemonUniqueId })
+                .IsUnique(false);
         }
     }
 }

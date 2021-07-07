@@ -11,6 +11,7 @@ using PolygonStats.Models;
 using PolygonStats.Configuration;
 using System.Collections.Generic;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 namespace PolygonStats
 {
@@ -20,6 +21,7 @@ namespace PolygonStats
         private string accountName = null;
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private int dbSessionId = -1;
+        private Account account;
 
         private int messageCount = 0;
         private ILogger logger;
@@ -161,17 +163,17 @@ namespace PolygonStats
                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                 {
                     using(var context = connectionManager.GetContext()) {
-                        Account acc = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
-                        if (acc == null)
+                        account = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
+                        if (account == null)
                         {
-                            acc = new Account();
-                            acc.Name = this.accountName;
-                            acc.HashedName = "";
-                            context.Accounts.Add(acc);
+                            account = new Account();
+                            account.Name = this.accountName;
+                            account.HashedName = "";
+                            context.Accounts.Add(account);
                         }
                         Log.Information($"User {this.accountName} with sessionId {Id} has connected.");
                         Session dbSession = new Session { StartTime = DateTime.UtcNow, LogEntrys = new List<LogEntry>() };
-                        acc.Sessions.Add(dbSession);
+                        account.Sessions.Add(dbSession);
                         context.SaveChanges();
 
                         dbSessionId = dbSession.Id;
@@ -388,21 +390,12 @@ namespace PolygonStats
                     if (item.InventoryItemData.Pokemon != null)
                     {
                         using (var context = connectionManager.GetContext()) {
-                            Session dbSession = connectionManager.GetSession(context, dbSessionId);
                             PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                            LogEntry log = context.Logs.SingleOrDefault(l => l.PokemonUniqueId == pokemon.Id);
-                            if (log != null)
-                            {
-                                log.PokemonName = pokemon.PokemonId;
-                                log.Attack = pokemon.IndividualAttack;
-                                log.Defense = pokemon.IndividualDefense;
-                                log.Stamina = pokemon.IndividualStamina;
-                                context.SaveChanges();
-                            }
+                            context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName=\"{pokemon.PokemonId.ToString("G")}\", Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id} ORDER BY Id");
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {
-                        connectionManager.UpdateLevelAndExp(dbSessionId, item.InventoryItemData.PlayerStats);
+                        connectionManager.UpdateLevelAndExp(account, item.InventoryItemData.PlayerStats);
                     }
                 }
             }
@@ -516,7 +509,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddPlayerInfoToDatabase(dbSessionId, player, level);
+                connectionManager.AddPlayerInfoToDatabase(account, player, level);
             }
         }
 
