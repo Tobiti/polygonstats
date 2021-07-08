@@ -5,6 +5,7 @@ using System;
 using static System.Linq.Queryable;
 using static System.Linq.Enumerable;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 namespace PolygonStats
 {
@@ -251,11 +252,7 @@ namespace PolygonStats
             }
 
             using (var context = new MySQLContext()) {
-                account.Level = playerStats.Level;
-                account.Experience = (int)playerStats.Experience;
-                account.NextLevelExp = playerStats.NextLevelExp;
-                context.Accounts.Update(account);
-                context.SaveChanges();
+                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET LEVEL={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={account.Id}");
             }
         }
     }
