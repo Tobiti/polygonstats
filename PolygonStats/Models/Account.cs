@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -72,6 +73,7 @@ namespace PolygonStats.Models
 
         [DefaultValue(0)]
         public int Shadow { get; set; }
+        public DateTime LastUpdate { get; set; }
 
         public IList<Session> Sessions { get; set; } = new List<Session>();
     }
