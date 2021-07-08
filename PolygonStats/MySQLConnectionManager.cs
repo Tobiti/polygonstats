@@ -229,19 +229,19 @@ namespace PolygonStats
                 return;
             }
 
-            using (var context = new MySQLContext()) {
-                account.Team = player.Player.Team;
-                account.Level = level;
+            using (var context = new MySQLContext())
+            {
+                var pokecoins = 0;
+                var stardust = 0;
                 var currency = player.Player.CurrencyBalance.FirstOrDefault(c => c.CurrencyType.Equals("POKECOIN"));
                 if (currency != null) {
-                    account.Pokecoins = currency.Quantity;
+                    pokecoins = currency.Quantity;
                 }
                 currency = player.Player.CurrencyBalance.FirstOrDefault(c => c.CurrencyType.Equals("STARDUST"));
                 if (currency != null) {
-                    account.Stardust = currency.Quantity;
+                    stardust = currency.Quantity;
                 }
-                context.Accounts.Update(account);
-                context.SaveChanges();
+                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team={player.Player.Team}, Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={account.Id}");
             }
         }
 
@@ -252,7 +252,7 @@ namespace PolygonStats
             }
 
             using (var context = new MySQLContext()) {
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET LEVEL={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={account.Id}");
+                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={account.Id}");
             }
         }
     }
