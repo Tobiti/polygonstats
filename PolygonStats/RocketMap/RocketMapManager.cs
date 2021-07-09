@@ -83,7 +83,11 @@ namespace PolygonStats.RocketMap
                             Log.Information(e.Message);
                             Log.Information(e.StackTrace);
                             Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
+                        }
 
+                        if (fort.ActiveFortModifier.Count > 0 || fort.PokestopDisplay != null || fort.PokestopDisplays.Count > 0)
+                        {
+                            Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
                         }
                     }
                 }
