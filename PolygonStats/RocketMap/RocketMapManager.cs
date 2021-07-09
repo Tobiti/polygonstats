@@ -45,7 +45,25 @@ namespace PolygonStats.RocketMap
                 {
                     disappearTime = disappearTime.AddMinutes(20);
                 }
-                String query = $"INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, weight, height, gender, form, costume, catch_prob_1, catch_prob_2, catch_prob_3, rating_attack, rating_defense, weather_boosted_condition, last_modified, fort_id, cell_id, seen_type) VALUES({encounter.Pokemon.EncounterId}, 1, {(int)encounter.Pokemon.Pokemon.PokemonId}, {encounter.Pokemon.Latitude}, {encounter.Pokemon.Longitude}, \"{disappearTime.ToString("yyyy-MM-dd HH:mm:ss")}\", {encounter.Pokemon.Pokemon.IndividualAttack}, {encounter.Pokemon.Pokemon.IndividualDefense}, {encounter.Pokemon.Pokemon.IndividualStamina}, {(int)encounter.Pokemon.Pokemon.Move1}, {(int)encounter.Pokemon.Pokemon.Move2}, {encounter.Pokemon.Pokemon.Cp}, {encounter.Pokemon.Pokemon.CpMultiplier}, {encounter.Pokemon.Pokemon.WeightKg}, {encounter.Pokemon.Pokemon.HeightM}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Gender}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Form}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Costume}, {encounter.CaptureProbability.CaptureProbability[0]}, {encounter.CaptureProbability.CaptureProbability[1]}, {encounter.CaptureProbability.CaptureProbability[2]}, \"\", \"\", {(int)encounter.Pokemon.Pokemon.PokemonDisplay.WeatherBoostedCondition}, \"{UnixTimeStampToDateTime(encounter.Pokemon.LastModifiedMs).ToString("yyyy-MM-dd HH:mm:ss")}\", NULL, {encounter.Pokemon.Pokemon.CapturedS2CellId}, \"{SeenType.wild.ToString("g")}\") ON DUPLICATE KEY UPDATE encounter_id={encounter.Pokemon.EncounterId}";
+
+                String query =  "INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, " +
+                                "individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, " +
+                                "weight, height, gender, catch_prob_1, catch_prob_2, catch_prob_3, rating_attack, rating_defense, " +
+                                "weather_boosted_condition, last_modified, costume, form, seen_type) " +
+                                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, \"{6}\", {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, " +
+                                "{20}, {21}, \"{22}\", {23}, {24}, \"{25}\") " +
+                                "ON DUPLICATE KEY UPDATE last_modified=VALUES(last_modified), disappear_time=VALUES(disappear_time), " +
+                                "spawnpoint_id=VALUES(spawnpoint_id), pokemon_id=VALUES(pokemon_id), latitude=VALUES(latitude), " +
+                                "longitude=VALUES(longitude), gender=VALUES(gender), costume=VALUES(costume), form=VALUES(form), " +
+                                "weather_boosted_condition=VALUES(weather_boosted_condition), fort_id=NULL, cell_id=NULL, " +
+                                "seen_type=IF(seen_type='encounter','encounter',VALUES(seen_type))";
+
+                query = String.Format(query, encounter.Pokemon.EncounterId, Convert.ToInt32(encounter.Pokemon.SpawnPointId, 16), (int)encounter.Pokemon.Pokemon.PokemonId, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude,
+                    disappearTime.ToString("yyyy-MM-dd HH:mm:ss"), encounter.Pokemon.Pokemon.IndividualAttack, encounter.Pokemon.Pokemon.IndividualDefense, encounter.Pokemon.Pokemon.IndividualStamina, 
+                    (int)encounter.Pokemon.Pokemon.Move1, (int)encounter.Pokemon.Pokemon.Move2, encounter.Pokemon.Pokemon.Cp, encounter.Pokemon.Pokemon.CpMultiplier, encounter.Pokemon.Pokemon.WeightKg,
+                    encounter.Pokemon.Pokemon.HeightM, (int)encounter.Pokemon.Pokemon.PokemonDisplay.Gender, encounter.CaptureProbability.CaptureProbability[0], encounter.CaptureProbability.CaptureProbability[1],
+                    encounter.CaptureProbability.CaptureProbability[2], "", "", (int)encounter.Pokemon.Pokemon.PokemonDisplay.WeatherBoostedCondition, UnixTimeStampToDateTime(encounter.Pokemon.LastModifiedMs).ToString("yyyy-MM-dd HH:mm:ss"),
+                    (int)encounter.Pokemon.Pokemon.PokemonDisplay.Costume, (int)encounter.Pokemon.Pokemon.PokemonDisplay.Form, SeenType.wild.ToString("g"));
                 try
                 {
                     context.Database.ExecuteSqlRaw(query);
@@ -68,13 +86,24 @@ namespace PolygonStats.RocketMap
                 {
                     if (fort.FortType == FortType.Checkpoint)
                     {
-                        String query = "";
+                        String query =  "INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, lure_expiration, " +
+                                        "last_updated, active_fort_modifier, incident_start, incident_expiration, incident_grunt_type, " +
+                                        "is_ar_scan_eligible) " +
+                                        "VALUES (\"{0}\", {1}, {2}, {3}, \"{4}\", \"{5}\", \"{6}\", {7}, \"{8}\", \"{9}\", {10}, {11}) " +
+                                        "ON DUPLICATE KEY UPDATE last_updated=VALUES(last_updated), lure_expiration=VALUES(lure_expiration), " +
+                                        "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
+                                        "active_fort_modifier=VALUES(active_fort_modifier), incident_start=VALUES(incident_start), " +
+                                        "incident_expiration=VALUES(incident_expiration), incident_grunt_type=VALUES(incident_grunt_type), " +
+                                        "is_ar_scan_eligible=VALUES(is_ar_scan_eligible) ";
                         try
                         {
-                            query = $"INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, lure_expiration, active_fort_modifier, last_updated, `name`, image, incident_start, incident_expiration, incident_grunt_type, is_ar_scan_eligible) " +
-                            $"VALUES(\"{fort.FortId}\", {fort.Enabled}, {fort.Latitude}, {fort.Longitude}, \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.CooldownCompleteMs))}\",  {(fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0)}, \"{ToMySQLDateTime(DateTime.UtcNow)}\", \"{fort.GeostoreSuspensionMessageKey}\", \"{fort.ImageUrl}\", " +
-                            (fort.PokestopDisplays.Count <= 0 ? "NULL, NULL, NULL," : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentStartMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentExpirationMs))}\", {(int)fort.PokestopDisplays[0].CharacterDisplay.Character},") +
-                            $" {fort.IsArScanEligible}) ON DUPLICATE KEY UPDATE pokestop_id=\"{fort.FortId}\"";
+                            query = String.Format(query, fort.FortId, fort.Enabled, fort.Latitude, fort.Longitude, ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)), 
+                                                        ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs).AddMinutes(30)),  (fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0), 
+                                                        ToMySQLDateTime(DateTime.UtcNow), fort.GeostoreSuspensionMessageKey, fort.ImageUrl,
+                                                        (fort.PokestopDisplays.Count <= 0 ? "NULL" : ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentStartMs))),
+                                                        (fort.PokestopDisplays.Count <= 0 ? "NULL" : ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentExpirationMs))),
+                                                        (fort.PokestopDisplays.Count <= 0 ? "NULL" : (int)fort.PokestopDisplays[0].CharacterDisplay.Character),
+                                                        fort.IsArScanEligible);
 
                             context.Database.ExecuteSqlRaw(query);
                         }
@@ -82,11 +111,6 @@ namespace PolygonStats.RocketMap
                         {
                             Log.Information(e.Message);
                             Log.Information(e.StackTrace);
-                            Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
-                        }
-
-                        if (fort.ActiveFortModifier.Count > 0)
-                        {
                             Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
                         }
                     }
