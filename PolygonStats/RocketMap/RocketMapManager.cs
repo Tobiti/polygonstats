@@ -66,17 +66,20 @@ namespace PolygonStats.RocketMap
             {
                 foreach (PokemonFortProto fort in forts)
                 {
-                    String query = $"INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, lure_expiration, active_fort_modifier, last_updated, `name`, image, incident_start, incident_expiration, incident_grunt_type, is_ar_scan_eligible) VALUES({fort.FortId}, {fort.Enabled}, {fort.Latitude}, {fort.Longitude}, \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.CooldownCompleteMs))}\",  {(fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0)}, \"{ToMySQLDateTime(DateTime.UtcNow)}\", \"{fort.GeostoreSuspensionMessageKey}\", \"{fort.ImageUrl}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplay.IncidentStartMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplay.IncidentExpirationMs))}\", {(int)fort.PokestopDisplay.CharacterDisplay.Character}, {fort.IsArScanEligible}) ON DUPLICATE KEY UPDATE pokestop_id={fort.FortId}";
-                    try
+                    if (fort.FortType == FortType.Checkpoint)
                     {
-                        context.Database.ExecuteSqlRaw(query);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Information(e.Message);
-                        Log.Information(e.StackTrace);
-                        Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
+                        String query = $"INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, lure_expiration, active_fort_modifier, last_updated, `name`, image, incident_start, incident_expiration, incident_grunt_type, is_ar_scan_eligible) VALUES({fort.FortId}, {fort.Enabled}, {fort.Latitude}, {fort.Longitude}, \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.CooldownCompleteMs))}\",  {(fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0)}, \"{ToMySQLDateTime(DateTime.UtcNow)}\", \"{fort.GeostoreSuspensionMessageKey}\", \"{fort.ImageUrl}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplay.IncidentStartMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplay.IncidentExpirationMs))}\", {(int)fort.PokestopDisplay.CharacterDisplay.Character}, {fort.IsArScanEligible}) ON DUPLICATE KEY UPDATE pokestop_id={fort.FortId}";
+                        try
+                        {
+                            context.Database.ExecuteSqlRaw(query);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Information(e.Message);
+                            Log.Information(e.StackTrace);
+                            Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
 
+                        }
                     }
                 }
             }
