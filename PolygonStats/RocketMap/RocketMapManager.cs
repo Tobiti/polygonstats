@@ -186,7 +186,7 @@ namespace PolygonStats.RocketMap
 
             List<Object> parameters = new List<Object>();
             parameters.Add(gym.FortId);
-            parameters.Add(gym.RaidInfo.RaidLevel);
+            parameters.Add((int)gym.RaidInfo.RaidLevel);
             parameters.Add(ToMySQLDateTime(UnixTimeStampToDateTime(gym.RaidInfo.RaidSpawnMs)));
             parameters.Add(ToMySQLDateTime(UnixTimeStampToDateTime(gym.RaidInfo.RaidBattleMs)));
             parameters.Add(ToMySQLDateTime(UnixTimeStampToDateTime(gym.RaidInfo.RaidEndMs)));
