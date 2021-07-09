@@ -240,6 +240,20 @@ namespace PolygonStats
                         ProcessHatchedEggReward(payload.account_name, getHatchedEggsProto);
                     }
                     break;
+                case Method.GetMapForts:
+                    GetMapFortsOutProto fortProto = GetMapFortsOutProto.Parser.ParseFrom(payload.getDate());
+                    if(fortProto.Status == GetMapFortsOutProto.Types.Status.Success)
+                    {
+
+                    }
+                    break;
+                case Method.GetMapObjects:
+                    GetMapObjectsOutProto mapProto = GetMapObjectsOutProto.Parser.ParseFrom(payload.getDate());
+                    if (mapProto.Status == GetMapObjectsOutProto.Types.Status.Success)
+                    {
+
+                    }
+                    break;
                 case Method.FortSearch:
                     FortSearchOutProto fortSearchProto = FortSearchOutProto.Parser.ParseFrom(payload.getDate());
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
