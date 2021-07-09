@@ -1,10 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POGOProtos.Rpc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Serilog;
+using System.Text.Json;
 
 namespace PolygonStats.RocketMap
 {
@@ -45,7 +43,14 @@ namespace PolygonStats.RocketMap
                 {
                     disappearTime = disappearTime.AddMinutes(20);
                 }
-                context.Database.ExecuteSqlRaw($"INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, weight, height, gender, form, costume, catch_prob_1, catch_prob_2, catch_prob_3, rating_attack, rating_defense, weather_boosted_condition, last_modified, fort_id, cell_id, seen_type) VALUES({encounter.Pokemon.EncounterId}, {encounter.Pokemon.SpawnPointId}, {(int)encounter.Pokemon.Pokemon.PokemonId}, {encounter.Pokemon.Latitude}, {encounter.Pokemon.Longitude}, \"{disappearTime.ToString("yyyy-MM-dd HH:mm:ss")}\", {encounter.Pokemon.Pokemon.IndividualAttack}, {encounter.Pokemon.Pokemon.IndividualDefense}, {encounter.Pokemon.Pokemon.IndividualStamina}, {(int)encounter.Pokemon.Pokemon.Move1}, {(int)encounter.Pokemon.Pokemon.Move2}, {encounter.Pokemon.Pokemon.Cp}, {encounter.Pokemon.Pokemon.CpMultiplier}, {encounter.Pokemon.Pokemon.WeightKg}, {encounter.Pokemon.Pokemon.HeightM}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Gender}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Form}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Costume}, {encounter.CaptureProbability.CaptureProbability[0]}, {encounter.CaptureProbability.CaptureProbability[1]}, {encounter.CaptureProbability.CaptureProbability[2]}, \"\", \"\", {(int)encounter.Pokemon.Pokemon.PokemonDisplay.WeatherBoostedCondition}, \"{encounter.Pokemon.LastModifiedMs.ToString("yyyy-MM-dd HH:mm:ss")}\", NULL, {encounter.Pokemon.Pokemon.CapturedS2CellId}, \"{SeenType.wild.ToString("g")}\") ON DUPLICATE KEY UPDATE encounter_id={encounter.Pokemon.EncounterId}");
+                try
+                {
+                    context.Database.ExecuteSqlRaw($"INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, weight, height, gender, form, costume, catch_prob_1, catch_prob_2, catch_prob_3, rating_attack, rating_defense, weather_boosted_condition, last_modified, fort_id, cell_id, seen_type) VALUES({encounter.Pokemon.EncounterId}, {encounter.Pokemon.SpawnPointId}, {(int)encounter.Pokemon.Pokemon.PokemonId}, {encounter.Pokemon.Latitude}, {encounter.Pokemon.Longitude}, \"{disappearTime.ToString("yyyy-MM-dd HH:mm:ss")}\", {encounter.Pokemon.Pokemon.IndividualAttack}, {encounter.Pokemon.Pokemon.IndividualDefense}, {encounter.Pokemon.Pokemon.IndividualStamina}, {(int)encounter.Pokemon.Pokemon.Move1}, {(int)encounter.Pokemon.Pokemon.Move2}, {encounter.Pokemon.Pokemon.Cp}, {encounter.Pokemon.Pokemon.CpMultiplier}, {encounter.Pokemon.Pokemon.WeightKg}, {encounter.Pokemon.Pokemon.HeightM}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Gender}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Form}, {(int)encounter.Pokemon.Pokemon.PokemonDisplay.Costume}, {encounter.CaptureProbability.CaptureProbability[0]}, {encounter.CaptureProbability.CaptureProbability[1]}, {encounter.CaptureProbability.CaptureProbability[2]}, \"\", \"\", {(int)encounter.Pokemon.Pokemon.PokemonDisplay.WeatherBoostedCondition}, \"{encounter.Pokemon.LastModifiedMs.ToString("yyyy-MM-dd HH:mm:ss")}\", NULL, {encounter.Pokemon.Pokemon.CapturedS2CellId}, \"{SeenType.wild.ToString("g")}\") ON DUPLICATE KEY UPDATE encounter_id={encounter.Pokemon.EncounterId}");
+                } catch (Exception e)
+                {
+                    Log.Information(e.StackTrace);
+                    Log.Information(JsonSerializer.Serialize(encounter));
+                }
             }
         }
     }
