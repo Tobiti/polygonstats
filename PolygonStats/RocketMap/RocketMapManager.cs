@@ -57,11 +57,11 @@ namespace PolygonStats.RocketMap
             }
         }
 
-        public DateTime UnixTimeStampToDateTime(double unixTimeStamp)
+        public DateTime UnixTimeStampToDateTime(long unixTimeStamp)
         {
             // Unix timestamp is seconds past epoch
             System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+            dtDateTime = dtDateTime.AddMilliseconds(unixTimeStamp);
             return dtDateTime;
         }
     }
