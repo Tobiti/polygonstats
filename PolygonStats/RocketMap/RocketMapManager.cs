@@ -73,7 +73,7 @@ namespace PolygonStats.RocketMap
                         {
                             query = $"INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, lure_expiration, active_fort_modifier, last_updated, `name`, image, incident_start, incident_expiration, incident_grunt_type, is_ar_scan_eligible) " +
                             $"VALUES(\"{fort.FortId}\", {fort.Enabled}, {fort.Latitude}, {fort.Longitude}, \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.CooldownCompleteMs))}\",  {(fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0)}, \"{ToMySQLDateTime(DateTime.UtcNow)}\", \"{fort.GeostoreSuspensionMessageKey}\", \"{fort.ImageUrl}\", " +
-                            (fort.PokestopDisplay == null ? "NULL, NULL, NULL," : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplay.IncidentStartMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplay.IncidentExpirationMs))}\", {(int)fort.PokestopDisplay.CharacterDisplay.Character},") +
+                            (fort.PokestopDisplays.Count > 0 ? "NULL, NULL, NULL," : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentStartMs))}\", \"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentExpirationMs))}\", {(int)fort.PokestopDisplays[0].CharacterDisplay.Character},") +
                             $" {fort.IsArScanEligible}) ON DUPLICATE KEY UPDATE pokestop_id=\"{fort.FortId}\"";
 
                             context.Database.ExecuteSqlRaw(query);
@@ -85,7 +85,7 @@ namespace PolygonStats.RocketMap
                             Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
                         }
 
-                        if (fort.ActiveFortModifier.Count > 0 || fort.PokestopDisplay != null || fort.PokestopDisplays.Count > 0)
+                        if (fort.ActiveFortModifier.Count > 0)
                         {
                             Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
                         }
