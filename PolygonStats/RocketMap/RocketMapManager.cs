@@ -113,6 +113,9 @@ namespace PolygonStats.RocketMap
                             Log.Information(e.StackTrace);
                             Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
                         }
+                    } else
+                    {
+                        AddGym(fort, context);
                     }
                 }
             }
