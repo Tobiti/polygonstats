@@ -117,6 +117,116 @@ namespace PolygonStats.RocketMap
                 }
             }
         }
+
+        public void AddGym(PokemonFortProto gym, RocketMapContext context)
+        {
+            String queryGym = "INSERT INTO gym (gym_id, team_id, guard_pokemon_id, slots_available, enabled, latitude, longitude, " +
+                                "total_cp, is_in_battle, last_modified, last_scanned, is_ex_raid_eligible, is_ar_scan_eligible) " +
+                                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, \"{9}\", \"{10}\", {11}, {12}) " +
+                                "ON DUPLICATE KEY UPDATE " +
+                                "guard_pokemon_id=VALUES(guard_pokemon_id), team_id=VALUES(team_id), " +
+                                "slots_available=VALUES(slots_available), last_scanned=VALUES(last_scanned), " +
+                                "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
+                                "is_ex_raid_eligible=VALUES(is_ex_raid_eligible), is_ar_scan_eligible=VALUES(is_ar_scan_eligible)";
+            String queryGymDetails = "INSERT INTO gymdetails (gym_id, name, url, last_scanned) " +
+                                        "VALUES ({0}, {1}, \"{2}\", {3}) " +
+                                        "ON DUPLICATE KEY UPDATE last_scanned=VALUES(last_scanned), " +
+                                        "url=IF(VALUES(url) IS NOT NULL AND VALUES(url) <> '', VALUES(url), url)";
+
+            queryGym = String.Format(queryGym,
+                                            gym.FortId,
+                                            (int)gym.Team,
+                                            (int)gym.GuardPokemonId,
+                                            gym.GymDisplay.SlotsAvailable,
+                                            1,
+                                            gym.Latitude,
+                                            gym.Longitude,
+                                            gym.GymDisplay.TotalGymCp,
+                                            gym.IsInBattle,
+                                            ToMySQLDateTime(UnixTimeStampToDateTime(gym.LastModifiedMs)),
+                                            ToMySQLDateTime(DateTime.Now),
+                                            gym.IsExRaidEligible,
+                                            gym.IsArScanEligible);
+
+            queryGymDetails = String.Format(queryGymDetails,
+                                            gym.FortId,
+                                            "\"unknown\"",
+                                            gym.ImageUrl,
+                                            ToMySQLDateTime(DateTime.Now));
+
+            try
+            {
+                context.Database.ExecuteSqlRaw(queryGym);
+                context.Database.ExecuteSqlRaw(queryGymDetails);
+            }
+            catch (Exception e)
+            {
+                Log.Information(e.Message);
+                Log.Information(e.StackTrace);
+                Log.Information($"Object: {JsonSerializer.Serialize(gym)} \n\n Gym Query: {queryGym} \n\n Gym Details Query: {queryGymDetails}");
+            }
+
+            if(gym.RaidInfo != null)
+            {
+                AddRaid(gym, context);
+            }
+        }
+        public void AddRaid(PokemonFortProto gym, RocketMapContext context)
+        {
+            String query =  "INSERT INTO raid (gym_id, level, spawn, start, end, pokemon_id, cp, move_1, move_2, last_scanned, form, " +
+                            "is_exclusive, gender, costume, evolution) " +
+                            "VALUES ({0}, {1}, \"{2}\", \"{3}\", \"{4}\", {5}, {6}, {7}, {8}, \"{9}\", {10}, {11}, {12}, {13}, {14}) " +
+                            "ON DUPLICATE KEY UPDATE level=VALUES(level), spawn=VALUES(spawn), start=VALUES(start), " +
+                            "end=VALUES(end), pokemon_id=VALUES(pokemon_id), cp=VALUES(cp), move_1=VALUES(move_1), " +
+                            "move_2=VALUES(move_2), last_scanned=VALUES(last_scanned), is_exclusive=VALUES(is_exclusive), " +
+                            "form=VALUES(form), gender=VALUES(gender), costume=VALUES(costume), evolution=VALUES(evolution)";
+
+            List<Object> parameters = new List<Object>();
+            parameters.Add(gym.FortId);
+            parameters.Add(gym.RaidInfo.RaidLevel);
+            parameters.Add(ToMySQLDateTime(UnixTimeStampToDateTime(gym.RaidInfo.RaidSpawnMs)));
+            parameters.Add(ToMySQLDateTime(UnixTimeStampToDateTime(gym.RaidInfo.RaidBattleMs)));
+            parameters.Add(ToMySQLDateTime(UnixTimeStampToDateTime(gym.RaidInfo.RaidEndMs)));
+
+            if (gym.RaidInfo.RaidPokemon != null)
+            {
+                parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonId);
+                parameters.Add(gym.RaidInfo.RaidPokemon.Cp);
+                parameters.Add(gym.RaidInfo.RaidPokemon.Move1);
+                parameters.Add(gym.RaidInfo.RaidPokemon.Move2);
+                parameters.Add(ToMySQLDateTime(DateTime.Now));
+                parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.Form);
+                parameters.Add(gym.RaidInfo.IsExclusive);
+                parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.Gender);
+                parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.Costume);
+                parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.CurrentTempEvolution);
+            } else
+            {
+                parameters.Add("NULL");
+                parameters.Add(0);
+                parameters.Add(1);
+                parameters.Add(2);
+                parameters.Add(ToMySQLDateTime(DateTime.Now));
+                parameters.Add("NULL");
+                parameters.Add(gym.RaidInfo.IsExclusive);
+                parameters.Add("NULL");
+                parameters.Add("NULL");
+                parameters.Add(0);
+            }
+            query = String.Format(query, parameters);
+
+            try
+            {
+                context.Database.ExecuteSqlRaw(query);
+            }
+            catch (Exception e)
+            {
+                Log.Information(e.Message);
+                Log.Information(e.StackTrace);
+                Log.Information($"Object: {JsonSerializer.Serialize(gym)} \n\n Raid Query: {query}");
+            }
+        }
+
         public String ToMySQLDateTime(DateTime dateTime)
         {
             return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
