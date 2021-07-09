@@ -174,6 +174,45 @@ namespace PolygonStats.RocketMap
                 AddRaid(gym, context);
             }
         }
+
+        public void UpdateGymDetails(GymGetInfoOutProto gym)
+        {
+            using (var context = new RocketMapContext())
+            {
+                if (gym.GymStatusAndDefenders == null || gym.GymStatusAndDefenders.PokemonFortProto == null)
+                {
+                    return;
+                }
+
+                List<String> parameters = new List<String>();
+                if (gym.Name != null && gym.Name.Length > 0)
+                {
+                    parameters.Add($"name={gym.Name}");
+                }
+                if (gym.Name != null && gym.Name.Length > 0)
+                {
+                    parameters.Add($"description={gym.Description}");
+                }
+                if (gym.Name != null && gym.Name.Length > 0)
+                {
+                    parameters.Add($"url={gym.Url}");
+                }
+
+                String updateQUery = $"UPDATE gymdetails SET {String.Join(",", parameters.ToArray())} WHERE gym_id = \"{gym.GymStatusAndDefenders.PokemonFortProto.FortId}\"";
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw(updateQUery);
+                }
+                catch (Exception e)
+                {
+                    Log.Information(e.Message);
+                    Log.Information(e.StackTrace);
+                    Log.Information($"Object: {JsonSerializer.Serialize(gym)} \n\n Gym Query: {updateQUery}");
+                }
+            }
+        }
+
         public void AddRaid(PokemonFortProto gym, RocketMapContext context)
         {
             String query =  "INSERT INTO raid (gym_id, level, spawn, start, end, pokemon_id, cp, move_1, move_2, last_scanned, form, " +

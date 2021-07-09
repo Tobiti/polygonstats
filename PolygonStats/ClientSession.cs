@@ -253,6 +253,16 @@ namespace PolygonStats
                         }
                     }
                     break;
+                case Method.GymGetInfo:
+                    GymGetInfoOutProto gymProto = GymGetInfoOutProto.Parser.ParseFrom(payload.getDate());
+                    if (gymProto.Result == GymGetInfoOutProto.Types.Result.Success)
+                    {
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            RocketMap.RocketMapManager.shared.UpdateGymDetails(gymProto);
+                        }
+                    }
+                    break;
                 case Method.FortSearch:
                     FortSearchOutProto fortSearchProto = FortSearchOutProto.Parser.ParseFrom(payload.getDate());
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
