@@ -178,7 +178,7 @@ namespace PolygonStats.RocketMap
         {
             String query =  "INSERT INTO raid (gym_id, level, spawn, start, end, pokemon_id, cp, move_1, move_2, last_scanned, form, " +
                             "is_exclusive, gender, costume, evolution) " +
-                            "VALUES ({0}, {1}, \"{2}\", \"{3}\", \"{4}\", {5}, {6}, {7}, {8}, \"{9}\", {10}, {11}, {12}, {13}, {14}) " +
+                            "VALUES (\"{0}\", {1}, \"{2}\", \"{3}\", \"{4}\", {5}, {6}, {7}, {8}, \"{9}\", {10}, {11}, {12}, {13}, {14}) " +
                             "ON DUPLICATE KEY UPDATE level=VALUES(level), spawn=VALUES(spawn), start=VALUES(start), " +
                             "end=VALUES(end), pokemon_id=VALUES(pokemon_id), cp=VALUES(cp), move_1=VALUES(move_1), " +
                             "move_2=VALUES(move_2), last_scanned=VALUES(last_scanned), is_exclusive=VALUES(is_exclusive), " +
@@ -216,17 +216,18 @@ namespace PolygonStats.RocketMap
                 parameters.Add("NULL");
                 parameters.Add(0);
             }
-            query = String.Format(query, parameters);
 
             try
             {
+                query = String.Format(query, parameters);
+
                 context.Database.ExecuteSqlRaw(query);
             }
             catch (Exception e)
             {
                 Log.Information(e.Message);
                 Log.Information(e.StackTrace);
-                Log.Information($"Object: {JsonSerializer.Serialize(gym)} \n\n Raid Query: {query}");
+                Log.Information($"Object: {JsonSerializer.Serialize(gym)} \n\n Raid Query: {query} \n\n Params: {JsonSerializer.Serialize(parameters)}");
             }
         }
 
