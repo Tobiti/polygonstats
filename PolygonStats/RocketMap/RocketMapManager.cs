@@ -187,15 +187,15 @@ namespace PolygonStats.RocketMap
                 List<String> parameters = new List<String>();
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
-                    parameters.Add($"name={gym.Name}");
+                    parameters.Add($"name=\"{gym.Name}\"");
                 }
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
-                    parameters.Add($"description={gym.Description}");
+                    parameters.Add($"description=\"{gym.Description}\"");
                 }
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
-                    parameters.Add($"url={gym.Url}");
+                    parameters.Add($"url=\"{gym.Url}\"");
                 }
 
                 String updateQUery = $"UPDATE gymdetails SET {String.Join(",", parameters.ToArray())} WHERE gym_id = \"{gym.GymStatusAndDefenders.PokemonFortProto.FortId}\"";
