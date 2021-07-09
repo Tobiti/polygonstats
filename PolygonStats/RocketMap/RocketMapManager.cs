@@ -87,19 +87,19 @@ namespace PolygonStats.RocketMap
                     if (fort.FortType == FortType.Checkpoint)
                     {
                         String query =  "INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, lure_expiration, " +
-                                        "last_updated, active_fort_modifier, incident_start, incident_expiration, incident_grunt_type, " +
+                                        "last_updated, image, active_fort_modifier, incident_start, incident_expiration, incident_grunt_type, " +
                                         "is_ar_scan_eligible) " +
-                                        "VALUES (\"{0}\", {1}, {2}, {3}, \"{4}\", \"{5}\", \"{6}\", {7}, \"{8}\", \"{9}\", {10}, {11}) " +
+                                        "VALUES (\"{0}\", {1}, {2}, {3}, \"{4}\", \"{5}\", \"{6}\", \"{7}\", {8}, \"{9}\", \"{10}\", {11}, {12}) " +
                                         "ON DUPLICATE KEY UPDATE last_updated=VALUES(last_updated), lure_expiration=VALUES(lure_expiration), " +
                                         "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
                                         "active_fort_modifier=VALUES(active_fort_modifier), incident_start=VALUES(incident_start), " +
                                         "incident_expiration=VALUES(incident_expiration), incident_grunt_type=VALUES(incident_grunt_type), " +
-                                        "is_ar_scan_eligible=VALUES(is_ar_scan_eligible) ";
+                                        "is_ar_scan_eligible=VALUES(is_ar_scan_eligible), image=VALUES(image) ";
                         try
                         {
                             query = String.Format(query, fort.FortId, fort.Enabled, fort.Latitude, fort.Longitude, ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)), 
-                                                        ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs).AddMinutes(30)),  (fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0), 
-                                                        ToMySQLDateTime(DateTime.UtcNow), fort.GeostoreSuspensionMessageKey, fort.ImageUrl,
+                                                        ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs).AddMinutes(30)), 
+                                                        ToMySQLDateTime(DateTime.UtcNow), fort.ImageUrl, (fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0),
                                                         (fort.PokestopDisplays.Count <= 0 ? "NULL" : ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentStartMs))),
                                                         (fort.PokestopDisplays.Count <= 0 ? "NULL" : ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentExpirationMs))),
                                                         (fort.PokestopDisplays.Count <= 0 ? "NULL" : (int)fort.PokestopDisplays[0].CharacterDisplay.Character),
