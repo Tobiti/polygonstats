@@ -125,14 +125,14 @@ namespace PolygonStats.RocketMap
         {
             String queryGym = "INSERT INTO gym (gym_id, team_id, guard_pokemon_id, slots_available, enabled, latitude, longitude, " +
                                 "total_cp, is_in_battle, last_modified, last_scanned, is_ex_raid_eligible, is_ar_scan_eligible) " +
-                                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, \"{9}\", \"{10}\", {11}, {12}) " +
+                                "VALUES (\"{0}\", {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, \"{9}\", \"{10}\", {11}, {12}) " +
                                 "ON DUPLICATE KEY UPDATE " +
                                 "guard_pokemon_id=VALUES(guard_pokemon_id), team_id=VALUES(team_id), " +
                                 "slots_available=VALUES(slots_available), last_scanned=VALUES(last_scanned), " +
                                 "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
                                 "is_ex_raid_eligible=VALUES(is_ex_raid_eligible), is_ar_scan_eligible=VALUES(is_ar_scan_eligible)";
             String queryGymDetails = "INSERT INTO gymdetails (gym_id, name, url, last_scanned) " +
-                                        "VALUES ({0}, {1}, \"{2}\", {3}) " +
+                                        "VALUES (\"{0}\", {1}, \"{2}\", {3}) " +
                                         "ON DUPLICATE KEY UPDATE last_scanned=VALUES(last_scanned), " +
                                         "url=IF(VALUES(url) IS NOT NULL AND VALUES(url) <> '', VALUES(url), url)";
 
