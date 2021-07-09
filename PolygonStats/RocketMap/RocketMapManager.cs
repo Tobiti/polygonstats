@@ -50,7 +50,7 @@ namespace PolygonStats.RocketMap
                                 "individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, " +
                                 "weight, height, gender, catch_prob_1, catch_prob_2, catch_prob_3, rating_attack, rating_defense, " +
                                 "weather_boosted_condition, last_modified, costume, form, seen_type) " +
-                                "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, \"{6}\", {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, " +
+                                "VALUES ({0}, {1}, {2}, {3}, {4}, \"{5}\", {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, " +
                                 "{20}, {21}, \"{22}\", {23}, {24}, \"{25}\") " +
                                 "ON DUPLICATE KEY UPDATE last_modified=VALUES(last_modified), disappear_time=VALUES(disappear_time), " +
                                 "spawnpoint_id=VALUES(spawnpoint_id), pokemon_id=VALUES(pokemon_id), latitude=VALUES(latitude), " +
