@@ -195,8 +195,8 @@ namespace PolygonStats.RocketMap
             {
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonId);
                 parameters.Add(gym.RaidInfo.RaidPokemon.Cp);
-                parameters.Add(gym.RaidInfo.RaidPokemon.Move1);
-                parameters.Add(gym.RaidInfo.RaidPokemon.Move2);
+                parameters.Add((int)gym.RaidInfo.RaidPokemon.Move1);
+                parameters.Add((int)gym.RaidInfo.RaidPokemon.Move2);
                 parameters.Add(ToMySQLDateTime(DateTime.Now));
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.Form);
                 parameters.Add(gym.RaidInfo.IsExclusive);
