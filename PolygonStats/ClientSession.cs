@@ -278,7 +278,17 @@ namespace PolygonStats
 
         private void ProcessEncounter(string account_name, EncounterOutProto encounterProto)
         {
-            if (!ConfigurationManager.shared.config.encounterSettings.enabled || encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null) {
+            if (encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null)
+            {
+                return;
+            }
+
+            if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+            {
+                RocketMap.RocketMapManager.shared.AddEncounter(encounterProto);
+            }
+
+            if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
                 return;
             }
             lastEncounterPokemon = encounterProto.Pokemon;

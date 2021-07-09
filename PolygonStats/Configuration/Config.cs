@@ -34,6 +34,12 @@ namespace PolygonStats.Configuration
             public string dbConnectionString { get; set; }
         }
         public MysqlSettings mysqlSettings { get; set; }
+        public class RocketMapSettings
+        {
+            public bool enabled { get; set; }
+            public string dbConnectionString { get; set; }
+        }
+        public RocketMapSettings rocketMapSettings { get; set; }
 
         public class EncounterSettings {
             public class WebhookSettings {
@@ -78,6 +84,12 @@ namespace PolygonStats.Configuration
             };
 
             mysqlSettings = new MysqlSettings()
+            {
+                enabled = false,
+                dbConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
+            };
+
+            rocketMapSettings = new RocketMapSettings()
             {
                 enabled = false,
                 dbConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
