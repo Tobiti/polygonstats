@@ -240,18 +240,17 @@ namespace PolygonStats
                         ProcessHatchedEggReward(payload.account_name, getHatchedEggsProto);
                     }
                     break;
-                case Method.GetMapForts:
-                    GetMapFortsOutProto fortProto = GetMapFortsOutProto.Parser.ParseFrom(payload.getDate());
-                    if(fortProto.Status == GetMapFortsOutProto.Types.Status.Success)
-                    {
-
-                    }
-                    break;
                 case Method.GetMapObjects:
                     GetMapObjectsOutProto mapProto = GetMapObjectsOutProto.Parser.ParseFrom(payload.getDate());
                     if (mapProto.Status == GetMapObjectsOutProto.Types.Status.Success)
                     {
-
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            foreach (var mapCell in mapProto.MapCell)
+                            {
+                                RocketMap.RocketMapManager.shared.AddForts(mapCell.Fort.ToList());
+                            }
+                        }
                     }
                     break;
                 case Method.FortSearch:
