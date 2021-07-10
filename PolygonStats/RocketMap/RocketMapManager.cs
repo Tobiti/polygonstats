@@ -94,7 +94,7 @@ namespace PolygonStats.RocketMap
                                         "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
                                         "active_fort_modifier=VALUES(active_fort_modifier), incident_start=VALUES(incident_start), " +
                                         "incident_expiration=VALUES(incident_expiration), incident_grunt_type=VALUES(incident_grunt_type), " +
-                                        "is_ar_scan_eligible=VALUES(is_ar_scan_eligible," +
+                                        "is_ar_scan_eligible=VALUES(is_ar_scan_eligible)," +
                                         "image=IF(VALUES(image) IS NOT NULL AND VALUES(image) <> '', VALUES(image), image)";
                         try
                         {
