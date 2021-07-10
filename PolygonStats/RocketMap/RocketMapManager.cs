@@ -128,7 +128,7 @@ namespace PolygonStats.RocketMap
             {
                 String query = "INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, " +
                                 "last_updated, name, image) " +
-                                "VALUES ({0}, {1}, {2}, {3}, \"{4}\", \"{5}\", {6}, {7}) " +
+                                "VALUES (\"{0}\", {1}, {2}, {3}, \"{4}\", \"{5}\", {6}, {7}) " +
                                 "ON DUPLICATE KEY UPDATE last_updated=VALUES(last_updated), lure_expiration=VALUES(lure_expiration), " +
                                 "latitude=VALUES(latitude), longitude=VALUES(longitude), name=VALUES(name), image=VALUES(image)";
                 try
@@ -176,7 +176,7 @@ namespace PolygonStats.RocketMap
                 var reward = fort.ChallengeQuest.Quest.QuestRewards[0];
 
                 int itemAmount = reward.Item != null ? (int)reward.Item.Amount : 0;
-                int pokemonId = (int)reward.PokemonEncounter.PokemonId;
+                int pokemonId = reward.PokemonEncounter != null ? (int)reward.PokemonEncounter.PokemonId : 0;
 
                 if(reward.Type == QuestRewardProto.Types.Type.Candy)
                 {
@@ -191,7 +191,7 @@ namespace PolygonStats.RocketMap
 
                 int FormId = 0;
                 int CostumeId = 0;
-                if(reward.PokemonEncounter.PokemonDisplay != null)
+                if(reward.PokemonEncounter != null && reward.PokemonEncounter.PokemonDisplay != null)
                 {
                     FormId = (int)reward.PokemonEncounter.PokemonDisplay.Form;
                     CostumeId = (int)reward.PokemonEncounter.PokemonDisplay.Costume;
