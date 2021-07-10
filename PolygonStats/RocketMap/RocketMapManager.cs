@@ -91,7 +91,7 @@ namespace PolygonStats.RocketMap
                                         "last_updated, image, active_fort_modifier, incident_start, incident_expiration, incident_grunt_type, " +
                                         "is_ar_scan_eligible) " +
                                         "VALUES (\"{0}\", {1}, {2}, {3}, \"{4}\"," +
-                                        " date_add(\"{5}\", COALESCE((select event_lure_duration from trs_event where now() between event_start and event_end order by event_start desc limit 1), 30))," +
+                                        " date_add(\"{5}\",interval COALESCE((select event_lure_duration from trs_event where now() between event_start and event_end order by event_start desc limit 1), 30) minute)," +
                                         " \"{6}\", \"{7}\", {8}, {9}, {10}, {11}, {12}) " +
                                         "ON DUPLICATE KEY UPDATE last_updated=VALUES(last_updated), lure_expiration=VALUES(lure_expiration), " +
                                         "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
