@@ -218,7 +218,7 @@ namespace PolygonStats.RocketMap
                                                 JsonSerializer.Serialize(quest.Goal.Condition, jsonSettings),
                                                 JsonSerializer.Serialize(quest.QuestRewards, jsonSettings),
                                                 "Unknown", // Task text
-                                                quest.TemplateId).Replace("{", "{{").Replace("{", "}}");
+                                                quest.TemplateId).Replace("{", "{{").Replace("}", "}}");
 
                     context.Database.ExecuteSqlRaw(query);
                 }
