@@ -175,7 +175,7 @@ namespace PolygonStats.RocketMap
                 var quest = fort.ChallengeQuest.Quest;
                 var reward = fort.ChallengeQuest.Quest.QuestRewards[0];
 
-                int itemAmount = (int)reward.Item.Amount;
+                int itemAmount = reward.Item != null ? (int)reward.Item.Amount : 0;
                 int pokemonId = (int)reward.PokemonEncounter.PokemonId;
 
                 if(reward.Type == QuestRewardProto.Types.Type.Candy)
@@ -208,7 +208,7 @@ namespace PolygonStats.RocketMap
                                                 FormId,
                                                 CostumeId,
                                                 (int)reward.Type,
-                                                (int)reward.Item.Item,
+                                                reward.Item != null ? (int)reward.Item.Item : "NULL",
                                                 itemAmount,
                                                 quest.Goal.Target,
                                                 JsonSerializer.Serialize(quest.Goal.Condition),
