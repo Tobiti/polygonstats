@@ -107,7 +107,7 @@ namespace PolygonStats.RocketMap
                                                         (fort.PokestopDisplays.Count <= 0 ? "NULL" : (int)fort.PokestopDisplays[0].CharacterDisplay.Character),
                                                         fort.IsArScanEligible);
 
-                            context.Database.ExecuteSqlRaw(MySQLEscape(query));
+                            context.Database.ExecuteSqlRaw(query);
                         }
                         catch (Exception e)
                         {
@@ -138,10 +138,10 @@ namespace PolygonStats.RocketMap
                 {
                     query = String.Format(query, fort.Id, 1, fort.Latitude, fort.Longitude, ToMySQLDateTime(DateTime.UtcNow),
                                                 ToMySQLDateTime(DateTime.UtcNow),
-                                                fort.Name != null ? $"\"{fort.Name}\"" : "NULL",
-                                                fort.ImageUrl.Count > 0 ? $"\"{fort.ImageUrl[0]}\"" : "NULL");
+                                                fort.Name != null ? $"\"{MySQLEscape(fort.Name)}\"" : "NULL",
+                                                fort.ImageUrl.Count > 0 ? $"\"{MySQLEscape(fort.ImageUrl[0])}\"" : "NULL");
 
-                    context.Database.ExecuteSqlRaw(MySQLEscape(query));
+                    context.Database.ExecuteSqlRaw(query);
                 }
                 catch (Exception e)
                 {
@@ -223,7 +223,7 @@ namespace PolygonStats.RocketMap
                                                 "Unknown", // Task text
                                                 quest.TemplateId).Replace("{", "{{").Replace("}", "}}");
 
-                    context.Database.ExecuteSqlRaw(MySQLEscape(query));
+                    context.Database.ExecuteSqlRaw(query);
                 }
                 catch (Exception e)
                 {
@@ -267,13 +267,13 @@ namespace PolygonStats.RocketMap
             queryGymDetails = String.Format(queryGymDetails,
                                             gym.FortId,
                                             "\"unknown\"",
-                                            gym.ImageUrl,
+                                            MySQLEscape(gym.ImageUrl),
                                             ToMySQLDateTime(DateTime.Now));
 
             try
             {
-                context.Database.ExecuteSqlRaw(MySQLEscape(queryGym));
-                context.Database.ExecuteSqlRaw(MySQLEscape(queryGymDetails));
+                context.Database.ExecuteSqlRaw(queryGym);
+                context.Database.ExecuteSqlRaw(queryGymDetails);
             }
             catch (Exception e)
             {
@@ -300,22 +300,22 @@ namespace PolygonStats.RocketMap
                 List<String> parameters = new List<String>();
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
-                    parameters.Add($"name=\'{gym.Name}\'");
+                    parameters.Add($"name=\'{MySQLEscape(gym.Name)}\'");
                 }
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
-                    parameters.Add($"description=\'{gym.Description}\'");
+                    parameters.Add($"description=\'{MySQLEscape(gym.Description)}\'");
                 }
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
-                    parameters.Add($"url=\"{gym.Url}\"");
+                    parameters.Add($"url=\"{MySQLEscape(gym.Url)}\"");
                 }
 
                 String updateQUery = $"UPDATE gymdetails SET {String.Join(",", parameters.ToArray())} WHERE gym_id = \"{gym.GymStatusAndDefenders.PokemonFortProto.FortId}\"";
 
                 try
                 {
-                    context.Database.ExecuteSqlRaw(MySQLEscape(updateQUery));
+                    context.Database.ExecuteSqlRaw(updateQUery);
                 }
                 catch (Exception e)
                 {
