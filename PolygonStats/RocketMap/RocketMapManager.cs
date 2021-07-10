@@ -158,6 +158,10 @@ namespace PolygonStats.RocketMap
                 {
                     return;
                 }
+                JsonSerializerOptions jsonSettings = new JsonSerializerOptions
+                {
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                };
 
                 String query =  "INSERT INTO trs_quest (GUID, quest_type, quest_timestamp, quest_stardust, quest_pokemon_id, " +
                                 "quest_pokemon_form_id, quest_pokemon_costume_id, " +
@@ -208,11 +212,11 @@ namespace PolygonStats.RocketMap
                                                 FormId,
                                                 CostumeId,
                                                 (int)reward.Type,
-                                                reward.Item != null ? (int)reward.Item.Item : "NULL",
+                                                reward.Item != null ? (int)reward.Item.Item : "0",
                                                 itemAmount,
                                                 quest.Goal.Target,
-                                                JsonSerializer.Serialize(quest.Goal.Condition),
-                                                JsonSerializer.Serialize(quest.QuestRewards),
+                                                JsonSerializer.Serialize(quest.Goal.Condition, jsonSettings),
+                                                JsonSerializer.Serialize(quest.QuestRewards, jsonSettings),
                                                 "Unknown", // Task text
                                                 quest.TemplateId);
 
