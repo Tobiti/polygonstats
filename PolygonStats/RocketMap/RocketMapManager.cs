@@ -162,7 +162,7 @@ namespace PolygonStats.RocketMap
                 String query =  "INSERT INTO trs_quest (GUID, quest_type, quest_timestamp, quest_stardust, quest_pokemon_id, " +
                                 "quest_pokemon_form_id, quest_pokemon_costume_id, " +
                                 "quest_reward_type, quest_item_id, quest_item_amount, quest_target, quest_condition, quest_reward, " +
-                                "quest_task, quest_template) VALUES ({0}, {1}, \"{2}\", {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, \"{11}\", \"{12}\", \"{13}\", \"{14}\")" +
+                                "quest_task, quest_template) VALUES (\"{0}\", {1}, \"{2}\", {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, \"{11}\", \"{12}\", \"{13}\", \"{14}\")" +
                                 "ON DUPLICATE KEY UPDATE quest_type=VALUES(quest_type), quest_timestamp=VALUES(quest_timestamp), " +
                                 "quest_stardust=VALUES(quest_stardust), quest_pokemon_id=VALUES(quest_pokemon_id), " +
                                 "quest_reward_type=VALUES(quest_reward_type), quest_item_id=VALUES(quest_item_id), " +
@@ -213,7 +213,7 @@ namespace PolygonStats.RocketMap
                                                 quest.Goal.Target,
                                                 JsonSerializer.Serialize(quest.Goal.Condition),
                                                 JsonSerializer.Serialize(quest.QuestRewards),
-                                                "\"Unknown\"", // Task text
+                                                "Unknown", // Task text
                                                 quest.TemplateId);
 
                     context.Database.ExecuteSqlRaw(query);
