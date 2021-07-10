@@ -244,7 +244,7 @@ namespace PolygonStats.RocketMap
                                 "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
                                 "is_ex_raid_eligible=VALUES(is_ex_raid_eligible), is_ar_scan_eligible=VALUES(is_ar_scan_eligible)";
             String queryGymDetails = "INSERT INTO gymdetails (gym_id, name, url, last_scanned) " +
-                                        "VALUES (\"{0}\", {1}, \"{2}\", \"{3}\") " +
+                                        "VALUES (\"{0}\", {1}, \'{2}\', \"{3}\") " +
                                         "ON DUPLICATE KEY UPDATE last_scanned=VALUES(last_scanned), " +
                                         "url=IF(VALUES(url) IS NOT NULL AND VALUES(url) <> '', VALUES(url), url)";
 
@@ -299,11 +299,11 @@ namespace PolygonStats.RocketMap
                 List<String> parameters = new List<String>();
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
-                    parameters.Add($"name=\"{gym.Name}\"");
+                    parameters.Add($"name=\'{gym.Name}\'");
                 }
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
-                    parameters.Add($"description=\"{gym.Description}\"");
+                    parameters.Add($"description=\'{gym.Description}\'");
                 }
                 if (gym.Name != null && gym.Name.Length > 0)
                 {
