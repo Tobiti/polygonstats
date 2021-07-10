@@ -102,7 +102,7 @@ namespace PolygonStats.RocketMap
                         try
                         {
                             query = String.Format(query, fort.FortId, fort.Enabled, fort.Latitude, fort.Longitude, ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)), 
-                                                        ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs).AddMinutes(30)), 
+                                                        ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)), 
                                                         ToMySQLDateTime(DateTime.UtcNow), fort.ImageUrl, (fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0),
                                                         (fort.PokestopDisplays.Count <= 0 ? "NULL" : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentStartMs))}\""),
                                                         (fort.PokestopDisplays.Count <= 0 ? "NULL" : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentExpirationMs))}\""),
