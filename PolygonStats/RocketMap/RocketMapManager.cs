@@ -4,6 +4,7 @@ using System;
 using Serilog;
 using System.Text.Json;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace PolygonStats.RocketMap
 {
@@ -106,7 +107,7 @@ namespace PolygonStats.RocketMap
                                                         (fort.PokestopDisplays.Count <= 0 ? "NULL" : (int)fort.PokestopDisplays[0].CharacterDisplay.Character),
                                                         fort.IsArScanEligible);
 
-                            context.Database.ExecuteSqlRaw(query);
+                            context.Database.ExecuteSqlRaw(MySQLEscape(query));
                         }
                         catch (Exception e)
                         {
@@ -140,7 +141,7 @@ namespace PolygonStats.RocketMap
                                                 fort.Name != null ? $"\"{fort.Name}\"" : "NULL",
                                                 fort.ImageUrl.Count > 0 ? $"\"{fort.ImageUrl[0]}\"" : "NULL");
 
-                    context.Database.ExecuteSqlRaw(query);
+                    context.Database.ExecuteSqlRaw(MySQLEscape(query));
                 }
                 catch (Exception e)
                 {
@@ -222,7 +223,7 @@ namespace PolygonStats.RocketMap
                                                 "Unknown", // Task text
                                                 quest.TemplateId).Replace("{", "{{").Replace("}", "}}");
 
-                    context.Database.ExecuteSqlRaw(query);
+                    context.Database.ExecuteSqlRaw(MySQLEscape(query));
                 }
                 catch (Exception e)
                 {
@@ -271,8 +272,8 @@ namespace PolygonStats.RocketMap
 
             try
             {
-                context.Database.ExecuteSqlRaw(queryGym);
-                context.Database.ExecuteSqlRaw(queryGymDetails);
+                context.Database.ExecuteSqlRaw(MySQLEscape(queryGym));
+                context.Database.ExecuteSqlRaw(MySQLEscape(queryGymDetails));
             }
             catch (Exception e)
             {
@@ -314,7 +315,7 @@ namespace PolygonStats.RocketMap
 
                 try
                 {
-                    context.Database.ExecuteSqlRaw(updateQUery);
+                    context.Database.ExecuteSqlRaw(MySQLEscape(updateQUery));
                 }
                 catch (Exception e)
                 {
@@ -393,6 +394,31 @@ namespace PolygonStats.RocketMap
             System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             dtDateTime = dtDateTime.AddMilliseconds(unixTimeStamp);
             return dtDateTime;
+        }
+        private static string MySQLEscape(string str)
+        {
+            return Regex.Replace(str, @"[\x00'""\b\n\r\t\cZ\\%_]",
+                delegate (Match match)
+                {
+                    string v = match.Value;
+                    switch (v)
+                    {
+                        case "\x00":            // ASCII NUL (0x00) character
+                    return "\\0";
+                        case "\b":              // BACKSPACE character
+                    return "\\b";
+                        case "\n":              // NEWLINE (linefeed) character
+                    return "\\n";
+                        case "\r":              // CARRIAGE RETURN character
+                    return "\\r";
+                        case "\t":              // TAB
+                    return "\\t";
+                        case "\u001A":          // Ctrl-Z
+                    return "\\Z";
+                        default:
+                            return "\\" + v;
+                    }
+                });
         }
     }
 }
