@@ -135,7 +135,7 @@ namespace PolygonStats.RocketMap
                 {
                     query = String.Format(query, fort.Id, 1, fort.Latitude, fort.Longitude, ToMySQLDateTime(DateTime.UtcNow),
                                                 ToMySQLDateTime(DateTime.UtcNow),
-                                                fort.Name != null ? $"\"fort.Name\"" : "NULL",
+                                                fort.Name != null ? $"\"{fort.Name}\"" : "NULL",
                                                 fort.ImageUrl.Count > 0 ? $"\"{fort.ImageUrl[0]}\"" : "NULL");
 
                     context.Database.ExecuteSqlRaw(query);
