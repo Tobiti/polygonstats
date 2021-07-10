@@ -135,8 +135,8 @@ namespace PolygonStats.RocketMap
                 {
                     query = String.Format(query, fort.Id, 1, fort.Latitude, fort.Longitude, ToMySQLDateTime(DateTime.UtcNow),
                                                 ToMySQLDateTime(DateTime.UtcNow),
-                                                fort.ImageUrl.Count > 0 ? $"\"{fort.ImageUrl[0]}\"" : "NULL",
-                                                fort.Name != null ? $"\"fort.Name\"" : "NULL");
+                                                fort.Name != null ? $"\"fort.Name\"" : "NULL",
+                                                fort.ImageUrl.Count > 0 ? $"\"{fort.ImageUrl[0]}\"" : "NULL");
 
                     context.Database.ExecuteSqlRaw(query);
                 }
@@ -166,7 +166,7 @@ namespace PolygonStats.RocketMap
                 String query =  "INSERT INTO trs_quest (GUID, quest_type, quest_timestamp, quest_stardust, quest_pokemon_id, " +
                                 "quest_pokemon_form_id, quest_pokemon_costume_id, " +
                                 "quest_reward_type, quest_item_id, quest_item_amount, quest_target, quest_condition, quest_reward, " +
-                                "quest_task, quest_template) VALUES (\"{0}\", {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, \"{11}\", \"{12}\", \"{13}\", \"{14}\")" +
+                                "quest_task, quest_template) VALUES (\"{0}\", {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, \'{11}\', \'{12}\', \"{13}\", \"{14}\")" +
                                 "ON DUPLICATE KEY UPDATE quest_type=VALUES(quest_type), quest_timestamp=VALUES(quest_timestamp), " +
                                 "quest_stardust=VALUES(quest_stardust), quest_pokemon_id=VALUES(quest_pokemon_id), " +
                                 "quest_reward_type=VALUES(quest_reward_type), quest_item_id=VALUES(quest_item_id), " +
@@ -218,7 +218,7 @@ namespace PolygonStats.RocketMap
                                                 JsonSerializer.Serialize(quest.Goal.Condition, jsonSettings),
                                                 JsonSerializer.Serialize(quest.QuestRewards, jsonSettings),
                                                 "Unknown", // Task text
-                                                quest.TemplateId);
+                                                quest.TemplateId).Replace("{", "{{").Replace("{", "}}");
 
                     context.Database.ExecuteSqlRaw(query);
                 }
