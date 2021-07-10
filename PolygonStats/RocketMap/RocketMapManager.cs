@@ -121,6 +121,112 @@ namespace PolygonStats.RocketMap
             }
         }
 
+        public void UpdateFortInformations(FortDetailsOutProto fort)
+        {
+
+            using (var context = new RocketMapContext())
+            {
+                String query = "INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, " +
+                                "last_updated, name, image) " +
+                                "VALUES ({0}, {1}, {2}, {3}, \"{4}\", \"{5}\", {6}, {7}) " +
+                                "ON DUPLICATE KEY UPDATE last_updated=VALUES(last_updated), lure_expiration=VALUES(lure_expiration), " +
+                                "latitude=VALUES(latitude), longitude=VALUES(longitude), name=VALUES(name), image=VALUES(image)";
+                try
+                {
+                    query = String.Format(query, fort.Id, 1, fort.Latitude, fort.Longitude, ToMySQLDateTime(DateTime.UtcNow),
+                                                ToMySQLDateTime(DateTime.UtcNow),
+                                                fort.ImageUrl != null ? $"\"{fort.ImageUrl}\"" : "NULL",
+                                                fort.Name != null ? $"\"{fort.ImageUrl}\"" : "NULL");
+
+                    context.Database.ExecuteSqlRaw(query);
+                }
+                catch (Exception e)
+                {
+                    Log.Information(e.Message);
+                    Log.Information(e.StackTrace);
+                    Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
+                }
+            }
+        }
+
+        public void AddQuest(FortSearchOutProto fort)
+        {
+
+            using (var context = new RocketMapContext())
+            {
+                if (fort.FortId == null || fort.ChallengeQuest == null || fort.ChallengeQuest.Quest.QuestRewards == null || fort.ChallengeQuest.Quest.QuestRewards.Count <= 0)
+                {
+                    return;
+                }
+
+                String query =  "INSERT INTO trs_quest (GUID, quest_type, quest_timestamp, quest_stardust, quest_pokemon_id, " +
+                                "quest_pokemon_form_id, quest_pokemon_costume_id, " +
+                                "quest_reward_type, quest_item_id, quest_item_amount, quest_target, quest_condition, quest_reward, " +
+                                "quest_task, quest_template) VALUES ({0}, {1}, \"{2}\", {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, \"{11}\", \"{12}\", \"{13}\", \"{14}\")" +
+                                "ON DUPLICATE KEY UPDATE quest_type=VALUES(quest_type), quest_timestamp=VALUES(quest_timestamp), " +
+                                "quest_stardust=VALUES(quest_stardust), quest_pokemon_id=VALUES(quest_pokemon_id), " +
+                                "quest_reward_type=VALUES(quest_reward_type), quest_item_id=VALUES(quest_item_id), " +
+                                "quest_item_amount=VALUES(quest_item_amount), quest_target=VALUES(quest_target), " +
+                                "quest_condition=VALUES(quest_condition), quest_reward=VALUES(quest_reward), " +
+                                "quest_task=VALUES(quest_task), quest_template=VALUES(quest_template), " +
+                                "quest_pokemon_form_id=VALUES(quest_pokemon_form_id), " +
+                                "quest_pokemon_costume_id=VALUES(quest_pokemon_costume_id)";
+
+                var quest = fort.ChallengeQuest.Quest;
+                var reward = fort.ChallengeQuest.Quest.QuestRewards[0];
+
+                int itemAmount = (int)reward.Item.Amount;
+                int pokemonId = (int)reward.PokemonEncounter.PokemonId;
+
+                if(reward.Type == QuestRewardProto.Types.Type.Candy)
+                {
+                    itemAmount = reward.Candy.Amount;
+                    pokemonId = (int)reward.Candy.PokemonId;
+                }
+                if (reward.Type == QuestRewardProto.Types.Type.MegaResource)
+                {
+                    itemAmount = reward.MegaResource.Amount;
+                    pokemonId = (int)reward.MegaResource.PokemonId;
+                }
+
+                int FormId = 0;
+                int CostumeId = 0;
+                if(reward.PokemonEncounter.PokemonDisplay != null)
+                {
+                    FormId = (int)reward.PokemonEncounter.PokemonDisplay.Form;
+                    CostumeId = (int)reward.PokemonEncounter.PokemonDisplay.Costume;
+                }
+
+                try
+                {
+                    //TODO: Add task text
+                    query = String.Format(query, fort.FortId,
+                                                (int)quest.QuestType,
+                                                ToMySQLDateTime(DateTime.Now),
+                                                reward.Stardust,
+                                                pokemonId,
+                                                FormId,
+                                                CostumeId,
+                                                (int)reward.Type,
+                                                (int)reward.Item.Item,
+                                                itemAmount,
+                                                quest.Goal.Target,
+                                                JsonSerializer.Serialize(quest.Goal.Condition),
+                                                JsonSerializer.Serialize(quest.QuestRewards),
+                                                "\"Unknown\"", // Task text
+                                                quest.TemplateId);
+
+                    context.Database.ExecuteSqlRaw(query);
+                }
+                catch (Exception e)
+                {
+                    Log.Information(e.Message);
+                    Log.Information(e.StackTrace);
+                    Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
+                }
+            }
+        }
+
         public void AddGym(PokemonFortProto gym, RocketMapContext context)
         {
             String queryGym = "INSERT INTO gym (gym_id, team_id, guard_pokemon_id, slots_available, enabled, latitude, longitude, " +

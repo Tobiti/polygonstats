@@ -253,6 +253,13 @@ namespace PolygonStats
                         }
                     }
                     break;
+                case Method.FortDetails:
+                    FortDetailsOutProto fortDetailProto = FortDetailsOutProto.Parser.ParseFrom(payload.getDate());
+                    if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                    {
+                        RocketMap.RocketMapManager.shared.UpdateFortInformations(fortDetailProto);
+                    }
+                    break;
                 case Method.GymGetInfo:
                     GymGetInfoOutProto gymProto = GymGetInfoOutProto.Parser.ParseFrom(payload.getDate());
                     if (gymProto.Result == GymGetInfoOutProto.Types.Result.Success)
@@ -268,6 +275,10 @@ namespace PolygonStats
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
                     {
                         ProcessSpinnedFort(payload.account_name, fortSearchProto);
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            RocketMap.RocketMapManager.shared.AddQuest(fortSearchProto);
+                        }
                     }
                     break;
                 case Method.EvolvePokemon:
