@@ -94,7 +94,8 @@ namespace PolygonStats.RocketMap
                                         "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
                                         "active_fort_modifier=VALUES(active_fort_modifier), incident_start=VALUES(incident_start), " +
                                         "incident_expiration=VALUES(incident_expiration), incident_grunt_type=VALUES(incident_grunt_type), " +
-                                        "is_ar_scan_eligible=VALUES(is_ar_scan_eligible), image=VALUES(image) ";
+                                        "is_ar_scan_eligible=VALUES(is_ar_scan_eligible," +
+                                        "image=IF(VALUES(image) IS NOT NULL AND VALUES(image) <> '', VALUES(image), image)";
                         try
                         {
                             query = String.Format(query, fort.FortId, fort.Enabled, fort.Latitude, fort.Longitude, ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)), 
@@ -130,7 +131,8 @@ namespace PolygonStats.RocketMap
                                 "last_updated, name, image) " +
                                 "VALUES (\"{0}\", {1}, {2}, {3}, \"{4}\", \"{5}\", {6}, {7}) " +
                                 "ON DUPLICATE KEY UPDATE last_updated=VALUES(last_updated), lure_expiration=VALUES(lure_expiration), " +
-                                "latitude=VALUES(latitude), longitude=VALUES(longitude), name=VALUES(name), image=VALUES(image)";
+                                "latitude=VALUES(latitude), longitude=VALUES(longitude), name=VALUES(name)," +
+                                "image = IF(VALUES(image) IS NOT NULL AND VALUES(image) <> '', VALUES(image), image)";
                 try
                 {
                     query = String.Format(query, fort.Id, 1, fort.Latitude, fort.Longitude, ToMySQLDateTime(DateTime.UtcNow),
