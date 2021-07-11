@@ -483,7 +483,7 @@ namespace PolygonStats.RocketMap
                     text = "Use {0} {1}Berries to help catch Pokemon.";
                     String berrie = "";
                     QuestConditionProto berryCondition = conditions.FirstOrDefault(c => c.WithItem != null);
-                    if (berryCondition.WithItem != null)
+                    if (berryCondition != null)
                     {
                         berrie = RocketMapUtils.shared.GetItemName((int)berryCondition.WithItem.Item);
                     }
@@ -496,8 +496,8 @@ namespace PolygonStats.RocketMap
 
                     text = "Make {0} {1}{2}Throws{3}.";
 
-                    QuestConditionProto throwCondition = conditions.FirstOrDefault(c => c.WithItem != null);
-                    if (throwCondition.WithThrowType != null)
+                    QuestConditionProto throwCondition = conditions.FirstOrDefault(c => c.WithThrowType != null);
+                    if (throwCondition != null)
                     {
                         parameters[1] = throwCondition.WithThrowType.ThrowType.ToString("G");
                     }
