@@ -224,7 +224,7 @@ namespace PolygonStats.RocketMap
                                                 quest.Goal.Target,
                                                 JsonSerializer.Serialize(quest.Goal.Condition, jsonSettings),
                                                 JsonSerializer.Serialize(quest.QuestRewards, jsonSettings),
-                                                GetQuestTaskText(quest.QuestType, quest.Goal.Condition[0], quest.Goal.Target, quest.TemplateId), // Task text
+                                                GetQuestTaskText(quest.QuestType, quest.Goal.Condition, quest.Goal.Target, quest.TemplateId), // Task text
                                                 quest.TemplateId).Replace("{", "{{").Replace("}", "}}");
 
                     context.Database.ExecuteSqlRaw(query);
@@ -425,7 +425,7 @@ namespace PolygonStats.RocketMap
                 });
         }
 
-        private String GetQuestTaskText(QuestType type, QuestConditionProto condition, int target, String templateId)
+        private String GetQuestTaskText(QuestType type, RepeatedField<QuestConditionProto> conditions, int target, String templateId)
         {
             if (RocketMapUtils.shared.GetQuestTemplateText(templateId) != null)
             {
@@ -441,7 +441,7 @@ namespace PolygonStats.RocketMap
 
                     break;
                 case QuestType.QuestSpinPokestop:
-                    if(condition.Type == QuestConditionProto.Types.ConditionType.WithUniquePokestop){
+                    if(conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithUniquePokestop)){
                         text = "Spin {0} Pokestops you haven't visited before.";
                     } else
                     {
@@ -449,22 +449,23 @@ namespace PolygonStats.RocketMap
                     }
                     break;
                 case QuestType.QuestCompleteGymBattle:
-                    if (condition.Type == QuestConditionProto.Types.ConditionType.WithWinGymBattleStatus)
+                    if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithWinGymBattleStatus))
                     {
                         text = "Win {0} Gym Battles.";
                     } else
                     {
-                        if (condition.Type == QuestConditionProto.Types.ConditionType.WithSuperEffectiveCharge)
+                        if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithSuperEffectiveCharge))
                         {
                             text = "Use a supereffective Charged Attack in {0} Gym battles.";
                         }
                     }
                     break;
                 case QuestType.QuestCompleteRaidBattle:
-                    if (condition != null)
+                    QuestConditionProto raidCondition = conditions.FirstOrDefault(c => c.WithRaidLevel != null);
+                    if (raidCondition != null)
                     {
                         text = "Win {0} Raids.";
-                        switch (condition.WithRaidLevel.RaidLevel[0])
+                        switch (raidCondition.WithRaidLevel.RaidLevel[0])
                         {
                             case RaidLevel._2:
                                 text = "Win a level 2 or higher raid.";
@@ -481,9 +482,10 @@ namespace PolygonStats.RocketMap
                 case QuestType.QuestUseBerryInEncounter:
                     text = "Use {0} {1}Berries to help catch Pokemon.";
                     String berrie = "";
-                    if (condition.WithItem != null)
+                    QuestConditionProto berryCondition = conditions.FirstOrDefault(c => c.WithItem != null);
+                    if (berryCondition.WithItem != null)
                     {
-                        berrie = RocketMapUtils.shared.GetItemName((int)condition.WithItem.Item);
+                        berrie = RocketMapUtils.shared.GetItemName((int)berryCondition.WithItem.Item);
                     }
                     parameters.Add(berrie);
                     break;
@@ -494,15 +496,16 @@ namespace PolygonStats.RocketMap
 
                     text = "Make {0} {1}{2}Throws{3}.";
 
-                    if(condition.WithThrowType != null)
+                    QuestConditionProto throwCondition = conditions.FirstOrDefault(c => c.WithItem != null);
+                    if (throwCondition.WithThrowType != null)
                     {
-                        parameters[1] = condition.WithThrowType.ThrowType.ToString("G");
+                        parameters[1] = throwCondition.WithThrowType.ThrowType.ToString("G");
                     }
-                    if (condition.Type == QuestConditionProto.Types.ConditionType.WithCurveBall)
+                    if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithCurveBall))
                     {
                         parameters[2] = "Curveball ";
                     }
-                    if (condition.Type == QuestConditionProto.Types.ConditionType.WithThrowTypeInARow)
+                    if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithThrowTypeInARow))
                     {
                         parameters[3] = " in a row";
                     }
