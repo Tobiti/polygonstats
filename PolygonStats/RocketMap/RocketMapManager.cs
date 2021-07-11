@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using POGOProtos.Rpc;
 using System;
+using System.Linq;
 using Serilog;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Google.Protobuf.Collections;
 
 namespace PolygonStats.RocketMap
 {
@@ -222,7 +224,7 @@ namespace PolygonStats.RocketMap
                                                 quest.Goal.Target,
                                                 JsonSerializer.Serialize(quest.Goal.Condition, jsonSettings),
                                                 JsonSerializer.Serialize(quest.QuestRewards, jsonSettings),
-                                                "Unknown", // Task text
+                                                GetQuestTaskText(quest.QuestType, quest.Goal.Condition, quest.Goal.Target, quest.TemplateId), // Task text
                                                 quest.TemplateId).Replace("{", "{{").Replace("}", "}}");
 
                     context.Database.ExecuteSqlRaw(query);
@@ -421,6 +423,81 @@ namespace PolygonStats.RocketMap
                             return "\\" + v;
                     }
                 });
+        }
+
+        private String GetQuestTaskText(QuestType type, RepeatedField<QuestConditionProto> conditions, int target, String templateId)
+        {
+            if (RocketMapUtils.shared.GetQuestTemplateText(templateId) != null)
+            {
+                return RocketMapUtils.shared.GetQuestTemplateText(templateId);
+            }
+            List<object> parameters = new List<object>();
+            parameters.Add(Convert.ToString(target));
+            String text = RocketMapUtils.shared.GetQuestTypeText(type);
+
+            switch (type)
+            {
+                case QuestType.QuestCatchPokemon:
+
+                    break;
+                case QuestType.QuestSpinPokestop:
+                    if(conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithUniquePokestop)){
+                        text = "Spin {0} Pokestops you haven't visited before.";
+                    } else
+                    {
+                        text = "Spin {0} Pokestops or Gyms.";
+                    }
+                    break;
+                case QuestType.QuestCompleteGymBattle:
+                    if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithWinGymBattleStatus))
+                    {
+                        text = "Win {0} Gym Battles.";
+                    } else
+                    {
+                        if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithSuperEffectiveCharge))
+                        {
+                            text = "Use a supereffective Charged Attack in {0} Gym battles.";
+                        }
+                    }
+                    break;
+                case QuestType.QuestCompleteRaidBattle:
+                    QuestConditionProto condition = conditions.FirstOrDefault(c => c.Type == QuestConditionProto.Types.ConditionType.WithWinRaidStatus);
+                    if (condition != null)
+                    {
+                        text = "Win {0} Raids.";
+                        switch (condition.WithRaidLevel.RaidLevel[0])
+                        {
+                            case RaidLevel._2:
+                                text = "Win a level 2 or higher raid.";
+                                break;
+                            case RaidLevel._3:
+                                text = "Win a level 3 or higher raid.";
+                                break;
+                            case RaidLevel.Mega:
+                                text = "Win a Mega raid.";
+                                break;
+                        }
+                    }
+                    break;
+            }
+
+            if (target == 1)
+            {
+                text = text.Replace(" Eggs", "n Egg");
+                text = text.Replace(" Raids", " Raid");
+                text = text.Replace(" Battles", " Battle");
+                text = text.Replace(" candies", " candy");
+                text = text.Replace(" gifts", " gift");
+                text = text.Replace(" Pokestops", " Pokestop");
+                text = text.Replace(" {0} snapshots", " a snapshot");
+                text = text.Replace("Make {0} {type}{curve}Throws", "Make a {type}{curve}Throw");
+                text = text.Replace(" {0} times", "");
+                text = text.Replace("{0} hearts", "a heart");
+                parameters[0] = "a";
+            }
+
+            text = String.Format(text, parameters);
+            return text;
         }
     }
 }
