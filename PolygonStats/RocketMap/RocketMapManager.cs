@@ -499,7 +499,21 @@ namespace PolygonStats.RocketMap
                     QuestConditionProto throwCondition = conditions.FirstOrDefault(c => c.WithThrowType != null);
                     if (throwCondition != null)
                     {
-                        parameters[1] = throwCondition.WithThrowType.ThrowType.ToString("G");
+                        switch (throwCondition.WithThrowType.ThrowType)
+                        {
+                            case HoloActivityType.ActivityCatchNiceThrow:
+                                parameters[1] = "Nice ";
+                                break;
+                            case HoloActivityType.ActivityCatchGreatThrow:
+                                parameters[1] = "Great ";
+                                break;
+                            case HoloActivityType.ActivityCatchExcellentThrow:
+                                parameters[1] = "Excellent ";
+                                break;
+                            case HoloActivityType.ActivityCatchCurveball:
+                                parameters[1] = "Curveball ";
+                                break;
+                        }
                     }
                     if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithCurveBall))
                     {
