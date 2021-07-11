@@ -496,7 +496,7 @@ namespace PolygonStats.RocketMap
                 parameters[0] = "a";
             }
 
-            text = String.Format(text, parameters);
+            text = String.Format(text, parameters.ToArray());
             return text;
         }
     }
