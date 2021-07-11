@@ -534,6 +534,7 @@ namespace PolygonStats.RocketMap
                 text = text.Replace(" Battles", " Battle");
                 text = text.Replace(" candies", " candy");
                 text = text.Replace(" gifts", " gift");
+                text = text.Replace("Grunts", "Grunt");
                 text = text.Replace(" Pokestops", " Pokestop");
                 text = text.Replace(" {0} snapshots", " a snapshot");
                 text = text.Replace("Make {0} {1}{2}Throws", "Make a {1}{2}Throw");
