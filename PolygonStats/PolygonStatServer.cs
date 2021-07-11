@@ -31,6 +31,7 @@ namespace PolygonStats
                     session.Dispose();
                 }
             }
+            Log.Information($"Currently Connected: {this.Sessions.Count}");
         }
 
         protected override void Dispose(bool disposingManagedResources)
