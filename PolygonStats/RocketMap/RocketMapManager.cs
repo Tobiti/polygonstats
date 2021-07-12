@@ -240,6 +240,11 @@ namespace PolygonStats.RocketMap
 
         public void AddGym(PokemonFortProto gym, RocketMapContext context)
         {
+            if (gym.GymDisplay == null)
+            {
+                return;
+            }
+
             String queryGym = "INSERT INTO gym (gym_id, team_id, guard_pokemon_id, slots_available, enabled, latitude, longitude, " +
                                 "total_cp, is_in_battle, last_modified, last_scanned, is_ex_raid_eligible, is_ar_scan_eligible) " +
                                 "VALUES (\"{0}\", {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, \"{9}\", \"{10}\", {11}, {12}) " +
