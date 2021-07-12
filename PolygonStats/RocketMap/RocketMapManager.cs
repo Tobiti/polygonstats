@@ -443,6 +443,54 @@ namespace PolygonStats.RocketMap
             switch (type)
             {
                 case QuestType.QuestCatchPokemon:
+                    parameters.Add("");
+                    parameters.Add("");
+                    parameters.Add("");
+                    parameters.Add("");
+
+                    text = "Catch {0}{1} {2}Pokemon{3}";
+
+                    foreach(QuestConditionProto condition in conditions)
+                    {
+                        switch (condition.Type)
+                        {
+                            case QuestConditionProto.Types.ConditionType.WithPokemonType:
+                                if (condition.WithPokemonType.PokemonType.Count == 1)
+                                {
+                                    String temp = String.Join("-, ", condition.WithPokemonType.PokemonType.Select(type => RocketMapUtils.shared.GetPokemonType((int)type)));
+                                    parameters[2] = $"{temp}-type ";
+                                }
+                                break;
+                            case QuestConditionProto.Types.ConditionType.WithPokemonCategory:
+                                //TODO: Add translation
+                                if (condition.WithPokemonCategory.PokemonIds.Count > 0)
+                                {
+                                    text = "Catch {0} {poke}";
+                                    parameters[1] = String.Join(", ", condition.WithPokemonCategory.PokemonIds.Select(pokemon => RocketMapUtils.shared.GetPokemonName((int)pokemon)));
+                                }
+                                break;
+                            case QuestConditionProto.Types.ConditionType.WithWeatherBoost:
+                                parameters[3] = " with weather boost";
+                                break;
+                            case QuestConditionProto.Types.ConditionType.WithUniquePokemon:
+                                parameters[1] = " different species of";
+                                break;
+                            case QuestConditionProto.Types.ConditionType.WithPokemonAlignment:
+                                if (condition.WithPokemonAlignment.Alignment.Count == 1)
+                                {
+                                    switch (condition.WithPokemonAlignment.Alignment[0])
+                                    {
+                                        case PokemonDisplayProto.Types.Alignment.Shadow:
+                                            parameters[1] = " shadow";
+                                            break;
+                                        case PokemonDisplayProto.Types.Alignment.Purified:
+                                            parameters[1] = " purified";
+                                            break;
+                                    }
+                                }
+                                break;
+                        }
+                    }
 
                     break;
                 case QuestType.QuestSpinPokestop:
