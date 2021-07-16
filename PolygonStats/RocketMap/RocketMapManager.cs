@@ -538,7 +538,7 @@ namespace PolygonStats.RocketMap
                     QuestConditionProto berryCondition = conditions.FirstOrDefault(c => c.WithItem != null);
                     if (berryCondition != null)
                     {
-                        berrie = RocketMapUtils.shared.GetItemName((int)berryCondition.WithItem.Item);
+                        berrie = RocketMapUtils.shared.GetItemName((int)berryCondition.WithItem.Item).Replace("Berry", "");
                     }
                     parameters.Add(berrie);
                     break;
