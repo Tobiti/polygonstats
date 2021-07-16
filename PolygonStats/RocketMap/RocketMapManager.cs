@@ -465,7 +465,7 @@ namespace PolygonStats.RocketMap
                                 //TODO: Add translation
                                 if (condition.WithPokemonCategory.PokemonIds.Count > 0)
                                 {
-                                    text = "Catch {0} {poke}";
+                                    text = "Catch {0} {1}";
                                     parameters[1] = String.Join(", ", condition.WithPokemonCategory.PokemonIds.Select(pokemon => RocketMapUtils.shared.GetPokemonName((int)pokemon)));
                                 }
                                 break;

@@ -21,7 +21,7 @@ namespace PolygonStats
         private string accountName = null;
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private int dbSessionId = -1;
-        private Account account;
+        private int accountId;
 
         private int messageCount = 0;
         private ILogger logger;
@@ -163,7 +163,7 @@ namespace PolygonStats
                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                 {
                     using(var context = connectionManager.GetContext()) {
-                        account = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
+                        Account account = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
                         if (account == null)
                         {
                             account = new Account();
@@ -177,6 +177,7 @@ namespace PolygonStats
                         context.SaveChanges();
 
                         dbSessionId = dbSession.Id;
+                        accountId = account.Id;
                     }
                 }
             }
@@ -446,7 +447,7 @@ namespace PolygonStats
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {
-                        connectionManager.UpdateLevelAndExp(account, item.InventoryItemData.PlayerStats);
+                        connectionManager.UpdateLevelAndExp(accountId, item.InventoryItemData.PlayerStats);
                     }
                 }
             }
@@ -560,7 +561,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddPlayerInfoToDatabase(account, player, level);
+                connectionManager.AddPlayerInfoToDatabase(accountId, player, level);
             }
         }
 

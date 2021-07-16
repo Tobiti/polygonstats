@@ -223,7 +223,7 @@ namespace PolygonStats
             }
         }
 
-        internal void AddPlayerInfoToDatabase(Account account, GetPlayerOutProto player, int level)
+        internal void AddPlayerInfoToDatabase(int accountId, GetPlayerOutProto player, int level)
         {
             if (player.Player == null) {
                 return;
@@ -241,18 +241,18 @@ namespace PolygonStats
                 if (currency != null) {
                     stardust = currency.Quantity;
                 }
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team=\"{player.Player.Team}\", Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={account.Id}");
+                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team=\"{player.Player.Team}\", Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={accountId}");
             }
         }
 
-        internal void UpdateLevelAndExp(Account account, PlayerStatsProto playerStats)
+        internal void UpdateLevelAndExp(int accountId, PlayerStatsProto playerStats)
         {
             if (playerStats == null) {
                 return;
             }
 
             using (var context = new MySQLContext()) {
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={account.Id}");
+                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={accountId}");
             }
         }
     }
