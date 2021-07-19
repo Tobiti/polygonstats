@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#pragma warning disable CS0162 // Unreachable code detected
 namespace Google.Common.Geometry
 {
     /**
@@ -445,4 +446,5 @@ namespace Google.Common.Geometry
         Tan,
         Quadratic
     }
+#pragma warning restore CS0162 // Unreachable code detected
 }
