@@ -12,6 +12,6 @@ Compile the code or for windows get the compiled binary from the release page.
 
 Use the `Config.json` to change the settings.
 
-Run the `PolygonStats.exe` as admin!
+Run the `PolygonStats.exe` as admin! (If it's not working, try to install the hosting bundle of .net 5)
 
 Connect with polygon and open `http://{your ip}:8888`.
