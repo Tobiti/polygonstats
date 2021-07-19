@@ -247,6 +247,7 @@ namespace PolygonStats
                     {
                         if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
                         {
+                            RocketMap.RocketMapManager.shared.AddCells(mapProto.MapCell.ToList());
                             foreach (var mapCell in mapProto.MapCell)
                             {
                                 RocketMap.RocketMapManager.shared.AddForts(mapCell.Fort.ToList());
