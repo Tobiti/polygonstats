@@ -432,6 +432,59 @@ namespace PolygonStats.RocketMap
             }
         }
 
+        public void AddWeather(List<ClientWeatherProto> weatherList, int timeOfDay)
+        {
+            using (var context = new RocketMapContext())
+            {
+                foreach (ClientWeatherProto weather in weatherList)
+                {
+                    String query =  "INSERT INTO weather (s2_cell_id, latitude, longitude, cloud_level, rain_level, wind_level, " +
+                                    "snow_level, fog_level, wind_direction, gameplay_weather, severity, warn_weather, world_time, " +
+                                    "last_updated) " +
+                                    "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, \"{13}\") " +
+                                    "ON DUPLICATE KEY UPDATE fog_level=VALUES(fog_level), cloud_level=VALUES(cloud_level), " +
+                                    "snow_level=VALUES(snow_level), wind_direction=VALUES(wind_direction), " +
+                                    "world_time=VALUES(world_time), gameplay_weather=VALUES(gameplay_weather), " +
+                                    "last_updated=VALUES(last_updated)";
+
+                    if(weather.DisplayWeather == null)
+                    {
+                        continue;
+                    }
+
+                    List<Object> parameters = new List<Object>();
+                    parameters.Add(weather.S2CellId);
+                    var s2CellId = new S2CellId((ulong) weather.S2CellId).ToLatLng();
+                    parameters.Add(s2CellId.LatDegrees);
+                    parameters.Add(s2CellId.LngDegrees);
+                    parameters.Add((int)weather.DisplayWeather.CloudLevel);
+                    parameters.Add((int)weather.DisplayWeather.RainLevel);
+                    parameters.Add((int)weather.DisplayWeather.WindLevel);
+                    parameters.Add((int)weather.DisplayWeather.SnowLevel);
+                    parameters.Add((int)weather.DisplayWeather.FogLevel);
+                    parameters.Add((int)weather.DisplayWeather.WindDirection);
+                    parameters.Add((int) weather.GameplayWeather.GameplayCondition);
+                    parameters.Add(0);
+                    parameters.Add(0);
+                    parameters.Add(timeOfDay);
+                    parameters.Add(ToMySQLDateTime(DateTime.Now));
+
+                    try
+                    {
+                        query = String.Format(query, parameters.ToArray());
+
+                        context.Database.ExecuteSqlRaw(query);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Information(e.Message);
+                        Log.Information(e.StackTrace);
+                        Log.Information($"Object: {JsonSerializer.Serialize(weather)} \n\n Weather Query: {query} \n\n Params: {JsonSerializer.Serialize(parameters)}");
+                    }
+                }
+            }
+        }
+
         public String ToMySQLDateTime(DateTime dateTime)
         {
             return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
