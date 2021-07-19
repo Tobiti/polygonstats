@@ -21,7 +21,7 @@ namespace PolygonStats
         private string accountName = null;
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private int dbSessionId = -1;
-        private Account account;
+        private int accountId;
 
         private int messageCount = 0;
         private ILogger logger;
@@ -163,7 +163,7 @@ namespace PolygonStats
                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                 {
                     using(var context = connectionManager.GetContext()) {
-                        account = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
+                        Account account = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
                         if (account == null)
                         {
                             account = new Account();
@@ -177,6 +177,7 @@ namespace PolygonStats
                         context.SaveChanges();
 
                         dbSessionId = dbSession.Id;
+                        accountId = account.Id;
                     }
                 }
             }
@@ -240,11 +241,47 @@ namespace PolygonStats
                         ProcessHatchedEggReward(payload.account_name, getHatchedEggsProto);
                     }
                     break;
+                case Method.GetMapObjects:
+                    GetMapObjectsOutProto mapProto = GetMapObjectsOutProto.Parser.ParseFrom(payload.getDate());
+                    if (mapProto.Status == GetMapObjectsOutProto.Types.Status.Success)
+                    {
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            RocketMap.RocketMapManager.shared.AddCells(mapProto.MapCell.ToList());
+                            RocketMap.RocketMapManager.shared.AddWeather(mapProto.ClientWeather.ToList(), (int) mapProto.TimeOfDay);
+                            foreach (var mapCell in mapProto.MapCell)
+                            {
+                                RocketMap.RocketMapManager.shared.AddForts(mapCell.Fort.ToList());
+                            }
+                        }
+                    }
+                    break;
+                case Method.FortDetails:
+                    FortDetailsOutProto fortDetailProto = FortDetailsOutProto.Parser.ParseFrom(payload.getDate());
+                    if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                    {
+                        RocketMap.RocketMapManager.shared.UpdateFortInformations(fortDetailProto);
+                    }
+                    break;
+                case Method.GymGetInfo:
+                    GymGetInfoOutProto gymProto = GymGetInfoOutProto.Parser.ParseFrom(payload.getDate());
+                    if (gymProto.Result == GymGetInfoOutProto.Types.Result.Success)
+                    {
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            RocketMap.RocketMapManager.shared.UpdateGymDetails(gymProto);
+                        }
+                    }
+                    break;
                 case Method.FortSearch:
                     FortSearchOutProto fortSearchProto = FortSearchOutProto.Parser.ParseFrom(payload.getDate());
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
                     {
                         ProcessSpinnedFort(payload.account_name, fortSearchProto);
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            RocketMap.RocketMapManager.shared.AddQuest(fortSearchProto);
+                        }
                     }
                     break;
                 case Method.EvolvePokemon:
@@ -278,7 +315,17 @@ namespace PolygonStats
 
         private void ProcessEncounter(string account_name, EncounterOutProto encounterProto)
         {
-            if (!ConfigurationManager.shared.config.encounterSettings.enabled || encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null) {
+            if (encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null)
+            {
+                return;
+            }
+
+            if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+            {
+                RocketMap.RocketMapManager.shared.AddEncounter(encounterProto);
+            }
+
+            if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
                 return;
             }
             lastEncounterPokemon = encounterProto.Pokemon;
@@ -402,7 +449,7 @@ namespace PolygonStats
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {
-                        connectionManager.UpdateLevelAndExp(account, item.InventoryItemData.PlayerStats);
+                        connectionManager.UpdateLevelAndExp(accountId, item.InventoryItemData.PlayerStats);
                     }
                 }
             }
@@ -516,7 +563,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddPlayerInfoToDatabase(account, player, level);
+                connectionManager.AddPlayerInfoToDatabase(accountId, player, level);
             }
         }
 

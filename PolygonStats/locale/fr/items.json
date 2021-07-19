@@ -1,0 +1,258 @@
+{
+  "0": {
+    "protoname": "ITEM_UNKNOWN",
+    "name": "ITEM_UNKNOWN"
+  },
+  "1": {
+    "protoname": "ITEM_POKE_BALL",
+    "name": "Poké Ball"
+  },
+  "2": {
+    "protoname": "ITEM_GREAT_BALL",
+    "name": "Super Ball"
+  },
+  "3": {
+    "protoname": "ITEM_ULTRA_BALL",
+    "name": "Hyper Ball"
+  },
+  "4": {
+    "protoname": "ITEM_MASTER_BALL",
+    "name": "Master Ball"
+  },
+  "5": {
+    "protoname": "ITEM_PREMIER_BALL",
+    "name": "ITEM_PREMIER_BALL"
+  },
+  "101": {
+    "protoname": "ITEM_POTION",
+    "name": "Potion"
+  },
+  "102": {
+    "protoname": "ITEM_SUPER_POTION",
+    "name": "Super Potion"
+  },
+  "103": {
+    "protoname": "ITEM_HYPER_POTION",
+    "name": "Hyper Potion"
+  },
+  "104": {
+    "protoname": "ITEM_MAX_POTION",
+    "name": "Potion Max"
+  },
+  "201": {
+    "protoname": "ITEM_REVIVE",
+    "name": "Rappel"
+  },
+  "202": {
+    "protoname": "ITEM_MAX_REVIVE",
+    "name": "Rappel Max"
+  },
+  "301": {
+    "protoname": "ITEM_LUCKY_EGG",
+    "name": "Œuf Chance"
+  },
+  "401": {
+    "protoname": "ITEM_INCENSE_ORDINARY",
+    "name": "Encens"
+  },
+  "402": {
+    "protoname": "ITEM_INCENSE_SPICY",
+    "name": "ITEM_INCENSE_SPICY"
+  },
+  "403": {
+    "protoname": "ITEM_INCENSE_COOL",
+    "name": "ITEM_INCENSE_COOL"
+  },
+  "404": {
+    "protoname": "ITEM_INCENSE_FLORAL",
+    "name": "ITEM_INCENSE_FLORAL"
+  },
+  "405": {
+    "protoname": "ITEM_INCENSE_BELUGA_BOX",
+    "name": "Boîte Mystère"
+  },
+  "501": {
+    "protoname": "ITEM_TROY_DISK",
+    "name": "Module Leurre"
+  },
+  "502": {
+    "protoname": "ITEM_TROY_DISK_GLACIAL",
+    "name": "Leurre Glacial"
+  },
+  "503": {
+    "protoname": "ITEM_TROY_DISK_MOSSY",
+    "name": "Leurre Moussu"
+  },
+  "504": {
+    "protoname": "ITEM_TROY_DISK_MAGNETIC",
+    "name": "Leurre Magnétique"
+  },
+  "602": {
+    "protoname": "ITEM_X_ATTACK",
+    "name": "Attaque +"
+  },
+  "603": {
+    "protoname": "ITEM_X_DEFENSE",
+    "name": "Défense +"
+  },
+  "604": {
+    "protoname": "ITEM_X_MIRACLE",
+    "name": "UNDEFINED"
+  },
+  "701": {
+    "protoname": "ITEM_RAZZ_BERRY",
+    "name": "Baie Framby"
+  },
+  "702": {
+    "protoname": "ITEM_BLUK_BERRY",
+    "name": "Baie Remu"
+  },
+  "703": {
+    "protoname": "ITEM_NANAB_BERRY",
+    "name": "Baie Nanab"
+  },
+  "704": {
+    "protoname": "ITEM_WEPAR_BERRY",
+    "name": "Baie Repoi"
+  },
+  "705": {
+    "protoname": "ITEM_PINAP_BERRY",
+    "name": "Baie Nanana"
+  },
+  "706": {
+    "protoname": "ITEM_GOLDEN_RAZZ_BERRY",
+    "name": "Baie Framby dorée"
+  },
+  "707": {
+    "protoname": "ITEM_GOLDEN_NANAB_BERRY",
+    "name": "ITEM_GOLDEN_NANAB_BERRY"
+  },
+  "708": {
+    "protoname": "ITEM_GOLDEN_PINAP_BERRY",
+    "name": "Baie Nanana argentée"
+  },
+  "709": {
+    "protoname": "ITEM_POFFIN",
+    "name": "Poffin"
+  },
+  "801": {
+    "protoname": "ITEM_SPECIAL_CAMERA",
+    "name": "Appareil photo"
+  },
+  "901": {
+    "protoname": "ITEM_INCUBATOR_BASIC_UNLIMITED",
+    "name": "Incubateur ∞"
+  },
+  "902": {
+    "protoname": "ITEM_INCUBATOR_BASIC",
+    "name": "Incubateur"
+  },
+  "903": {
+    "protoname": "ITEM_INCUBATOR_SUPER",
+    "name": "Super-Incubateur"
+  },
+  "1001": {
+    "protoname": "ITEM_POKEMON_STORAGE_UPGRADE",
+    "name": "ITEM_POKEMON_STORAGE_UPGRADE"
+  },
+  "1002": {
+    "protoname": "ITEM_ITEM_STORAGE_UPGRADE",
+    "name": "ITEM_ITEM_STORAGE_UPGRADE"
+  },
+  "1101": {
+    "protoname": "ITEM_SUN_STONE",
+    "name": "Pierre Soleil"
+  },
+  "1102": {
+    "protoname": "ITEM_KINGS_ROCK",
+    "name": "Roche Royale"
+  },
+  "1103": {
+    "protoname": "ITEM_METAL_COAT",
+    "name": "Peau Métal"
+  },
+  "1104": {
+    "protoname": "ITEM_DRAGON_SCALE",
+    "name": "Écaille Draco"
+  },
+  "1105": {
+    "protoname": "ITEM_UP_GRADE",
+    "name": "Améliorator"
+  },
+  "1106": {
+    "protoname": "ITEM_GEN4_EVOLUTION_STONE",
+    "name": "Pierre Sinnoh"
+  },
+  "1107": {
+    "protoname": "ITEM_GEN5_EVOLUTION_STONE",
+    "name": "Pierre Unys"
+  },
+  "1201": {
+    "protoname": "ITEM_MOVE_REROLL_FAST_ATTACK",
+    "name": "CT Attaque Immédiate"
+  },
+  "1202": {
+    "protoname": "ITEM_MOVE_REROLL_SPECIAL_ATTACK",
+    "name": "CT Attaque Chargée"
+  },
+  "1203": {
+    "protoname": "ITEM_MOVE_REROLL_ELITE_FAST_ATTACK",
+    "name": "CT Attaque Immédiate d’élite"
+  },
+  "1204": {
+    "protoname": "ITEM_MOVE_REROLL_ELITE_SPECIAL_ATTACK",
+    "name": "CT Attaque Chargée d’élite"
+  },
+  "1301": {
+    "protoname": "ITEM_RARE_CANDY",
+    "name": "Super Bonbon"
+  },
+  "1401": {
+    "protoname": "ITEM_FREE_RAID_TICKET",
+    "name": "Passe de Raid"
+  },
+  "1402": {
+    "protoname": "ITEM_PAID_RAID_TICKET",
+    "name": "Passe de combat premium"
+  },
+  "1403": {
+    "protoname": "ITEM_LEGENDARY_RAID_TICKET",
+    "name": "Passe de Raid EX"
+  },
+  "1404": {
+    "protoname": "ITEM_STAR_PIECE",
+    "name": "Morceau d’Étoile"
+  },
+  "1405": {
+    "protoname": "ITEM_FRIEND_GIFT_BOX",
+    "name": "Cadeau"
+  },
+  "1406": {
+    "protoname": "ITEM_TEAM_CHANGE",
+    "name": "Médaillon d’équipe"
+  },
+  "1408": {
+    "protoname": "ITEM_REMOTE_RAID_TICKET",
+    "name": "Passe de Raid à distance"
+  },
+  "1501": {
+    "protoname": "ITEM_LEADER_MAP_FRAGMENT",
+    "name": "Élément mystérieux"
+  },
+  "1502": {
+    "protoname": "ITEM_LEADER_MAP",
+    "name": "Radar Rocket"
+  },
+  "1503": {
+    "protoname": "ITEM_GIOVANNI_MAP",
+    "name": "Super Radar Rocket"
+  },
+  "1600": {
+    "protoname": "ITEM_GLOBAL_EVENT_TICKET",
+    "name": "Ticket"
+  },
+  "1601": {
+    "protoname": "ITEM_EVENT_TICKET_PINK",
+    "name": "Ticket"
+  }
+}

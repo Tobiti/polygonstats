@@ -10,6 +10,7 @@ namespace PolygonStats
     class PolygonStatServer : TcpServer
     {
         private Timer cleanTimer;
+        private int currentCount = int.MinValue;
 
         public PolygonStatServer(IPAddress address, int port) : base(address, port)
         {
@@ -30,6 +31,11 @@ namespace PolygonStats
                 {
                     session.Dispose();
                 }
+            }
+            if (currentCount != this.Sessions.Count)
+            {
+                currentCount = this.Sessions.Count;
+                Log.Information($"Currently Connected: {currentCount}");
             }
         }
 
