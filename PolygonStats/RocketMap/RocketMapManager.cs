@@ -400,7 +400,7 @@ namespace PolygonStats.RocketMap
                 foreach (ClientMapCellProto cell in cells)
                 {
                     String query = "INSERT INTO trs_s2cells (id, level, center_latitude, center_longitude, updated) " +
-                            "VALUES ({0}, {1}, {2}, {3}, \"{4}\") " +
+                            "VALUES ({0}, {1}, {2}, {3}, {4}) " +
                             "ON DUPLICATE KEY UPDATE updated=VALUES(updated)";
 
                     List<Object> parameters = new List<Object>();
@@ -414,7 +414,7 @@ namespace PolygonStats.RocketMap
                     var s2Cell = new S2CellId(cellId).ToLatLng();
                     parameters.Add(s2Cell.LatDegrees);
                     parameters.Add(s2Cell.LngDegrees);
-                    parameters.Add(ToMySQLDateTime(DateTime.Now));
+                    parameters.Add(DateTimeOffset.Now.ToUnixTimeSeconds());
 
                     try
                     {
