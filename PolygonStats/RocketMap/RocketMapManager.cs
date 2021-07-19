@@ -47,7 +47,7 @@ namespace PolygonStats.RocketMap
                 }
                 else
                 {
-                    disappearTime = disappearTime.AddMinutes(20);
+                    disappearTime = UnixTimeStampToDateTime(encounter.Pokemon.LastModifiedMs).AddMinutes(20);
                 }
 
                 String query =  "INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, " +
@@ -214,7 +214,7 @@ namespace PolygonStats.RocketMap
                     //TODO: Add task text
                     query = String.Format(query, fort.FortId,
                                                 (int)quest.QuestType,
-                                                DateTimeOffset.Now.ToUnixTimeSeconds(),
+                                                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                                                 reward.Stardust,
                                                 pokemonId,
                                                 FormId,
@@ -270,7 +270,7 @@ namespace PolygonStats.RocketMap
                                             gym.GymDisplay.TotalGymCp,
                                             gym.IsInBattle,
                                             ToMySQLDateTime(UnixTimeStampToDateTime(gym.LastModifiedMs)),
-                                            ToMySQLDateTime(DateTime.Now),
+                                            ToMySQLDateTime(DateTime.UtcNow),
                                             gym.IsExRaidEligible,
                                             gym.IsArScanEligible);
 
@@ -278,7 +278,7 @@ namespace PolygonStats.RocketMap
                                             gym.FortId,
                                             "\"unknown\"",
                                             MySQLEscape(gym.ImageUrl),
-                                            ToMySQLDateTime(DateTime.Now));
+                                            ToMySQLDateTime(DateTime.UtcNow));
 
             try
             {
@@ -359,7 +359,7 @@ namespace PolygonStats.RocketMap
                 parameters.Add(gym.RaidInfo.RaidPokemon.Cp);
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.Move1);
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.Move2);
-                parameters.Add(ToMySQLDateTime(DateTime.Now));
+                parameters.Add(ToMySQLDateTime(DateTime.UtcNow));
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.Form);
                 parameters.Add(gym.RaidInfo.IsExclusive);
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.Gender);
@@ -371,7 +371,7 @@ namespace PolygonStats.RocketMap
                 parameters.Add(0);
                 parameters.Add(1);
                 parameters.Add(2);
-                parameters.Add(ToMySQLDateTime(DateTime.Now));
+                parameters.Add(ToMySQLDateTime(DateTime.UtcNow));
                 parameters.Add("NULL");
                 parameters.Add(gym.RaidInfo.IsExclusive);
                 parameters.Add("NULL");
@@ -414,7 +414,7 @@ namespace PolygonStats.RocketMap
                     var s2Cell = new S2CellId(cellId).ToLatLng();
                     parameters.Add(s2Cell.LatDegrees);
                     parameters.Add(s2Cell.LngDegrees);
-                    parameters.Add(DateTimeOffset.Now.ToUnixTimeSeconds());
+                    parameters.Add(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
                     try
                     {
@@ -467,7 +467,7 @@ namespace PolygonStats.RocketMap
                     parameters.Add(0);
                     parameters.Add(0);
                     parameters.Add(timeOfDay);
-                    parameters.Add(ToMySQLDateTime(DateTime.Now));
+                    parameters.Add(ToMySQLDateTime(DateTime.UtcNow));
 
                     try
                     {
