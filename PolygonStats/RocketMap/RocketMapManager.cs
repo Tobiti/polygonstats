@@ -94,7 +94,7 @@ namespace PolygonStats.RocketMap
                                         "last_updated, image, active_fort_modifier, incident_start, incident_expiration, incident_grunt_type, " +
                                         "is_ar_scan_eligible) " +
                                         "VALUES (\"{0}\", {1}, {2}, {3}, \"{4}\"," +
-                                        " date_add(\"{5}\",interval COALESCE((select event_lure_duration from trs_event where now() between event_start and event_end order by event_start desc limit 1), 30) minute)," +
+                                        " {5}," +
                                         " \"{6}\", \"{7}\", {8}, {9}, {10}, {11}, {12}) " +
                                         "ON DUPLICATE KEY UPDATE last_updated=VALUES(last_updated), lure_expiration=VALUES(lure_expiration), " +
                                         "last_modified=VALUES(last_modified), latitude=VALUES(latitude), longitude=VALUES(longitude), " +
@@ -104,12 +104,13 @@ namespace PolygonStats.RocketMap
                                         "image=IF(VALUES(image) IS NOT NULL AND VALUES(image) <> '', VALUES(image), image)";
                         try
                         {
-                            query = String.Format(query, fort.FortId, fort.Enabled, fort.Latitude, fort.Longitude, ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)), 
-                                                        ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)), 
-                                                        ToMySQLDateTime(DateTime.UtcNow), fort.ImageUrl, (fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0),
-                                                        (fort.PokestopDisplays.Count <= 0 ? "NULL" : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentStartMs))}\""),
-                                                        (fort.PokestopDisplays.Count <= 0 ? "NULL" : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentExpirationMs))}\""),
-                                                        (fort.PokestopDisplays.Count <= 0 ? "NULL" : (int)fort.PokestopDisplays[0].CharacterDisplay.Character),
+                            var activeModifier = (fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0);
+                            query = String.Format(query, fort.FortId, fort.Enabled, fort.Latitude, fort.Longitude, ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)),
+                                                        activeModifier == 0 ? $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\"" : $"date_add(\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\",interval COALESCE((select event_lure_duration from trs_event where now() between event_start and event_end order by event_start desc limit 1), 30) minute)", 
+                                                        ToMySQLDateTime(DateTime.UtcNow), fort.ImageUrl, activeModifier,
+                                                        (fort.PokestopDisplays.Count <= 0 || isRocketLeader(fort.PokestopDisplays) ? "NULL" : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentStartMs))}\""),
+                                                        (fort.PokestopDisplays.Count <= 0 || isRocketLeader(fort.PokestopDisplays) ? "NULL" : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentExpirationMs))}\""),
+                                                        (fort.PokestopDisplays.Count <= 0 || isRocketLeader(fort.PokestopDisplays) ? "NULL" : (int)fort.PokestopDisplays[0].CharacterDisplay.Character),
                                                         fort.IsArScanEligible);
 
                             context.Database.ExecuteSqlRaw(query);
@@ -126,6 +127,23 @@ namespace PolygonStats.RocketMap
                     }
                 }
             }
+        }
+
+        private bool isRocketLeader(RepeatedField<PokestopIncidentDisplayProto> rockets)
+        {
+            foreach (var rocket in rockets) {
+                switch (rocket.CharacterDisplay.Character) {
+                    case EnumWrapper.Types.InvasionCharacter.CharacterGiovanni:
+                        return true;
+                    case EnumWrapper.Types.InvasionCharacter.CharacterExecutiveArlo:
+                        return true;
+                    case EnumWrapper.Types.InvasionCharacter.CharacterExecutiveCliff:
+                        return true;
+                    case EnumWrapper.Types.InvasionCharacter.CharacterExecutiveSierra:
+                        return true;
+                }
+            }
+            return false;
         }
 
         public void UpdateFortInformations(FortDetailsOutProto fort)
