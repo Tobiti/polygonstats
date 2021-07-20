@@ -300,6 +300,15 @@ namespace PolygonStats
                     UpdateInvasionBattleOutProto updateBattle = UpdateInvasionBattleOutProto.Parser.ParseFrom(payload.getDate());
                     ProcessUpdateInvasionBattle(payload.account_name, updateBattle);
                     break;
+                case Method.InvasionEncounter:
+                    InvasionEncounterOutProto invasionEncounter = InvasionEncounterOutProto.Parser.ParseFrom(payload.getDate());
+                    if (invasionEncounter.EncounterPokemon != null) {
+                        this.lastEncounterPokemon = new WildPokemonProto()
+                        {
+                            Pokemon = invasionEncounter.EncounterPokemon
+                        };
+                    }
+                    break;
                 case Method.AttackRaid:
                     AttackRaidBattleOutProto attackRaidBattle = AttackRaidBattleOutProto.Parser.ParseFrom(payload.getDate());
                     ProcessAttackRaidBattle(payload.account_name, attackRaidBattle);
