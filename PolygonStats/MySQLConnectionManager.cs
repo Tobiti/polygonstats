@@ -241,7 +241,7 @@ namespace PolygonStats
                 if (currency != null) {
                     stardust = currency.Quantity;
                 }
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team=\"{player.Player.Team}\", Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={accountId}");
+                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team=\"{player.Player.Team}\", Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={accountId} ORDER BY Id");
             }
         }
 
