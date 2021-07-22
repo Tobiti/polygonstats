@@ -252,7 +252,7 @@ namespace PolygonStats
             }
 
             using (var context = new MySQLContext()) {
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={accountId}");
+                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={accountId} ORDER BY Id");
             }
         }
     }
