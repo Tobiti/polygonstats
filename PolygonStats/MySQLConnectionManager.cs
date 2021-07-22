@@ -241,7 +241,14 @@ namespace PolygonStats
                 if (currency != null) {
                     stardust = currency.Quantity;
                 }
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team=\"{player.Player.Team}\", Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={accountId} ORDER BY Id");
+                try
+                {
+                    context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team=\"{player.Player.Team}\", Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={accountId} ORDER BY Id");
+                } catch (Exception e)
+                {
+                    Log.Information(e.Message);
+                    Log.Information(e.InnerException.Message);
+                }
             }
         }
 
@@ -251,8 +258,17 @@ namespace PolygonStats
                 return;
             }
 
-            using (var context = new MySQLContext()) {
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={accountId}");
+            using (var context = new MySQLContext())
+            {
+                try
+                {
+                    context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={accountId} ORDER BY Id");
+                }
+                catch (Exception e)
+                {
+                    Log.Information(e.Message);
+                    Log.Information(e.InnerException.Message);
+                }
             }
         }
     }
