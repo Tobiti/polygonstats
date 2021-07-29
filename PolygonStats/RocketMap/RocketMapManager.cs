@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Google.Protobuf.Collections;
 using Google.Common.Geometry;
+using System.Data.SqlClient;
+using System.Collections;
 
 namespace PolygonStats.RocketMap
 {
@@ -146,9 +148,133 @@ namespace PolygonStats.RocketMap
             return false;
         }
 
+        public void AddSpawnpoints(GetMapObjectsOutProto mapProto)
+        {
+            if (mapProto.MapCell == null || mapProto.MapCell.Count == 0)
+            {
+                return;
+            }
+            var cells = mapProto.MapCell;
+            using (var context = new RocketMapContext())
+            {
+
+                String spawnpointsQuery =   "INSERT INTO trs_spawn(spawnpoint, latitude, longitude, earliest_unseen, " +
+                                            "last_scanned, spawndef, calc_endminsec, eventid) " +
+                                            "VALUES (@spawnpoint, @latitude, @longitude, @earliestUnseen, @LastScanned, @spawnDef, @calcEndminsec, " +
+                                            "(select id from trs_event where now() between event_start and " +
+                                            "event_end order by event_start desc limit 1)) " +
+                                            "ON DUPLICATE KEY UPDATE " +
+                                            "last_scanned=VALUES(last_scanned), " +
+                                            "earliest_unseen=LEAST(earliest_unseen, VALUES(earliest_unseen)), " +
+                                            "spawndef=if(((select id from trs_event where now() between event_start and event_end order " +
+                                            "by event_start desc limit 1)=1 and eventid=1) or (select id from trs_event where now() between " +
+                                            "event_start and event_end order by event_start desc limit 1)<>1 and eventid<>1, VALUES(spawndef), " +
+                                            "spawndef), " +
+                                            "calc_endminsec=VALUES(calc_endminsec)";
+
+                String spawnpointsUnseenQuery = "INSERT INTO trs_spawn (spawnpoint, latitude, longitude, earliest_unseen, last_non_scanned, spawndef, " +
+                                                "eventid) VALUES (@spawnpoint, @latitude, @longitude, @earliestUnseen, @LastNonScanned, @spawnDef, " +
+                                                "(select id from trs_event where now() between event_start and " +
+                                                "event_end order by event_start desc limit 1)) " +
+                                                "ON DUPLICATE KEY UPDATE " +
+                                                "spawndef=if(((select id from trs_event where now() between event_start and event_end order " +
+                                                "by event_start desc limit 1)=1 and eventid=1) or (select id from trs_event where now() between " +
+                                                "event_start and event_end order by event_start desc limit 1)<>1 and eventid<>1, VALUES(spawndef), " +
+                                                "spawndef), " +
+                                                "last_non_scanned=VALUES(last_non_scanned)";
+                var spawnIds = cells.SelectMany(cell => cell.WildPokemon).Select(poke => Convert.ToInt64(poke.SpawnPointId, 16));
+
+
+                foreach (var cell in cells)
+                {
+                    foreach(var wild in cell.WildPokemon)
+                    {
+                        var id = new SqlParameter("spawnpoint", Convert.ToInt64(wild.SpawnPointId, 16));
+
+                        var cellLatLng = new S2CellId((ulong) Convert.ToInt64(wild.SpawnPointId + "00000", 16)).ToLatLng();
+                        var latitude = new SqlParameter("latitude", cellLatLng.LatDegrees);
+                        var longitude = new SqlParameter("latitude", cellLatLng.LngDegrees);
+
+                        var despawnTime = wild.TimeTillHiddenMs;
+                        var minPos = getCurrentSpawnDefPosition();
+
+                        int oldSpawnDef = 0;
+                        int newSpawnDef;
+                        if (oldSpawnDef != -1)
+                        {
+                            newSpawnDef = getSpawnDefWithMinPos(oldSpawnDef, minPos);
+                        } else
+                        {
+                            newSpawnDef = getSpawnDefWithMinPos(240, minPos);
+                        }
+
+                        context.Database.ExecuteSqlRaw(spawnpointsQuery, id, latitude, longitude);
+                    }
+                }
+            }
+        }
+
+        private int getCurrentSpawnDefPosition()
+        {
+            var minute = DateTime.Now.Minute;
+
+            if (minute < 15)
+            {
+                return 4;
+            }
+            if (minute < 30)
+            {
+                return 5;
+            }
+            if (minute < 45)
+            {
+                return 6;
+            }
+            if (minute < 60)
+            {
+                return 7;
+            }
+
+            return -1;
+        }
+
+        private int getSpawnDefWithMinPos(int oldSpawnDef, int minPos)
+        {
+            var bitArray =  Enumerable.Range(0, 8)
+                            .Select(bitIndex => 1 << bitIndex)
+                            .Select(bitMask => (oldSpawnDef & bitMask) == bitMask)
+                            .ToArray();
+            switch (minPos)
+            {
+                case 4:
+                    bitArray[0] = false;
+                    bitArray[4] = true;
+                    break;
+                case 5:
+                    bitArray[1] = false;
+                    bitArray[5] = true;
+                    break;
+                case 6:
+                    bitArray[2] = false;
+                    bitArray[6] = true;
+                    break;
+                case 7:
+                    bitArray[3] = false;
+                    bitArray[7] = true;
+                    break;
+            }
+            int value = 0;
+            int expo = 0;
+            for (int i = bitArray.Length-1; i >= 0; i--)
+            {
+                value += 2 ^ expo * (bitArray[i] ? 1 : 0);
+                expo++;
+            }
+            return value;
+        }
+
         public void UpdateFortInformations(FortDetailsOutProto fort)
         {
-
             using (var context = new RocketMapContext())
             {
                 String query = "INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, " +
