@@ -28,7 +28,7 @@ namespace PolygonStats
                                             $"CaughtPokemon=CaughtPokemon+{((log.LogEntryType == LogEntryType.Pokemon && log.CaughtSuccess) ? 1 : 0)}, EscapedPokemon=EscapedPokemon+{((log.LogEntryType == LogEntryType.Pokemon && !log.CaughtSuccess) ? 1 : 0)}, " +
                                             $"ShinyPokemon=ShinyPokemon+{((log.Shiny) ? 1 : 0)}, Shadow=Shadow+{((log.Shadow) ? 1 : 0)}, Pokestops=Pokestops+{(log.LogEntryType == LogEntryType.Fort ? 1 : 0)}, " +
                                             $"Rockets=Rockets+{(log.LogEntryType == LogEntryType.Rocket ? 1 : 0)}, Raids=Raids+{(log.LogEntryType == LogEntryType.Raid ? 1 : 0)}, " +
-                                            $"LastUpdate=NOW(), EndTime=NOW(), TotalMinutes=TIMESTAMPDIFF(MINUTE, StartTime, NOW()) WHERE Id={SessionId} ORDER BY Id");
+                                            $"LastUpdate=UTC_TIMESTAMP(), EndTime=UTC_TIMESTAMP(), TotalMinutes=TIMESTAMPDIFF(MINUTE, StartTime, NOW()) WHERE Id={SessionId} ORDER BY Id");
             context.Logs.Add(log);
         }
 
