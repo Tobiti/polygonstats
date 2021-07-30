@@ -464,9 +464,7 @@ namespace PolygonStats
                                 {
                                     holoPokemon.Add(pokemon.Id, DateTime.Now);
                                     context.Database.ExecuteSqlRaw($"UPDATE `Session` SET MaxIV=MaxIV+1, LastUpdate=UTC_TIMESTAMP() WHERE Id={dbSessionId} ORDER BY Id");
-                                }
-                            }
-                        } else
+                                } else
                         {
                             foreach(ulong id in holoPokemon.Keys.ToList())
                             {
@@ -474,6 +472,8 @@ namespace PolygonStats
                                 {
                                     holoPokemon.Remove(id);
                                 }
+                            }
+                        }
                             }
                         }
                     }
