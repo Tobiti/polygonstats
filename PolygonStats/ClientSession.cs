@@ -454,14 +454,15 @@ namespace PolygonStats
                     if (item.InventoryItemData.Pokemon != null)
                     {
                         PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                        if (!holoPokemon.ContainsKey(pokemon.Id))
+                        
+                        using (var context = connectionManager.GetContext())
                         {
-                            holoPokemon.Add(pokemon.Id, DateTime.Now);
-                            using (var context = connectionManager.GetContext())
+                            int effected = context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName=\"{pokemon.PokemonId.ToString("G")}\", Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id} AND `timestamp` BETWEEN (DATE_SUB(UTC_TIMESTAMP(),INTERVAL 1 MINUTE)) AND UTC_TIMESTAMP() ORDER BY Id");
+                            if (effected > 0 && pokemon.IndividualAttack == 15 && pokemon.IndividualDefense == 15 && pokemon.IndividualStamina == 15)
                             {
-                                int effected = context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName=\"{pokemon.PokemonId.ToString("G")}\", Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id} AND `timestamp` BETWEEN (DATE_SUB(UTC_TIMESTAMP(),INTERVAL 1 MINUTE)) AND UTC_TIMESTAMP() ORDER BY Id");
-                                if (effected > 0 && pokemon.IndividualAttack == 15 && pokemon.IndividualDefense == 15 && pokemon.IndividualStamina == 15)
+                                if (!holoPokemon.ContainsKey(pokemon.Id))
                                 {
+                                    holoPokemon.Add(pokemon.Id, DateTime.Now);
                                     context.Database.ExecuteSqlRaw($"UPDATE `Session` SET MaxIV=MaxIV+1, LastUpdate=UTC_TIMESTAMP() WHERE Id={dbSessionId} ORDER BY Id");
                                 }
                             }
