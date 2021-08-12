@@ -158,7 +158,7 @@ namespace PolygonStats.RocketMap
             using (var context = new RocketMapContext())
             {
 
-                String spawnpointsQuery =   "INSERT INTO trs_spawn(spawnpoint, latitude, longitude, earliest_unseen, " +
+                String spawnpointsQuery = "INSERT INTO trs_spawn(spawnpoint, latitude, longitude, earliest_unseen, " +
                                             "last_scanned, spawndef, calc_endminsec, eventid) " +
                                             "VALUES (@spawnpoint, @latitude, @longitude, @earliestUnseen, @LastScanned, @spawnDef, @calcEndminsec, " +
                                             "(select id from trs_event where now() between event_start and " +
@@ -185,47 +185,57 @@ namespace PolygonStats.RocketMap
                 var spawnIds = cells.SelectMany(cell => cell.WildPokemon).Select(poke => Convert.ToInt64(poke.SpawnPointId, 16));
 
                 var spawnIdsString = String.Join(",", spawnIds).Trim(',');
-                var dbSpawnpoints = context.Spawnpoints.FromSqlInterpolated($"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint in {spawnIdsString}");
-
-                foreach (var cell in cells)
+                var getSpawnpointsQuery = $"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint in {spawnIdsString}";
+                try
                 {
-                    foreach(var wild in cell.WildPokemon)
+                    var dbSpawnpoints = context.Spawnpoints.FromSqlRaw(getSpawnpointsQuery);
+
+                    foreach (var cell in cells)
                     {
-                        var currentSpawnpointId = Convert.ToInt64(wild.SpawnPointId, 16);
-                        var id = new SqlParameter("spawnpoint", currentSpawnpointId);
-
-                        var cellLatLng = new S2CellId((ulong) Convert.ToInt64(wild.SpawnPointId + "00000", 16)).ToLatLng();
-                        var latitude = new SqlParameter("latitude", cellLatLng.LatDegrees);
-                        var longitude = new SqlParameter("latitude", cellLatLng.LngDegrees);
-
-                        var despawnTime = wild.TimeTillHiddenMs;
-                        var minPos = getCurrentSpawnDefPosition();
-
-                        Spawnpoint currentDbSpawnpoint = dbSpawnpoints.FirstOrDefault(s => s.spawnpoint == currentSpawnpointId);
-                        int oldSpawnDef = currentDbSpawnpoint != null ? currentDbSpawnpoint.spawndef : int.MinValue;
-                        SqlParameter newSpawnDef;
-                        if (oldSpawnDef != int.MinValue)
+                        foreach (var wild in cell.WildPokemon)
                         {
-                            newSpawnDef = new SqlParameter("spawnDef", getSpawnDefWithMinPos(oldSpawnDef, minPos));
-                        } else
-                        {
-                            newSpawnDef = new SqlParameter("spawnDef", getSpawnDefWithMinPos(240, minPos));
-                        }
-                        if(0 <= despawnTime && despawnTime <= 90000)
-                        {
-                            var earliestUnseen = new SqlParameter("earliestUnseen", despawnTime);
-                            var lastScanned = new SqlParameter("LastScanned", ToMySQLDateTime(DateTime.UtcNow));
-                            var calcEndTime = new SqlParameter("calcEndminsec", DateTime.UtcNow.AddMilliseconds(despawnTime).ToString("mm:ss"));
+                            var currentSpawnpointId = Convert.ToInt64(wild.SpawnPointId, 16);
+                            var id = new SqlParameter("spawnpoint", currentSpawnpointId);
 
-                            context.Database.ExecuteSqlRaw(spawnpointsQuery, id, latitude, longitude, earliestUnseen, lastScanned, newSpawnDef, calcEndTime);
-                        } else
-                        {
-                            var earliestUnseen = new SqlParameter("earliestUnseen", 99999999);
-                            var lastScanned = new SqlParameter("LastNonScanned", DateTime.UtcNow);
+                            var cellLatLng = new S2CellId((ulong)Convert.ToInt64(wild.SpawnPointId + "00000", 16)).ToLatLng();
+                            var latitude = new SqlParameter("latitude", cellLatLng.LatDegrees);
+                            var longitude = new SqlParameter("latitude", cellLatLng.LngDegrees);
 
-                            context.Database.ExecuteSqlRaw(spawnpointsUnseenQuery, id, latitude, longitude, earliestUnseen, lastScanned, newSpawnDef);
+                            var despawnTime = wild.TimeTillHiddenMs;
+                            var minPos = getCurrentSpawnDefPosition();
+
+                            Spawnpoint currentDbSpawnpoint = dbSpawnpoints.FirstOrDefault(s => s.spawnpoint == currentSpawnpointId);
+                            int oldSpawnDef = currentDbSpawnpoint != null ? currentDbSpawnpoint.spawndef : int.MinValue;
+                            SqlParameter newSpawnDef;
+                            if (oldSpawnDef != int.MinValue)
+                            {
+                                newSpawnDef = new SqlParameter("spawnDef", getSpawnDefWithMinPos(oldSpawnDef, minPos));
+                            } else
+                            {
+                                newSpawnDef = new SqlParameter("spawnDef", getSpawnDefWithMinPos(240, minPos));
+                            }
+                            if (0 <= despawnTime && despawnTime <= 90000)
+                            {
+                                var earliestUnseen = new SqlParameter("earliestUnseen", despawnTime);
+                                var lastScanned = new SqlParameter("LastScanned", ToMySQLDateTime(DateTime.UtcNow));
+                                var calcEndTime = new SqlParameter("calcEndminsec", DateTime.UtcNow.AddMilliseconds(despawnTime).ToString("mm:ss"));
+
+                                context.Database.ExecuteSqlRaw(spawnpointsQuery, id, latitude, longitude, earliestUnseen, lastScanned, newSpawnDef, calcEndTime);
+                            } else
+                            {
+                                var earliestUnseen = new SqlParameter("earliestUnseen", 99999999);
+                                var lastScanned = new SqlParameter("LastNonScanned", DateTime.UtcNow);
+
+                                context.Database.ExecuteSqlRaw(spawnpointsUnseenQuery, id, latitude, longitude, earliestUnseen, lastScanned, newSpawnDef);
+                            }
                         }
                     }
+                }
+                catch
+                {
+                    Log.Information($"Spawnpoints: {spawnIdsString} \n Query: {getSpawnpointsQuery}");
+                    
+                    return;
                 }
             }
         }
