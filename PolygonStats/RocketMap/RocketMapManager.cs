@@ -93,7 +93,7 @@ namespace PolygonStats.RocketMap
             }
             else
             {
-                if (0 < tillDespawnMs && tillDespawnMs <= 90000)
+                if (30 < tillDespawnMs && tillDespawnMs <= 90000)
                 {
                     return DateTime.UtcNow.AddMilliseconds(tillDespawnMs);
                 }
