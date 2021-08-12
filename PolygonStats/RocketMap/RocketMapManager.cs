@@ -46,6 +46,7 @@ namespace PolygonStats.RocketMap
                 long spawnpointId = Convert.ToInt64(encounter.Pokemon.SpawnPointId, 16);
                 Spawnpoint spawnpoint = context.Spawnpoints.FromSqlInterpolated($"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint={spawnpointId}").FirstOrDefault();
                 DateTime disappearTime = getDespawnTime(spawnpoint, encounter.Pokemon.LastModifiedMs, encounter.Pokemon.TimeTillHiddenMs);
+                Log.Information($"Despawn Time: {disappearTime}");
 
                 String query =  "INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, " +
                                 "individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, " +
@@ -89,17 +90,20 @@ namespace PolygonStats.RocketMap
                 {
                     despawnDateTime = despawnDateTime.AddHours(1);
                 }
+                Log.Information("DespawnTime from spawnpoint");
                 return despawnDateTime;
             }
             else
             {
                 if (0 <= tillDespawnMs && tillDespawnMs <= 90000)
                 {
+                    Log.Information("DespawnTime from tillDespawnMs");
                     return DateTime.UtcNow.AddMilliseconds(tillDespawnMs);
                 }
                 else
                 {
-                    return UnixTimeStampToDateTime(lastModifiedMs).AddMinutes(10);
+                    Log.Information("DespawnTime missing");
+                    return DateTime.UtcNow.AddMinutes(10);
                 }
             }
         }
