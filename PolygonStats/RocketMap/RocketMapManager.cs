@@ -198,7 +198,7 @@ namespace PolygonStats.RocketMap
 
                         var cellLatLng = new S2CellId((ulong)Convert.ToInt64(wild.SpawnPointId + "00000", 16)).ToLatLng();
                         var latitude = new MySqlParameter("latitude", cellLatLng.LatDegrees);
-                        var longitude = new MySqlParameter("latitude", cellLatLng.LngDegrees);
+                        var longitude = new MySqlParameter("longitude", cellLatLng.LngDegrees);
 
                         var despawnTime = wild.TimeTillHiddenMs;
                         var minPos = getCurrentSpawnDefPosition();
