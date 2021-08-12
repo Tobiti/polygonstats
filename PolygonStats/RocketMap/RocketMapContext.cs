@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 
 namespace PolygonStats.RocketMap
 {
+    [Table("trs_spawn")]
     public class Spawnpoint
     {
+        [Key]
         public long spawnpoint { get; set; }
         public int spawndef { get; set; }
         public string calc_endminsec { get; set; }
