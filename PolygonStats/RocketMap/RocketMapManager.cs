@@ -43,15 +43,9 @@ namespace PolygonStats.RocketMap
         {
             using (var context = new RocketMapContext())
             {
-                DateTime disappearTime = DateTime.UtcNow;
-                if (encounter.Pokemon.TimeTillHiddenMs > 0)
-                {
-                    disappearTime = disappearTime.AddMilliseconds(encounter.Pokemon.TimeTillHiddenMs);
-                }
-                else
-                {
-                    disappearTime = UnixTimeStampToDateTime(encounter.Pokemon.LastModifiedMs).AddMinutes(20);
-                }
+                long spawnpointId = Convert.ToInt64(encounter.Pokemon.SpawnPointId, 16);
+                Spawnpoint spawnpoint = context.Spawnpoints.FromSqlInterpolated($"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint={spawnpointId}").FirstOrDefault();
+                DateTime disappearTime = getDespawnTime(spawnpoint, encounter.Pokemon.LastModifiedMs, encounter.Pokemon.TimeTillHiddenMs);
 
                 String query =  "INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, " +
                                 "individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, " +
@@ -65,8 +59,8 @@ namespace PolygonStats.RocketMap
                                 "weather_boosted_condition=VALUES(weather_boosted_condition), fort_id=NULL, cell_id=NULL, " +
                                 "seen_type=IF(seen_type='encounter','encounter',VALUES(seen_type))";
 
-                query = String.Format(query, encounter.Pokemon.EncounterId, Convert.ToInt64(encounter.Pokemon.SpawnPointId, 16), (int)encounter.Pokemon.Pokemon.PokemonId, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude,
-                    disappearTime.ToString("yyyy-MM-dd HH:mm:ss"), encounter.Pokemon.Pokemon.IndividualAttack, encounter.Pokemon.Pokemon.IndividualDefense, encounter.Pokemon.Pokemon.IndividualStamina, 
+                query = String.Format(query, encounter.Pokemon.EncounterId, spawnpointId, (int)encounter.Pokemon.Pokemon.PokemonId, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude,
+                    ToMySQLDateTime(disappearTime), encounter.Pokemon.Pokemon.IndividualAttack, encounter.Pokemon.Pokemon.IndividualDefense, encounter.Pokemon.Pokemon.IndividualStamina, 
                     (int)encounter.Pokemon.Pokemon.Move1, (int)encounter.Pokemon.Pokemon.Move2, encounter.Pokemon.Pokemon.Cp, encounter.Pokemon.Pokemon.CpMultiplier, encounter.Pokemon.Pokemon.WeightKg,
                     encounter.Pokemon.Pokemon.HeightM, (int)encounter.Pokemon.Pokemon.PokemonDisplay.Gender, encounter.CaptureProbability.CaptureProbability[0], encounter.CaptureProbability.CaptureProbability[1],
                     encounter.CaptureProbability.CaptureProbability[2], "\"\"", "\"\"", (int)encounter.Pokemon.Pokemon.PokemonDisplay.WeatherBoostedCondition, UnixTimeStampToDateTime(encounter.Pokemon.LastModifiedMs).ToString("yyyy-MM-dd HH:mm:ss"),
@@ -81,6 +75,31 @@ namespace PolygonStats.RocketMap
                     Log.Information(e.StackTrace);
                     Log.Information($"Object: {JsonSerializer.Serialize(encounter)} \n Query: {query}");
 
+                }
+            }
+        }
+
+        private DateTime getDespawnTime(Spawnpoint spawnpoint, long lastModifiedMs, long tillDespawnMs)
+        {
+            if (spawnpoint != null && spawnpoint.calc_endminsec != null && spawnpoint.calc_endminsec.Length != 0)
+            {
+                var split = spawnpoint.calc_endminsec.Split(":");
+                var despawnDateTime = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day, DateTime.UtcNow.Hour, int.Parse(split[0]), int.Parse(split[1]));
+                if (despawnDateTime < DateTime.UtcNow)
+                {
+                    despawnDateTime = despawnDateTime.AddHours(1);
+                }
+                return despawnDateTime;
+            }
+            else
+            {
+                if (0 <= tillDespawnMs && tillDespawnMs <= 90000)
+                {
+                    return DateTime.UtcNow.AddMilliseconds(tillDespawnMs);
+                }
+                else
+                {
+                    return UnixTimeStampToDateTime(lastModifiedMs).AddMinutes(10);
                 }
             }
         }
