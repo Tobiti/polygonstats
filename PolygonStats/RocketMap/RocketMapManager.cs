@@ -10,6 +10,7 @@ using Google.Protobuf.Collections;
 using Google.Common.Geometry;
 using System.Data.SqlClient;
 using System.Collections;
+using MySqlConnector;
 
 namespace PolygonStats.RocketMap
 {
@@ -193,38 +194,38 @@ namespace PolygonStats.RocketMap
                     foreach (var wild in cell.WildPokemon)
                     {
                         var currentSpawnpointId = Convert.ToInt64(wild.SpawnPointId, 16);
-                        var id = new SqlParameter("spawnpoint", currentSpawnpointId);
+                        var id = new MySqlParameter("spawnpoint", currentSpawnpointId);
 
                         var cellLatLng = new S2CellId((ulong)Convert.ToInt64(wild.SpawnPointId + "00000", 16)).ToLatLng();
-                        var latitude = new SqlParameter("latitude", cellLatLng.LatDegrees);
-                        var longitude = new SqlParameter("latitude", cellLatLng.LngDegrees);
+                        var latitude = new MySqlParameter("latitude", cellLatLng.LatDegrees);
+                        var longitude = new MySqlParameter("latitude", cellLatLng.LngDegrees);
 
                         var despawnTime = wild.TimeTillHiddenMs;
                         var minPos = getCurrentSpawnDefPosition();
 
                         Spawnpoint currentDbSpawnpoint = dbSpawnpoints.FirstOrDefault(s => s.spawnpoint == currentSpawnpointId);
                         int oldSpawnDef = currentDbSpawnpoint != null ? currentDbSpawnpoint.spawndef : int.MinValue;
-                        SqlParameter newSpawnDef;
+                        MySqlParameter newSpawnDef;
                         if (oldSpawnDef != int.MinValue)
                         {
-                            newSpawnDef = new SqlParameter("spawnDef", getSpawnDefWithMinPos(oldSpawnDef, minPos));
+                            newSpawnDef = new MySqlParameter("spawnDef", getSpawnDefWithMinPos(oldSpawnDef, minPos));
                         }
                         else
                         {
-                            newSpawnDef = new SqlParameter("spawnDef", getSpawnDefWithMinPos(240, minPos));
+                            newSpawnDef = new MySqlParameter("spawnDef", getSpawnDefWithMinPos(240, minPos));
                         }
                         if (0 <= despawnTime && despawnTime <= 90000)
                         {
-                            var earliestUnseen = new SqlParameter("earliestUnseen", despawnTime);
-                            var lastScanned = new SqlParameter("LastScanned", ToMySQLDateTime(DateTime.UtcNow));
-                            var calcEndTime = new SqlParameter("calcEndminsec", DateTime.UtcNow.AddMilliseconds(despawnTime).ToString("mm:ss"));
+                            var earliestUnseen = new MySqlParameter("earliestUnseen", despawnTime);
+                            var lastScanned = new MySqlParameter("LastScanned", ToMySQLDateTime(DateTime.UtcNow));
+                            var calcEndTime = new MySqlParameter("calcEndminsec", DateTime.UtcNow.AddMilliseconds(despawnTime).ToString("mm:ss"));
 
                             context.Database.ExecuteSqlRaw(spawnpointsQuery, id, latitude, longitude, earliestUnseen, lastScanned, newSpawnDef, calcEndTime);
                         }
                         else
                         {
-                            var earliestUnseen = new SqlParameter("earliestUnseen", 99999999);
-                            var lastScanned = new SqlParameter("LastNonScanned", DateTime.UtcNow);
+                            var earliestUnseen = new MySqlParameter("earliestUnseen", 99999999);
+                            var lastScanned = new MySqlParameter("LastNonScanned", DateTime.UtcNow);
 
                             context.Database.ExecuteSqlRaw(spawnpointsUnseenQuery, id, latitude, longitude, earliestUnseen, lastScanned, newSpawnDef);
                         }
