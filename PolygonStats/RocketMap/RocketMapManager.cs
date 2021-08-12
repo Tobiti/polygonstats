@@ -39,13 +39,13 @@ namespace PolygonStats.RocketMap
             }
         }
 
-        public void AddEncounter(EncounterOutProto encounter)
+        public void AddEncounter(EncounterOutProto encounter, Payload payload)
         {
             using (var context = new RocketMapContext())
             {
                 long spawnpointId = Convert.ToInt64(encounter.Pokemon.SpawnPointId, 16);
                 Spawnpoint spawnpoint = context.Spawnpoints.FromSqlInterpolated($"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint={spawnpointId}").FirstOrDefault();
-                DateTime disappearTime = getDespawnTime(spawnpoint, encounter.Pokemon.LastModifiedMs, encounter.Pokemon.TimeTillHiddenMs);
+                DateTime disappearTime = getDespawnTime(spawnpoint, encounter.Pokemon.LastModifiedMs, encounter.Pokemon.TimeTillHiddenMs, payload.timestamp);
 
                 String query =  "INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, " +
                                 "individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, " +
@@ -79,13 +79,15 @@ namespace PolygonStats.RocketMap
             }
         }
 
-        private DateTime getDespawnTime(Spawnpoint spawnpoint, long lastModifiedMs, long tillDespawnMs)
+        private DateTime getDespawnTime(Spawnpoint spawnpoint, long lastModifiedMs, long tillDespawnMs, long timestamp)
         {
+            var now = UnixTimeStampToDateTime(timestamp);
+
             if (spawnpoint != null && spawnpoint.calc_endminsec != null && spawnpoint.calc_endminsec.Length != 0)
             {
                 var split = spawnpoint.calc_endminsec.Split(":");
-                var despawnDateTime = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day, DateTime.UtcNow.Hour, int.Parse(split[0]), int.Parse(split[1]));
-                if (despawnDateTime < DateTime.UtcNow)
+                var despawnDateTime = new DateTime(now.Year, now.Month, now.Day, now.Hour, int.Parse(split[0]), int.Parse(split[1]));
+                if (despawnDateTime < now)
                 {
                     despawnDateTime = despawnDateTime.AddHours(1);
                 }
@@ -95,11 +97,11 @@ namespace PolygonStats.RocketMap
             {
                 if (30 < tillDespawnMs && tillDespawnMs <= 90000)
                 {
-                    return DateTime.UtcNow.AddMilliseconds(tillDespawnMs);
+                    return now.AddMilliseconds(tillDespawnMs);
                 }
                 else
                 {
-                    return DateTime.UtcNow.AddMinutes(10);
+                    return now.AddMinutes(10);
                 }
             }
         }

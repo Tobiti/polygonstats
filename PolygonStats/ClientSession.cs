@@ -207,7 +207,7 @@ namespace PolygonStats
                 case Method.Encounter:
                     EncounterOutProto encounterProto = EncounterOutProto.Parser.ParseFrom(payload.getDate());
                     logger.Debug($"Proto: {JsonSerializer.Serialize(encounterProto)}");
-                    ProcessEncounter(payload.account_name, encounterProto);
+                    ProcessEncounter(payload.account_name, encounterProto, payload);
                     break;
                 case Method.CatchPokemon:
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
@@ -324,7 +324,7 @@ namespace PolygonStats
             }
         }
 
-        private void ProcessEncounter(string account_name, EncounterOutProto encounterProto)
+        private void ProcessEncounter(string account_name, EncounterOutProto encounterProto, Payload payload)
         {
             if (encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null)
             {
@@ -333,7 +333,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
             {
-                RocketMap.RocketMapManager.shared.AddEncounter(encounterProto);
+                RocketMap.RocketMapManager.shared.AddEncounter(encounterProto, payload);
             }
 
             if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
