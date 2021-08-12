@@ -184,12 +184,15 @@ namespace PolygonStats.RocketMap
                                                 "last_non_scanned=VALUES(last_non_scanned)";
                 var spawnIds = cells.SelectMany(cell => cell.WildPokemon).Select(poke => Convert.ToInt64(poke.SpawnPointId, 16));
 
+                var spawnIdsString = String.Join(",", spawnIds).Trim(',');
+                var dbSpawnpoints = context.Spawnpoints.FromSqlInterpolated($"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint in {spawnIdsString}");
 
                 foreach (var cell in cells)
                 {
                     foreach(var wild in cell.WildPokemon)
                     {
-                        var id = new SqlParameter("spawnpoint", Convert.ToInt64(wild.SpawnPointId, 16));
+                        var currentSpawnpointId = Convert.ToInt64(wild.SpawnPointId, 16);
+                        var id = new SqlParameter("spawnpoint", currentSpawnpointId);
 
                         var cellLatLng = new S2CellId((ulong) Convert.ToInt64(wild.SpawnPointId + "00000", 16)).ToLatLng();
                         var latitude = new SqlParameter("latitude", cellLatLng.LatDegrees);
@@ -198,17 +201,30 @@ namespace PolygonStats.RocketMap
                         var despawnTime = wild.TimeTillHiddenMs;
                         var minPos = getCurrentSpawnDefPosition();
 
-                        int oldSpawnDef = 0;
-                        int newSpawnDef;
-                        if (oldSpawnDef != -1)
+                        Spawnpoint currentDbSpawnpoint = dbSpawnpoints.FirstOrDefault(s => s.spawnpoint == currentSpawnpointId);
+                        int oldSpawnDef = currentDbSpawnpoint != null ? currentDbSpawnpoint.spawndef : int.MinValue;
+                        SqlParameter newSpawnDef;
+                        if (oldSpawnDef != int.MinValue)
                         {
-                            newSpawnDef = getSpawnDefWithMinPos(oldSpawnDef, minPos);
+                            newSpawnDef = new SqlParameter("spawnDef", getSpawnDefWithMinPos(oldSpawnDef, minPos));
                         } else
                         {
-                            newSpawnDef = getSpawnDefWithMinPos(240, minPos);
+                            newSpawnDef = new SqlParameter("spawnDef", getSpawnDefWithMinPos(240, minPos));
                         }
+                        if(0 <= despawnTime && despawnTime <= 90000)
+                        {
+                            var earliestUnseen = new SqlParameter("earliestUnseen", despawnTime);
+                            var lastScanned = new SqlParameter("LastScanned", ToMySQLDateTime(DateTime.UtcNow));
+                            var calcEndTime = new SqlParameter("calcEndminsec", DateTime.UtcNow.AddMilliseconds(despawnTime).ToString("mm:ss"));
 
-                        context.Database.ExecuteSqlRaw(spawnpointsQuery, id, latitude, longitude);
+                            context.Database.ExecuteSqlRaw(spawnpointsQuery, id, latitude, longitude, earliestUnseen, lastScanned, newSpawnDef, calcEndTime);
+                        } else
+                        {
+                            var earliestUnseen = new SqlParameter("earliestUnseen", 99999999);
+                            var lastScanned = new SqlParameter("LastNonScanned", DateTime.UtcNow);
+
+                            context.Database.ExecuteSqlRaw(spawnpointsUnseenQuery, id, latitude, longitude, earliestUnseen, lastScanned, newSpawnDef);
+                        }
                     }
                 }
             }

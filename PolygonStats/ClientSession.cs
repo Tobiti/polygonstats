@@ -250,6 +250,7 @@ namespace PolygonStats
                         {
                             RocketMap.RocketMapManager.shared.AddCells(mapProto.MapCell.ToList());
                             RocketMap.RocketMapManager.shared.AddWeather(mapProto.ClientWeather.ToList(), (int) mapProto.TimeOfDay);
+                            RocketMap.RocketMapManager.shared.AddSpawnpoints(mapProto);
                             foreach (var mapCell in mapProto.MapCell)
                             {
                                 RocketMap.RocketMapManager.shared.AddForts(mapCell.Fort.ToList());

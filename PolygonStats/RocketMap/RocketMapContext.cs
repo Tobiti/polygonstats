@@ -8,8 +8,17 @@ using System.Threading.Tasks;
 
 namespace PolygonStats.RocketMap
 {
+    public class Spawnpoint
+    {
+        public long spawnpoint { get; set; }
+        public int spawndef { get; set; }
+        public string calc_endminsec { get; set; }
+    }
+
     class RocketMapContext : DbContext
     {
+        public DbSet<Spawnpoint> Spawnpoints { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             string dbConnectionString = ConfigurationManager.shared.config.rocketMapSettings.dbConnectionString;
