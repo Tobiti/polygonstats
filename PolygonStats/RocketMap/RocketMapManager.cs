@@ -185,7 +185,7 @@ namespace PolygonStats.RocketMap
                 var spawnIds = cells.SelectMany(cell => cell.WildPokemon).Select(poke => Convert.ToInt64(poke.SpawnPointId, 16));
 
                 var spawnIdsString = String.Join(",", spawnIds).Trim(',');
-                var getSpawnpointsQuery = $"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint in {spawnIdsString}";
+                var getSpawnpointsQuery = $"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint in ({spawnIdsString})";
                 try
                 {
                     var dbSpawnpoints = context.Spawnpoints.FromSqlRaw(getSpawnpointsQuery);
