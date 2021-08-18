@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using Discord.Webhook;
 using Discord;
 using System.Threading;
@@ -129,22 +130,29 @@ namespace PolygonStats
                         continue;
                     }
                 }
-
                 EmbedBuilder eb = new EmbedBuilder(){
+                    Title = $"Level {getPokemonLevel(pokemon.CpMultiplier)} {pokemon.PokemonId.ToString("g")} (#{(int) pokemon.PokemonId})",
                     Author = new EmbedAuthorBuilder(){
-                        Name = $"{pokemon.PokemonId.ToString("g")} (#{(int) pokemon.PokemonId})",
+
+                        Name = $"{Math.Round(encounter.Pokemon.Latitude,5)}, {Math.Round(encounter.Pokemon.Longitude,5)}",
                     },
                     ThumbnailUrl = getPokemonImageUrl(pokemon.PokemonId),
                     Fields = new List<EmbedFieldBuilder>(){
                         new EmbedFieldBuilder(){
-                            Name = "IV",
-                            Value = $"Attack: {pokemon.IndividualAttack}\nDefense: {pokemon.IndividualDefense}\nStamina: {pokemon.IndividualStamina}"
+                            Name = "Stats",
+                            Value = $"CP: {pokemon.Cp}\nIVs:{pokemon.IndividualAttack}/{pokemon.IndividualDefense}/{pokemon.IndividualStamina} | {getIV(pokemon.IndividualAttack,pokemon.IndividualDefense,pokemon.IndividualStamina)}%"
+                        },
+                        new EmbedFieldBuilder(){
+                            Name = "Moves",
+                            Value = $"Fast: {formatMove(pokemon.Move1.ToString())}\nCharge: {formatMove(pokemon.Move2.ToString())}"
                         },
                         new EmbedFieldBuilder() {
-                            Name = "Coordinates",
-                            Value = $"[{encounter.Pokemon.Latitude}, {encounter.Pokemon.Longitude}](https://maps.google.com/maps?q={encounter.Pokemon.Latitude},{encounter.Pokemon.Longitude})"
+                            Name = "Links",
+                            Value = $"[Google Maps](https://maps.google.com/maps?q={Math.Round(encounter.Pokemon.Latitude,5)},{Math.Round(encounter.Pokemon.Longitude,5)}) [Apple Maps](http://maps.apple.com/?daddr={Math.Round(encounter.Pokemon.Latitude,5)},{Math.Round(encounter.Pokemon.Longitude,5)})"
                         }
-                    }
+
+                    },
+                    Color = Color.Blue
                 };
 
                 embeds.Add(eb.Build());
@@ -183,6 +191,35 @@ namespace PolygonStats
                     return $"https://img.pokemondb.net/sprites/bank/normal/{pokemon.ToString("g").ToLower().Replace("female", "-f").Replace("male", "-m")}.png";
             }
         }
+        
+        private double getPokemonLevel(float cpMultiplier)
+        {
+            double pokemonLevel;
+            if (cpMultiplier < 0.734) {
+                pokemonLevel = 58.35178527 * cpMultiplier * cpMultiplier - 2.838007664 * cpMultiplier + 0.8539209906;
+            } else {
+                pokemonLevel = 171.0112688 * cpMultiplier - 95.20425243;
+            }
+            pokemonLevel = (Math.Round(pokemonLevel) * 2) / 2;
+            return pokemonLevel;
+        }
+
+        private double getIV (int atk, int def, int sta)
+        {
+            double iv = ((atk+def+sta)/45f)*100f;
+            return Math.Round(iv,1);
+        }
+
+        private string splitUppercase(string input) {
+            var regex = new Regex(@"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])");
+            return regex.Replace(input, " ");
+        }
+        private string formatMove(string move)
+        {
+            move =  move.Replace("Fast","");
+            return splitUppercase(move);
+        }
+
 
         public double DistanceTo(double lat1, double lon1, double lat2, double lon2, char unit = 'K')
         {
