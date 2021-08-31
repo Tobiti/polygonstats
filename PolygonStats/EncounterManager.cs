@@ -206,8 +206,8 @@ namespace PolygonStats
         private string getReplacedCustomLink(String customlink, EncounterOutProto encounter)
         {
             String link = customlink.Replace("{latitude}", Math.Round(encounter.Pokemon.Latitude, 5).ToString());
-            link = customlink.Replace("{longitude}", Math.Round(encounter.Pokemon.Longitude, 5).ToString());
-            link = customlink.Replace("{encounterId}", encounter.Pokemon.EncounterId.ToString());
+            link = link.Replace("{longitude}", Math.Round(encounter.Pokemon.Longitude, 5).ToString());
+            link = link.Replace("{encounterId}", encounter.Pokemon.EncounterId.ToString());
             return link;
         }
 
