@@ -45,6 +45,7 @@ namespace PolygonStats.Configuration
             public class WebhookSettings {
                 public string webhookUrl { get; set; }
                 public bool filterByIV { get; set; }
+                public bool onlyEqual { get; set; }
                 public int minAttackIV { get; set; }
                 public int minDefenseIV { get; set; }
                 public int minStaminaIV { get; set; }
@@ -53,6 +54,13 @@ namespace PolygonStats.Configuration
                 public double latitude { get; set; }
                 public double longitude { get; set; }
                 public double distanceInKm { get; set; }
+                public CustomLink customLink { get; set; }
+            }
+
+            public class CustomLink
+            {
+                public string title { get; set; }
+                public string link { get; set; }
             }
 
             public bool enabled { get; set; }
@@ -103,13 +111,19 @@ namespace PolygonStats.Configuration
                     new EncounterSettings.WebhookSettings() {
                         webhookUrl = "discord webhook url",
                         filterByIV = false,
+                        onlyEqual = false,
                         minAttackIV = 0,
                         minDefenseIV = 0,
                         minStaminaIV = 0,
                         filterByLocation = false,
                         latitude = 0.1,
                         longitude = 0.1,
-                        distanceInKm = 20
+                        distanceInKm = 20,
+                        customLink = new EncounterSettings.CustomLink()
+                        {
+                            title = "Custom Link",
+                            link = ""
+                        }
                     }
                 }
             };

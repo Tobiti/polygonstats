@@ -115,20 +115,47 @@ namespace PolygonStats
             foreach(EncounterOutProto encounter in encounterList) {
                 PokemonProto pokemon = encounter.Pokemon.Pokemon;
                 if(webhook.filterByIV) {
-                    if(pokemon.IndividualAttack < webhook.minAttackIV) {
-                        continue;
+                    if (webhook.onlyEqual)
+                    {
+                        if (pokemon.IndividualAttack != webhook.minAttackIV)
+                        {
+                            continue;
+                        }
+                        if (pokemon.IndividualDefense != webhook.minDefenseIV)
+                        {
+                            continue;
+                        }
+                        if (pokemon.IndividualStamina != webhook.minStaminaIV)
+                        {
+                            continue;
+                        }
                     }
-                    if(pokemon.IndividualDefense < webhook.minDefenseIV) {
-                        continue;
-                    }
-                    if(pokemon.IndividualStamina < webhook.minStaminaIV) {
-                        continue;
+                    else
+                    {
+                        if (pokemon.IndividualAttack < webhook.minAttackIV)
+                        {
+                            continue;
+                        }
+                        if (pokemon.IndividualDefense < webhook.minDefenseIV)
+                        {
+                            continue;
+                        }
+                        if (pokemon.IndividualStamina < webhook.minStaminaIV)
+                        {
+                            continue;
+                        }
                     }
                 }
                 if(webhook.filterByLocation) {
                     if(DistanceTo(webhook.latitude, webhook.longitude, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude) > webhook.distanceInKm) {
                         continue;
                     }
+                }
+
+                String customLink = "";
+                if (webhook.customLink != null)
+                {
+                    customLink = $"[{webhook.customLink.title}]({getReplacedCustomLink(webhook.customLink.link, encounter)})";
                 }
                 EmbedBuilder eb = new EmbedBuilder(){
                     Title = $"Level {getPokemonLevel(pokemon.CpMultiplier)} {pokemon.PokemonId.ToString("g")} (#{(int) pokemon.PokemonId})",
@@ -148,7 +175,7 @@ namespace PolygonStats
                         },
                         new EmbedFieldBuilder() {
                             Name = "Links",
-                            Value = $"[Google Maps](https://maps.google.com/maps?q={Math.Round(encounter.Pokemon.Latitude,5)},{Math.Round(encounter.Pokemon.Longitude,5)}) [Apple Maps](http://maps.apple.com/?daddr={Math.Round(encounter.Pokemon.Latitude,5)},{Math.Round(encounter.Pokemon.Longitude,5)})"
+                            Value = $"[Google Maps](https://maps.google.com/maps?q={Math.Round(encounter.Pokemon.Latitude,5)},{Math.Round(encounter.Pokemon.Longitude,5)}) [Apple Maps](http://maps.apple.com/?daddr={Math.Round(encounter.Pokemon.Latitude,5)},{Math.Round(encounter.Pokemon.Longitude,5)}) {customLink}"
                         }
 
                     },
@@ -175,6 +202,13 @@ namespace PolygonStats
                     errors++;
                 }
             }
+        }
+        private string getReplacedCustomLink(String customlink, EncounterOutProto encounter)
+        {
+            String link = customlink.Replace("{latitude}", Math.Round(encounter.Pokemon.Latitude, 5).ToString());
+            link = customlink.Replace("{longitude}", Math.Round(encounter.Pokemon.Longitude, 5).ToString());
+            link = customlink.Replace("{encounterId}", encounter.Pokemon.EncounterId.ToString());
+            return link;
         }
 
         private string getPokemonImageUrl(HoloPokemonId pokemon)
