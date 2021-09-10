@@ -12,6 +12,7 @@ using PolygonStats.Configuration;
 using System.Collections.Generic;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
+using PolygonStats.RawWebhook;
 
 namespace PolygonStats
 {
@@ -139,6 +140,17 @@ namespace PolygonStats
                         }
                         AddAccountAndSessionIfNeeded(payload);
                         handlePayload(payload);
+                        if (ConfigurationManager.shared.config.rawDataSettings.enabled) {
+                            RawWebhookManager.shared.AddRawData(new RawDataMessage()
+                            {
+                                origin = payload.account_name,
+                                rawData = new RawData()
+                                {
+                                    type = payload.type,
+                                    payload = payload.proto
+                                }
+                            });
+                        }
                     }
                 }
                 catch (JsonException)

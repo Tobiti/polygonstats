@@ -28,6 +28,14 @@ namespace PolygonStats.Configuration
             public bool showAccountNames { get; set; }
         }
         public HttpSettings httpSettings { get; set; }
+
+        public class RawDataSettings
+        {
+            public bool enabled { get; set; }
+            public String webhookUrl { get; set; }
+        }
+        public RawDataSettings rawDataSettings { get; set; }
+
         public class MysqlSettings
         {
             public bool enabled { get; set; }
@@ -89,6 +97,12 @@ namespace PolygonStats.Configuration
                 enabled = true,
                 port = 8888,
                 showAccountNames = false
+            };
+
+            rawDataSettings = new RawDataSettings()
+            {
+                enabled = false,
+                webhookUrl = ""
             };
 
             mysqlSettings = new MysqlSettings()
