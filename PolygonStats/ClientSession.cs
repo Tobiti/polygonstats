@@ -12,6 +12,7 @@ using PolygonStats.Configuration;
 using System.Collections.Generic;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
+using PolygonStats.RawWebhook;
 
 namespace PolygonStats
 {
@@ -21,13 +22,14 @@ namespace PolygonStats
         private string accountName = null;
         private MySQLConnectionManager connectionManager = new MySQLConnectionManager();
         private int dbSessionId = -1;
-        private Account account;
+        private int accountId;
 
         private int messageCount = 0;
         private ILogger logger;
 
         private DateTime lastMessageDateTime = DateTime.UtcNow;
         private WildPokemonProto lastEncounterPokemon = null;
+        private Dictionary<ulong, DateTime> holoPokemon = new Dictionary<ulong, DateTime>();
 
         public ClientSession(TcpServer server) : base(server) {
             if (ConfigurationManager.shared.config.debugSettings.toFiles)
@@ -138,6 +140,21 @@ namespace PolygonStats
                         }
                         AddAccountAndSessionIfNeeded(payload);
                         handlePayload(payload);
+                        if (ConfigurationManager.shared.config.rawDataSettings.enabled) {
+                            RawWebhookManager.shared.AddRawData(new RawDataMessage()
+                            {
+                                origin = payload.account_name,
+                                rawData = new RawData()
+                                {
+                                    type = payload.type,
+                                    lat = payload.lat,
+                                    lng = payload.lng,
+                                    timestamp = payload.timestamp,
+                                    raw = true,
+                                    payload = payload.proto
+                                }
+                            });
+                        }
                     }
                 }
                 catch (JsonException)
@@ -163,7 +180,7 @@ namespace PolygonStats
                 if (ConfigurationManager.shared.config.mysqlSettings.enabled)
                 {
                     using(var context = connectionManager.GetContext()) {
-                        account = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
+                        Account account = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
                         if (account == null)
                         {
                             account = new Account();
@@ -177,6 +194,7 @@ namespace PolygonStats
                         context.SaveChanges();
 
                         dbSessionId = dbSession.Id;
+                        accountId = account.Id;
                     }
                 }
             }
@@ -205,7 +223,7 @@ namespace PolygonStats
                 case Method.Encounter:
                     EncounterOutProto encounterProto = EncounterOutProto.Parser.ParseFrom(payload.getDate());
                     logger.Debug($"Proto: {JsonSerializer.Serialize(encounterProto)}");
-                    ProcessEncounter(payload.account_name, encounterProto);
+                    ProcessEncounter(payload.account_name, encounterProto, payload);
                     break;
                 case Method.CatchPokemon:
                     CatchPokemonOutProto catchPokemonProto = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
@@ -240,11 +258,48 @@ namespace PolygonStats
                         ProcessHatchedEggReward(payload.account_name, getHatchedEggsProto);
                     }
                     break;
+                case Method.GetMapObjects:
+                    GetMapObjectsOutProto mapProto = GetMapObjectsOutProto.Parser.ParseFrom(payload.getDate());
+                    if (mapProto.Status == GetMapObjectsOutProto.Types.Status.Success)
+                    {
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            RocketMap.RocketMapManager.shared.AddCells(mapProto.MapCell.ToList());
+                            RocketMap.RocketMapManager.shared.AddWeather(mapProto.ClientWeather.ToList(), (int) mapProto.TimeOfDay);
+                            RocketMap.RocketMapManager.shared.AddSpawnpoints(mapProto);
+                            foreach (var mapCell in mapProto.MapCell)
+                            {
+                                RocketMap.RocketMapManager.shared.AddForts(mapCell.Fort.ToList());
+                            }
+                        }
+                    }
+                    break;
+                case Method.FortDetails:
+                    FortDetailsOutProto fortDetailProto = FortDetailsOutProto.Parser.ParseFrom(payload.getDate());
+                    if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                    {
+                        RocketMap.RocketMapManager.shared.UpdateFortInformations(fortDetailProto);
+                    }
+                    break;
+                case Method.GymGetInfo:
+                    GymGetInfoOutProto gymProto = GymGetInfoOutProto.Parser.ParseFrom(payload.getDate());
+                    if (gymProto.Result == GymGetInfoOutProto.Types.Result.Success)
+                    {
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            RocketMap.RocketMapManager.shared.UpdateGymDetails(gymProto);
+                        }
+                    }
+                    break;
                 case Method.FortSearch:
                     FortSearchOutProto fortSearchProto = FortSearchOutProto.Parser.ParseFrom(payload.getDate());
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
                     {
                         ProcessSpinnedFort(payload.account_name, fortSearchProto);
+                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        {
+                            RocketMap.RocketMapManager.shared.AddQuest(fortSearchProto);
+                        }
                     }
                     break;
                 case Method.EvolvePokemon:
@@ -263,6 +318,15 @@ namespace PolygonStats
                     UpdateInvasionBattleOutProto updateBattle = UpdateInvasionBattleOutProto.Parser.ParseFrom(payload.getDate());
                     ProcessUpdateInvasionBattle(payload.account_name, updateBattle);
                     break;
+                case Method.InvasionEncounter:
+                    InvasionEncounterOutProto invasionEncounter = InvasionEncounterOutProto.Parser.ParseFrom(payload.getDate());
+                    if (invasionEncounter.EncounterPokemon != null) {
+                        this.lastEncounterPokemon = new WildPokemonProto()
+                        {
+                            Pokemon = invasionEncounter.EncounterPokemon
+                        };
+                    }
+                    break;
                 case Method.AttackRaid:
                     AttackRaidBattleOutProto attackRaidBattle = AttackRaidBattleOutProto.Parser.ParseFrom(payload.getDate());
                     ProcessAttackRaidBattle(payload.account_name, attackRaidBattle);
@@ -276,9 +340,19 @@ namespace PolygonStats
             }
         }
 
-        private void ProcessEncounter(string account_name, EncounterOutProto encounterProto)
+        private void ProcessEncounter(string account_name, EncounterOutProto encounterProto, Payload payload)
         {
-            if (!ConfigurationManager.shared.config.encounterSettings.enabled || encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null) {
+            if (encounterProto.Pokemon == null || encounterProto.Pokemon.Pokemon == null)
+            {
+                return;
+            }
+
+            if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+            {
+                RocketMap.RocketMapManager.shared.AddEncounter(encounterProto, payload);
+            }
+
+            if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
                 return;
             }
             lastEncounterPokemon = encounterProto.Pokemon;
@@ -396,13 +470,32 @@ namespace PolygonStats
                 { 
                     if (item.InventoryItemData.Pokemon != null)
                     {
-                        using (var context = connectionManager.GetContext()) {
-                            PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                            context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName=\"{pokemon.PokemonId.ToString("G")}\", Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id} ORDER BY Id");
+                        PokemonProto pokemon = item.InventoryItemData.Pokemon;
+                        
+                        using (var context = connectionManager.GetContext())
+                        {
+                            int effected = context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName=\"{pokemon.PokemonId.ToString("G")}\", Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id} AND `timestamp` BETWEEN (DATE_SUB(UTC_TIMESTAMP(),INTERVAL 3 MINUTE)) AND (DATE_ADD(UTC_TIMESTAMP(),INTERVAL 2 MINUTE)) ORDER BY Id");
+                            if (effected > 0 && pokemon.IndividualAttack == 15 && pokemon.IndividualDefense == 15 && pokemon.IndividualStamina == 15)
+                            {
+                                if (!holoPokemon.ContainsKey(pokemon.Id))
+                                {
+                                    holoPokemon.Add(pokemon.Id, DateTime.Now);
+                                    context.Database.ExecuteSqlRaw($"UPDATE `Session` SET MaxIV=MaxIV+1, LastUpdate=UTC_TIMESTAMP() WHERE Id={dbSessionId} ORDER BY Id");
+                                } else
+                        {
+                            foreach(ulong id in holoPokemon.Keys.ToList())
+                            {
+                                if((DateTime.Now - holoPokemon[id]).TotalMinutes > 10)
+                                {
+                                    holoPokemon.Remove(id);
+                                }
+                            }
+                        }
+                            }
                         }
                     }
                     if (item.InventoryItemData.PlayerStats != null) {
-                        connectionManager.UpdateLevelAndExp(account, item.InventoryItemData.PlayerStats);
+                        connectionManager.UpdateLevelAndExp(accountId, item.InventoryItemData.PlayerStats);
                     }
                 }
             }
@@ -516,7 +609,7 @@ namespace PolygonStats
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
             {
-                connectionManager.AddPlayerInfoToDatabase(account, player, level);
+                connectionManager.AddPlayerInfoToDatabase(accountId, player, level);
             }
         }
 

@@ -22,6 +22,13 @@ namespace PolygonStats
 
         public void AddLogEntry(MySQLContext context, int SessionId, LogEntry log) {
             log.SessionId = SessionId;
+
+            //Update session stats
+            context.Database.ExecuteSqlRaw( $"UPDATE `Session` SET TotalGainedXp=TotalGainedXp+\"{log.XpReward}\", TotalGainedStardust=TotalGainedStardust+{log.StardustReward}, " +
+                                            $"CaughtPokemon=CaughtPokemon+{((log.LogEntryType == LogEntryType.Pokemon && log.CaughtSuccess) ? 1 : 0)}, EscapedPokemon=EscapedPokemon+{((log.LogEntryType == LogEntryType.Pokemon && !log.CaughtSuccess) ? 1 : 0)}, " +
+                                            $"ShinyPokemon=ShinyPokemon+{((log.Shiny) ? 1 : 0)}, Shadow=Shadow+{((log.Shadow) ? 1 : 0)}, Pokestops=Pokestops+{(log.LogEntryType == LogEntryType.Fort ? 1 : 0)}, " +
+                                            $"Rockets=Rockets+{(log.LogEntryType == LogEntryType.Rocket ? 1 : 0)}, Raids=Raids+{(log.LogEntryType == LogEntryType.Raid ? 1 : 0)}, " +
+                                            $"LastUpdate=UTC_TIMESTAMP(), EndTime=UTC_TIMESTAMP(), TotalMinutes=TIMESTAMPDIFF(MINUTE, StartTime, UTC_TIMESTAMP()) WHERE Id={SessionId} ORDER BY Id");
             context.Logs.Add(log);
         }
 
@@ -223,7 +230,7 @@ namespace PolygonStats
             }
         }
 
-        internal void AddPlayerInfoToDatabase(Account account, GetPlayerOutProto player, int level)
+        internal void AddPlayerInfoToDatabase(int accountId, GetPlayerOutProto player, int level)
         {
             if (player.Player == null) {
                 return;
@@ -241,18 +248,34 @@ namespace PolygonStats
                 if (currency != null) {
                     stardust = currency.Quantity;
                 }
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team=\"{player.Player.Team}\", Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={account.Id}");
+                try
+                {
+                    context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Team=\"{player.Player.Team}\", Level={level}, Pokecoins={pokecoins}, Stardust={stardust} WHERE Id={accountId} ORDER BY Id");
+                } catch (Exception e)
+                {
+                    Log.Information(e.Message);
+                    Log.Information(e.InnerException.Message);
+                }
             }
         }
 
-        internal void UpdateLevelAndExp(Account account, PlayerStatsProto playerStats)
+        internal void UpdateLevelAndExp(int accountId, PlayerStatsProto playerStats)
         {
             if (playerStats == null) {
                 return;
             }
 
-            using (var context = new MySQLContext()) {
-                context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={account.Id}");
+            using (var context = new MySQLContext())
+            {
+                try
+                {
+                    context.Database.ExecuteSqlRaw($"UPDATE `Account` SET Level={playerStats.Level},Experience={(int)playerStats.Experience},NextLevelExp={playerStats.NextLevelExp} WHERE Id={accountId} ORDER BY Id");
+                }
+                catch (Exception e)
+                {
+                    Log.Information(e.Message);
+                    Log.Information(e.InnerException.Message);
+                }
             }
         }
     }
