@@ -1,12 +1,13 @@
 ﻿using PolygonStats.Configuration;
 using System;
 using System.Collections.Concurrent;
+using System.Collections;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using Serilog;
+using System.Collections.Generic;
 
 namespace PolygonStats.RawWebhook
 {
@@ -69,13 +70,14 @@ namespace PolygonStats.RawWebhook
                 RawDataMessage rawDataMessage;
                 while (blockingRawDataQueue.TryTake(out rawDataMessage))
                 {
+                    List<RawDataMessage> list = new List<RawDataMessage>();
+                    list.Add(rawDataMessage);
                     HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, ConfigurationManager.shared.config.rawDataSettings.webhookUrl);
                     request.Headers.Add("origin", rawDataMessage.origin);
-                    Log.Information($"Raw Data:\n{JsonSerializer.Serialize(rawDataMessage.rawData)}");
-                    request.Content = new StringContent(JsonSerializer.Serialize(rawDataMessage.rawData), Encoding.UTF8);
-                    Log.Information($"Send Request:\n{JsonSerializer.Serialize(request)}");
+                    request.Content = new StringContent(JsonSerializer.Serialize(list.ToArray()), Encoding.UTF8);
+                    Log.Debug($"Send Request:\n{JsonSerializer.Serialize(request)}");
                     HttpResponseMessage response = _client.Send(request);
-                    Log.Information($"Response:{JsonSerializer.Serialize(response)}");
+                    Log.Debug($"Response:{JsonSerializer.Serialize(response)}");
                 }
             }
         }
