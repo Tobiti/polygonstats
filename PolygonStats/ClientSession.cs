@@ -147,6 +147,10 @@ namespace PolygonStats
                                 rawData = new RawData()
                                 {
                                     type = payload.type,
+                                    lat = payload.lat,
+                                    lng = payload.lng,
+                                    timestamp = payload.timestamp,
+                                    raw = true,
                                     payload = payload.proto
                                 }
                             });

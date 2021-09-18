@@ -34,7 +34,7 @@ namespace PolygonStats.RawWebhook
         }
 
         private Thread consumerThread;
-        private BlockingCollection<RawDataMessage> blockingRawDataQueue = new BlockingCollection<RawDataMessage>();
+        private ConcurrentDictionary<String, BlockingCollection<RawData>> blockingRawDataDictionary = new ConcurrentDictionary<String, BlockingCollection<RawData>>();
         private readonly Object lockObj = new Object();
 
         public RawWebhookManager()
@@ -60,25 +60,36 @@ namespace PolygonStats.RawWebhook
             {
                 return;
             }
-            blockingRawDataQueue.Add(message);
+            BlockingCollection<RawData> collection = blockingRawDataDictionary.GetOrAdd(message.origin, new BlockingCollection<RawData>());
+            collection.Add(message.rawData);
         }
 
         private void RawDataConsumer()
         {
             while (true)
             {
-                RawDataMessage rawDataMessage;
-                while (blockingRawDataQueue.TryTake(out rawDataMessage))
+                foreach(String key in blockingRawDataDictionary.Keys)
                 {
-                    List<RawDataMessage> list = new List<RawDataMessage>();
-                    list.Add(rawDataMessage);
-                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, ConfigurationManager.shared.config.rawDataSettings.webhookUrl);
-                    request.Headers.Add("origin", rawDataMessage.origin);
-                    request.Content = new StringContent(JsonSerializer.Serialize(list.ToArray()), Encoding.UTF8);
-                    Log.Debug($"Send Request:\n{JsonSerializer.Serialize(request)}");
-                    HttpResponseMessage response = _client.Send(request);
-                    Log.Debug($"Response:{JsonSerializer.Serialize(response)}");
+                    BlockingCollection<RawData> collection;
+                    if (blockingRawDataDictionary.TryGetValue(key, out collection))
+                    {
+                        List<RawData> rawDataList = new List<RawData>();
+                        RawData rawData;
+                        while (collection.TryTake(out rawData))
+                        {
+                            rawDataList.Add(rawData);
+                        }
+                        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, ConfigurationManager.shared.config.rawDataSettings.webhookUrl);
+                        request.Headers.Add("origin", key);
+                        request.Headers.Add("Content-Type", "application/json");
+                        request.Content = new StringContent(JsonSerializer.Serialize(rawDataList.ToArray()), Encoding.UTF8);
+                        Log.Debug($"Send Request:\n{JsonSerializer.Serialize(request)}");
+                        HttpResponseMessage response = _client.Send(request);
+                        Log.Debug($"Response:{JsonSerializer.Serialize(response)}");
+
+                    }
                 }
+                Thread.Sleep(10000);
             }
         }
     }
