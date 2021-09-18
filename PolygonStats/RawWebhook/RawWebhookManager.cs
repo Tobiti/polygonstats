@@ -81,8 +81,7 @@ namespace PolygonStats.RawWebhook
                         }
                         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, ConfigurationManager.shared.config.rawDataSettings.webhookUrl);
                         request.Headers.Add("origin", key);
-                        request.Headers.Add("Content-Type", "application/json");
-                        request.Content = new StringContent(JsonSerializer.Serialize(rawDataList.ToArray()), Encoding.UTF8);
+                        request.Content = new StringContent(JsonSerializer.Serialize(rawDataList.ToArray()), Encoding.UTF8, "application/json"); ;
                         Log.Debug($"Send Request:\n{JsonSerializer.Serialize(request)}");
                         HttpResponseMessage response = _client.Send(request);
                         Log.Debug($"Response:{JsonSerializer.Serialize(response)}");
