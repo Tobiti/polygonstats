@@ -88,7 +88,7 @@ namespace PolygonStats.RawWebhook
 
                     }
                 }
-                Thread.Sleep(10000);
+                Thread.Sleep(Math.Min(1000, ConfigurationManager.shared.config.rawDataSettings.delayMs));
             }
         }
     }

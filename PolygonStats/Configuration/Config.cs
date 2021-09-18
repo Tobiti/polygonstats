@@ -33,6 +33,7 @@ namespace PolygonStats.Configuration
         {
             public bool enabled { get; set; }
             public String webhookUrl { get; set; }
+            public int delayMs { get; set; }
         }
         public RawDataSettings rawDataSettings { get; set; }
 
@@ -102,7 +103,8 @@ namespace PolygonStats.Configuration
             rawDataSettings = new RawDataSettings()
             {
                 enabled = false,
-                webhookUrl = ""
+                webhookUrl = "",
+                delayMs = 5000
             };
 
             mysqlSettings = new MysqlSettings()
