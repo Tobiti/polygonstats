@@ -83,8 +83,16 @@ namespace PolygonStats.RawWebhook
                         request.Headers.Add("origin", key);
                         request.Content = new StringContent(JsonSerializer.Serialize(rawDataList.ToArray()), Encoding.UTF8, "application/json"); ;
                         Log.Debug($"Send Request:\n{JsonSerializer.Serialize(request)}");
-                        HttpResponseMessage response = _client.Send(request);
-                        Log.Debug($"Response:{JsonSerializer.Serialize(response)}");
+                        try
+                        {
+                            HttpResponseMessage response = _client.Send(request);
+                            Log.Debug($"Response:{JsonSerializer.Serialize(response)}");
+                        } catch (Exception e)
+                        {
+                            Log.Information($"Request error: {e.Message}");
+                            collection.AddRange(rawDataList);
+                            break;
+                        }
 
                     }
                 }
