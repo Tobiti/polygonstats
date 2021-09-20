@@ -90,7 +90,10 @@ namespace PolygonStats.RawWebhook
                         } catch (Exception e)
                         {
                             Log.Information($"Request error: {e.Message}");
-                            collection.AddRange(rawDataList);
+                            foreach(RawData data in rawDataList)
+                            {
+                                collection.Add(rawDataList);
+                            }
                             break;
                         }
 
