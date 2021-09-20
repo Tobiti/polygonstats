@@ -92,7 +92,7 @@ namespace PolygonStats.RawWebhook
                             Log.Information($"Request error: {e.Message}");
                             foreach(RawData data in rawDataList)
                             {
-                                collection.Add(rawDataList);
+                                collection.Add(data);
                             }
                             break;
                         }
