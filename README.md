@@ -16,4 +16,5 @@ Run the `PolygonStats.exe` as admin! (If it's not working, try to install the ho
 
 Connect with polygon and open `http://{your ip}:8888`.
 
-## For Map export: https://raw.githubusercontent.com/Map-A-Droid/MAD/master/scripts/SQL/rocketmap.sql
+## For Map export
+https://raw.githubusercontent.com/Map-A-Droid/MAD/master/scripts/SQL/rocketmap.sql
