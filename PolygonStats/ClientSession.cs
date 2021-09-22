@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
 using PolygonStats.RawWebhook;
+using System.Globalization;
+using System.Threading;
 
 namespace PolygonStats
 {
@@ -31,7 +33,9 @@ namespace PolygonStats
         private WildPokemonProto lastEncounterPokemon = null;
         private Dictionary<ulong, DateTime> holoPokemon = new Dictionary<ulong, DateTime>();
 
-        public ClientSession(TcpServer server) : base(server) {
+        public ClientSession(TcpServer server) : base(server)
+        {
+            Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-GB");
             if (ConfigurationManager.shared.config.debugSettings.toFiles)
             {
                 LoggerConfiguration configuration = new LoggerConfiguration()
