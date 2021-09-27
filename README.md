@@ -18,3 +18,4 @@ Connect with polygon and open `http://{your ip}:8888`.
 
 ## For Map export
 https://raw.githubusercontent.com/Map-A-Droid/MAD/master/scripts/SQL/rocketmap.sql
+If you are not using mad, add a default event to trs_event
