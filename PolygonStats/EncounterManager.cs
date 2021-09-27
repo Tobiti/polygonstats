@@ -79,7 +79,27 @@ namespace PolygonStats
             while(true) {
                 List<EncounterOutProto> encounterList = new List<EncounterOutProto>();
 
-                using (var context = new MySQLContext())
+                if (ConfigurationManager.shared.config.mysqlSettings.enabled && ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
+                {
+                    using (var context = new MySQLContext())
+                    {
+                        while (blockingEncounterQueue.Count > 0)
+                        {
+                            EncounterOutProto encounter = blockingEncounterQueue.Take();
+                            if (alreadySendEncounters.ContainsKey(encounter.Pokemon.EncounterId))
+                            {
+                                continue;
+                            }
+                            lock (lockObj)
+                            {
+                                alreadySendEncounters.Add(encounter.Pokemon.EncounterId, DateTime.Now);
+                            }
+                            encounterList.Add(encounter);
+                            connectionManager.AddEncounterToDatabase(encounter, context);
+                        }
+                        context.SaveChanges();
+                    }
+                } else 
                 {
                     while (blockingEncounterQueue.Count > 0)
                     {
@@ -93,14 +113,7 @@ namespace PolygonStats
                             alreadySendEncounters.Add(encounter.Pokemon.EncounterId, DateTime.Now);
                         }
                         encounterList.Add(encounter);
-
-                        if (!ConfigurationManager.shared.config.mysqlSettings.enabled || !ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
-                        {
-                            continue;
-                        }
-                        connectionManager.AddEncounterToDatabase(encounter, context);
                     }
-                    context.SaveChanges();
                 }
                 if(encounterList.Count > 0) {
                     ConfigurationManager.shared.config.encounterSettings.discordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounterList));
