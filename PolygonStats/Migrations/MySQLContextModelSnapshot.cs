@@ -15,7 +15,7 @@ namespace PolygonStats.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.5");
+                .HasAnnotation("ProductVersion", "5.0.6");
 
             modelBuilder.Entity("PolygonStats.Models.Account", b =>
                 {
@@ -29,15 +29,33 @@ namespace PolygonStats.Migrations
                     b.Property<int>("EscapedPokemon")
                         .HasColumnType("int");
 
+                    b.Property<int>("Experience")
+                        .HasColumnType("int");
+
                     b.Property<string>("HashedName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50) CHARACTER SET utf8mb4");
 
+                    b.Property<DateTime>("LastUpdate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxIV")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50) CHARACTER SET utf8mb4");
+
+                    b.Property<long>("NextLevelExp")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Pokecoins")
+                        .HasColumnType("int");
 
                     b.Property<int>("Pokestops")
                         .HasColumnType("int");
@@ -48,18 +66,71 @@ namespace PolygonStats.Migrations
                     b.Property<int>("Rockets")
                         .HasColumnType("int");
 
+                    b.Property<int>("Shadow")
+                        .HasColumnType("int");
+
                     b.Property<int>("ShinyPokemon")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalStardust")
+                    b.Property<int>("Stardust")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalXp")
+                    b.Property<string>("Team")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<int>("TotalGainedStardust")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalGainedXp")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalMinutes")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.ToTable("Account");
+                });
+
+            modelBuilder.Entity("PolygonStats.Models.Encounter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("Attack")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Defense")
+                        .HasColumnType("int");
+
+                    b.Property<ulong>("EncounterId")
+                        .HasColumnType("bigint unsigned");
+
+                    b.Property<string>("Form")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double");
+
+                    b.Property<string>("PokemonName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("Stamina")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Encounter");
                 });
 
             modelBuilder.Entity("PolygonStats.Models.LogEntry", b =>
@@ -77,8 +148,16 @@ namespace PolygonStats.Migrations
                     b.Property<bool>("CaughtSuccess")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("Costume")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<int>("Defense")
                         .HasColumnType("int");
+
+                    b.Property<string>("Form")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("LogEntryType")
                         .IsRequired()
@@ -93,6 +172,11 @@ namespace PolygonStats.Migrations
 
                     b.Property<int>("SessionId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("Shadow")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("Shiny")
                         .ValueGeneratedOnAdd()
@@ -117,6 +201,8 @@ namespace PolygonStats.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PokemonUniqueId");
+
                     b.HasIndex("SessionId");
 
                     b.ToTable("SessionLogEntry");
@@ -131,11 +217,47 @@ namespace PolygonStats.Migrations
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
+                    b.Property<int>("CaughtPokemon")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("EscapedPokemon")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("MaxIV")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Pokestops")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Raids")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rockets")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Shadow")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShinyPokemon")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int>("TotalGainedStardust")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalGainedXp")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalMinutes")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

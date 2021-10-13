@@ -7,6 +7,7 @@ namespace PolygonStats
 {
     class MySQLContext : DbContext
     {
+        public DbSet<Encounter> Encounters { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<LogEntry> Logs { get; set; }
@@ -14,7 +15,7 @@ namespace PolygonStats
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             string dbConnectionString = ConfigurationManager.shared.config.mysqlSettings.dbConnectionString;
-            optionsBuilder.UseMySql(dbConnectionString, ServerVersion.AutoDetect(dbConnectionString));
+            optionsBuilder.UseMySql(dbConnectionString, ServerVersion.AutoDetect(dbConnectionString), options => options.EnableRetryOnFailure());
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,6 +29,12 @@ namespace PolygonStats
             modelBuilder.Entity<LogEntry>()
                 .Property(l => l.Shiny)
                 .HasDefaultValue(false);
+            modelBuilder.Entity<LogEntry>()
+                .Property(l => l.Shadow)
+                .HasDefaultValue(false);
+            modelBuilder.Entity<LogEntry>()
+                .HasIndex(l => new { l.PokemonUniqueId })
+                .IsUnique(false);
         }
     }
 }
