@@ -2,7 +2,7 @@
 
 namespace PolygonStats.Configuration
 {
-    public class Configuration
+    public class Config
     {
         public class DebugSettings
         {
@@ -77,7 +77,7 @@ namespace PolygonStats.Configuration
 
         public EncounterSettings Encounter { get; set; }
 
-        public Configuration()
+        public Config()
         {
             this.Debug = new DebugSettings()
             {

@@ -11,7 +11,7 @@ namespace PolygonStats.Configuration
         private static readonly Lazy<ConfigurationManager> _shared = new(() => new ConfigurationManager());
         public static ConfigurationManager Shared => _shared.Value;
 
-        public Configuration Config { get; set; }
+        public Config Config { get; set; }
 
         private ConfigurationManager()
         {
@@ -20,7 +20,7 @@ namespace PolygonStats.Configuration
             _ = configurationBuilder.AddJsonFile("Config.json", true, false);
             IConfiguration builtConfig = configurationBuilder.Build();
 
-            Config = new Configuration();
+            Config = new Config();
             builtConfig.Bind(Config);
 
             if (!File.Exists(JsonSource))
