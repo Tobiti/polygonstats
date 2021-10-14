@@ -14,7 +14,7 @@ namespace PolygonStats
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string dbConnectionString = ConfigurationManager.shared.config.mysqlSettings.dbConnectionString;
+            string dbConnectionString = ConfigurationManager.Shared.Config.MySql.dbConnectionString;
             optionsBuilder.UseMySql(dbConnectionString, ServerVersion.AutoDetect(dbConnectionString), options => options.EnableRetryOnFailure());
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)

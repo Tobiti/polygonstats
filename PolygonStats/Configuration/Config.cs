@@ -1,57 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace PolygonStats.Configuration
 {
-    class Config
+    public class Configuration
     {
         public class DebugSettings
         {
-            public bool debug { get; set; }
-            public bool toFiles { get; set; }
-            public bool debugMessages { get; set; }
+            public bool Debug { get; set; }
+            public bool ToFiles { get; set; }
+            public bool DebugMessages { get; set; }
         }
-        public DebugSettings debugSettings { get; set; }
+        public DebugSettings Debug { get; set; }
         public class BackendSocketSettings
         {
-            public int port { get; set; }
+            public int Port { get; set; }
         }
-        public BackendSocketSettings backendSettings { get; set; }
+        public BackendSocketSettings Backend { get; set; }
 
         public class HttpSettings
         {
-            public bool enabled { get; set; }
-            public int port { get; set; }
-            public bool showAccountNames { get; set; }
+            public bool Enabled { get; set; }
+            public int Port { get; set; }
+            public bool ShowAccountNames { get; set; }
         }
-        public HttpSettings httpSettings { get; set; }
+        public HttpSettings Http { get; set; }
 
         public class RawDataSettings
         {
-            public bool enabled { get; set; }
-            public String webhookUrl { get; set; }
-            public int delayMs { get; set; }
+            public bool Enabled { get; set; }
+            public string WebhookUrl { get; set; }
+            public int DelayMs { get; set; }
         }
-        public RawDataSettings rawDataSettings { get; set; }
+        public RawDataSettings RawData { get; set; }
 
         public class MysqlSettings
         {
-            public bool enabled { get; set; }
+            public bool Enabled { get; set; }
             public string dbConnectionString { get; set; }
         }
-        public MysqlSettings mysqlSettings { get; set; }
+        public MysqlSettings MySql { get; set; }
         public class RocketMapSettings
         {
             public bool enabled { get; set; }
             public string dbConnectionString { get; set; }
         }
-        public RocketMapSettings rocketMapSettings { get; set; }
+        public RocketMapSettings RocketMap { get; set; }
 
-        public class EncounterSettings {
-            public class WebhookSettings {
+        public class EncounterSettings
+        {
+            public class WebhookSettings
+            {
                 public string webhookUrl { get; set; }
                 public bool filterByIV { get; set; }
                 public bool onlyEqual { get; set; }
@@ -72,58 +70,58 @@ namespace PolygonStats.Configuration
                 public string link { get; set; }
             }
 
-            public bool enabled { get; set; }
-            public bool saveToDatabase { get; set; }
-            public List<WebhookSettings> discordWebhooks { get; set; }
+            public bool Enabled { get; set; }
+            public bool SaveToDatabase { get; set; }
+            public List<WebhookSettings> DiscordWebhooks { get; set; }
         }
 
-        public EncounterSettings encounterSettings { get; set; }
+        public EncounterSettings Encounter { get; set; }
 
-        public Config()
+        public Configuration()
         {
-            debugSettings = new DebugSettings()
+            this.Debug = new DebugSettings()
             {
-                debug = false,
-                toFiles = false,
-                debugMessages = false
+                Debug = false,
+                ToFiles = false,
+                DebugMessages = false
             };
 
-            backendSettings = new BackendSocketSettings()
+            this.Backend = new BackendSocketSettings()
             {
-                port = 9838
+                Port = 9838
             };
 
-            httpSettings = new HttpSettings()
+            this.Http = new HttpSettings()
             {
-                enabled = true,
-                port = 8888,
-                showAccountNames = false
+                Enabled = true,
+                Port = 8888,
+                ShowAccountNames = false
             };
 
-            rawDataSettings = new RawDataSettings()
+            this.RawData = new RawDataSettings()
             {
-                enabled = false,
-                webhookUrl = "",
-                delayMs = 5000
+                Enabled = false,
+                WebhookUrl = "",
+                DelayMs = 5000
             };
 
-            mysqlSettings = new MysqlSettings()
+            this.MySql = new MysqlSettings()
+            {
+                Enabled = false,
+                dbConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
+            };
+
+            this.RocketMap = new RocketMapSettings()
             {
                 enabled = false,
                 dbConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
             };
 
-            rocketMapSettings = new RocketMapSettings()
+            this.Encounter = new EncounterSettings()
             {
-                enabled = false,
-                dbConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
-            };
-
-            encounterSettings = new EncounterSettings() 
-            {
-                enabled = false,
-                saveToDatabase = false,
-                discordWebhooks = new List<EncounterSettings.WebhookSettings>(){
+                Enabled = false,
+                SaveToDatabase = false,
+                DiscordWebhooks = new List<EncounterSettings.WebhookSettings>(){
                     new EncounterSettings.WebhookSettings() {
                         webhookUrl = "discord webhook url",
                         filterByIV = false,

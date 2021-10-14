@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using PolygonStats.RawWebhook;
 using System.Globalization;
 using System.Threading;
+using PolyConfig = PolygonStats.Configuration.ConfigurationManager;
 
 namespace PolygonStats
 {
@@ -36,17 +37,13 @@ namespace PolygonStats
         public ClientSession(TcpServer server) : base(server)
         {
             Thread.CurrentThread.CurrentCulture = CultureInfo.CreateSpecificCulture("en-GB");
-            if (ConfigurationManager.shared.config.debugSettings.toFiles)
+            if (ConfigurationManager.Shared.Config.Debug.ToFiles)
             {
                 LoggerConfiguration configuration = new LoggerConfiguration()
                     .WriteTo.File($"logs/sessions/{Id}.log", rollingInterval: RollingInterval.Day);
-                if (ConfigurationManager.shared.config.debugSettings.debug)
-                {
-                    configuration = configuration.MinimumLevel.Debug();
-                } else
-                {
-                    configuration = configuration.MinimumLevel.Information();
-                }
+                configuration = ConfigurationManager.Shared.Config.Debug.Debug
+                    ? configuration.MinimumLevel.Debug()
+                    : configuration.MinimumLevel.Information();
                 logger = configuration.CreateLogger();
             } else
             {
@@ -54,14 +51,7 @@ namespace PolygonStats
             }
         }
 
-        public bool isConnected()
-        {
-            if ((DateTime.UtcNow - lastMessageDateTime).TotalMinutes <= 20)
-            {
-                return true;
-            }
-            return false;
-        }
+        public bool isConnected() => (DateTime.UtcNow - lastMessageDateTime).TotalMinutes <= 20;
 
         protected override void OnConnected()
         {
@@ -74,15 +64,13 @@ namespace PolygonStats
             Log.Information($"User {this.accountName} with sessionId {Id} has disconnected.");
 
             // Add ent time to session
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 if(dbSessionId != -1)
                 {
-                    using (var context = connectionManager.GetContext()) {
-                        Session dbSession = connectionManager.GetSession(context, dbSessionId);
-                        dbSession.EndTime = lastMessageDateTime;
-                        context.SaveChanges();
-                    }
+                    using var context = connectionManager.GetContext(); Session dbSession = connectionManager.GetSession(context, dbSessionId);
+                    dbSession.EndTime = lastMessageDateTime;
+                    context.SaveChanges();
                 }
             }
 
@@ -93,7 +81,7 @@ namespace PolygonStats
             lastMessageDateTime = DateTime.UtcNow;
             string currentMessage = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
 
-            if (ConfigurationManager.shared.config.debugSettings.debugMessages)
+            if (ConfigurationManager.Shared.Config.Debug.DebugMessages)
             {
                 logger.Debug($"Message #{++messageCount} was received!");
             }
@@ -101,7 +89,7 @@ namespace PolygonStats
             messageBuffer.Append(currentMessage);
             var jsonStrings = messageBuffer.ToString().Split("\n", StringSplitOptions.RemoveEmptyEntries);
             messageBuffer.Clear();
-            if (ConfigurationManager.shared.config.debugSettings.debugMessages)
+            if (ConfigurationManager.Shared.Config.Debug.DebugMessages)
             {
                 logger.Debug($"Message was splitted into {jsonStrings.Length} jsonObjects.");
             }
@@ -111,7 +99,7 @@ namespace PolygonStats
                 string trimedJsonString = jsonString.Trim('\r', '\n');
                 if(!trimedJsonString.StartsWith("{"))
                 {
-                    if (ConfigurationManager.shared.config.debugSettings.debugMessages)
+                    if (ConfigurationManager.Shared.Config.Debug.DebugMessages)
                     {
                         logger.Debug("Json string didnt start with a {.");
                     }
@@ -119,7 +107,7 @@ namespace PolygonStats
                 }
                 if(!trimedJsonString.EndsWith("}"))
                 {
-                    if (ConfigurationManager.shared.config.debugSettings.debugMessages)
+                    if (ConfigurationManager.Shared.Config.Debug.DebugMessages)
                     {
                         logger.Debug("Json string didnt end with a }.");
                     }
@@ -132,7 +120,7 @@ namespace PolygonStats
                 {
                     MessageObject message = JsonSerializer.Deserialize<MessageObject>(trimedJsonString);
 
-                    if (ConfigurationManager.shared.config.debugSettings.debugMessages)
+                    if (ConfigurationManager.Shared.Config.Debug.DebugMessages)
                     {
                         logger.Debug($"Handle JsonObject #{index} with {message.payloads.Count} payloads.");
                     }
@@ -143,8 +131,8 @@ namespace PolygonStats
                             continue;
                         }
                         AddAccountAndSessionIfNeeded(payload);
-                        handlePayload(payload);
-                        if (ConfigurationManager.shared.config.rawDataSettings.enabled) {
+                        HandlePayload(payload);
+                        if (ConfigurationManager.Shared.Config.RawData.Enabled) {
                             RawWebhookManager.shared.AddRawData(new RawDataMessage()
                             {
                                 origin = payload.account_name,
@@ -169,7 +157,7 @@ namespace PolygonStats
                 }
             }
 
-            if (ConfigurationManager.shared.config.debugSettings.debugMessages)
+            if (ConfigurationManager.Shared.Config.Debug.DebugMessages)
             {
                 logger.Debug($"Message #{messageCount} was handled!");
             }
@@ -179,9 +167,9 @@ namespace PolygonStats
             if (this.accountName != payload.account_name)
             {
                 this.accountName = payload.account_name;
-                getStatEntry();
+                GetStatEntry();
 
-                if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                if (ConfigurationManager.Shared.Config.MySql.Enabled)
                 {
                     using(var context = connectionManager.GetContext()) {
                         Account account = context.Accounts.Where(a => a.Name == this.accountName).FirstOrDefault<Account>();
@@ -204,18 +192,9 @@ namespace PolygonStats
             }
         }
 
-        private Stats getStatEntry()
-        {
-            if (ConfigurationManager.shared.config.httpSettings.enabled)
-            {
-                return StatManager.sharedInstance.getEntry(accountName);
-            } else
-            {
-                return null;
-            }
-        }
+        private Stats GetStatEntry() => ConfigurationManager.Shared.Config.Http.Enabled ? StatManager.sharedInstance.getEntry(accountName) : null;
 
-        private void handlePayload(Payload payload)
+        private void HandlePayload(Payload payload)
         {
             logger.Debug($"Payload with type {payload.getMethodType().ToString("g")}");
             switch (payload.getMethodType())
@@ -266,7 +245,7 @@ namespace PolygonStats
                     GetMapObjectsOutProto mapProto = GetMapObjectsOutProto.Parser.ParseFrom(payload.getDate());
                     if (mapProto.Status == GetMapObjectsOutProto.Types.Status.Success)
                     {
-                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        if (ConfigurationManager.Shared.Config.RocketMap.enabled)
                         {
                             RocketMap.RocketMapManager.shared.AddCells(mapProto.MapCell.ToList());
                             RocketMap.RocketMapManager.shared.AddWeather(mapProto.ClientWeather.ToList(), (int) mapProto.TimeOfDay);
@@ -280,7 +259,7 @@ namespace PolygonStats
                     break;
                 case Method.FortDetails:
                     FortDetailsOutProto fortDetailProto = FortDetailsOutProto.Parser.ParseFrom(payload.getDate());
-                    if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                    if (ConfigurationManager.Shared.Config.RocketMap.enabled)
                     {
                         RocketMap.RocketMapManager.shared.UpdateFortInformations(fortDetailProto);
                     }
@@ -289,7 +268,7 @@ namespace PolygonStats
                     GymGetInfoOutProto gymProto = GymGetInfoOutProto.Parser.ParseFrom(payload.getDate());
                     if (gymProto.Result == GymGetInfoOutProto.Types.Result.Success)
                     {
-                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        if (ConfigurationManager.Shared.Config.RocketMap.enabled)
                         {
                             RocketMap.RocketMapManager.shared.UpdateGymDetails(gymProto);
                         }
@@ -300,7 +279,7 @@ namespace PolygonStats
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
                     {
                         ProcessSpinnedFort(payload.account_name, fortSearchProto);
-                        if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+                        if (ConfigurationManager.Shared.Config.RocketMap.enabled)
                         {
                             RocketMap.RocketMapManager.shared.AddQuest(fortSearchProto);
                         }
@@ -351,12 +330,12 @@ namespace PolygonStats
                 return;
             }
 
-            if (ConfigurationManager.shared.config.rocketMapSettings.enabled)
+            if (ConfigurationManager.Shared.Config.RocketMap.enabled)
             {
                 RocketMap.RocketMapManager.shared.AddEncounter(encounterProto, payload);
             }
 
-            if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
+            if (!ConfigurationManager.Shared.Config.Encounter.Enabled) {
                 return;
             }
             lastEncounterPokemon = encounterProto.Pokemon;
@@ -396,9 +375,9 @@ namespace PolygonStats
                     };
                 }
 
-                if (ConfigurationManager.shared.config.httpSettings.enabled)
+                if (ConfigurationManager.Shared.Config.Http.Enabled)
                 {
-                    Stats entry = getStatEntry();
+                    Stats entry = GetStatEntry();
                     entry.AddXp(lastEntry.BattleResults.PlayerXpAwarded[index]);
                     int stardust = 0;
                     stardust += lastEntry.BattleResults.RaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
@@ -406,7 +385,7 @@ namespace PolygonStats
                     entry.AddStardust(stardust);
                 }
 
-                if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                if (ConfigurationManager.Shared.Config.MySql.Enabled)
                 {
                     int stardust = 0;
                     if (lastEntry.BattleResults.RaidItemRewards.Count > index)
@@ -435,9 +414,9 @@ namespace PolygonStats
                 return;
             }
 
-            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            if (ConfigurationManager.Shared.Config.Http.Enabled)
             {
-                Stats entry = getStatEntry();
+                Stats entry = GetStatEntry();
                 foreach (LootItemProto loot in updateBattle.Rewards.LootItem)
                 {
                     switch (loot.TypeCase)
@@ -454,7 +433,7 @@ namespace PolygonStats
                 }
             }
 
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 connectionManager.AddRocketToDatabase(dbSessionId, updateBattle);
             }
@@ -462,7 +441,7 @@ namespace PolygonStats
 
         private void ProcessHoloHoloInventory(string account_name, GetHoloholoInventoryOutProto holoInventory)
         {
-            if (!ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (!ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 return;
             }
@@ -509,13 +488,13 @@ namespace PolygonStats
 
         private void ProcessEvolvedPokemon(string account_name, EvolvePokemonOutProto evolvePokemon)
         {
-            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            if (ConfigurationManager.Shared.Config.Http.Enabled)
             {
-                Stats entry = getStatEntry();
+                Stats entry = GetStatEntry();
                 entry.AddXp(evolvePokemon.ExpAwarded);
             }
 
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 connectionManager.AddEvolvePokemonToDatabase(dbSessionId, evolvePokemon);
             }
@@ -523,14 +502,14 @@ namespace PolygonStats
 
         private void ProcessFeedBerry(string account_name, GymFeedPokemonOutProto feedPokemonProto)
         {
-            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            if (ConfigurationManager.Shared.Config.Http.Enabled)
             {
-                Stats entry = getStatEntry();
+                Stats entry = GetStatEntry();
                 entry.AddXp(feedPokemonProto.XpAwarded);
                 entry.AddStardust(feedPokemonProto.StardustAwarded);
             }
 
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 connectionManager.AddFeedBerryToDatabase(dbSessionId, feedPokemonProto);
             }
@@ -538,14 +517,14 @@ namespace PolygonStats
 
         private void ProcessSpinnedFort(string account_name, FortSearchOutProto fortSearchProto)
         {
-            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            if (ConfigurationManager.Shared.Config.Http.Enabled)
             {
-                Stats entry = getStatEntry();
+                Stats entry = GetStatEntry();
                 entry.AddSpinnedPokestop();
                 entry.AddXp(fortSearchProto.XpAwarded);
             }
 
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 connectionManager.AddSpinnedFortToDatabase(dbSessionId, fortSearchProto);
             }
@@ -558,9 +537,9 @@ namespace PolygonStats
 
         private void ProcessQuestRewards(string acc, RepeatedField<QuestRewardProto> rewards)
         {
-            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            if (ConfigurationManager.Shared.Config.Http.Enabled)
             {
-                Stats entry = getStatEntry();
+                Stats entry = GetStatEntry();
                 foreach (QuestRewardProto reward in rewards)
                 {
                     if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Exp)
@@ -574,7 +553,7 @@ namespace PolygonStats
                 }
             }
 
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 connectionManager.AddQuestToDatabase(dbSessionId, rewards);
             }
@@ -585,9 +564,9 @@ namespace PolygonStats
             {
                 return;
             }
-            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            if (ConfigurationManager.Shared.Config.Http.Enabled)
             {
-                Stats entry = getStatEntry();
+                Stats entry = GetStatEntry();
 
                 entry.AddXp(getHatchedEggsProto.ExpAwarded.Sum());
                 entry.AddStardust(getHatchedEggsProto.StardustAwarded.Sum());
@@ -601,7 +580,7 @@ namespace PolygonStats
                 }
             }
 
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 connectionManager.AddHatchedEggToDatabase(dbSessionId, getHatchedEggsProto);
             }
@@ -613,7 +592,7 @@ namespace PolygonStats
                 return;
             }
 
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 connectionManager.AddPlayerInfoToDatabase(accountId, player, level);
             }
@@ -621,7 +600,7 @@ namespace PolygonStats
 
         public void ProcessCaughtPokemon(CatchPokemonOutProto caughtPokemon)
         {
-            Stats entry = getStatEntry();
+            Stats entry = GetStatEntry();
             switch (caughtPokemon.Status)
             {
                 case CatchPokemonOutProto.Types.Status.CatchSuccess:
@@ -637,7 +616,7 @@ namespace PolygonStats
                         entry.AddStardust(caughtPokemon.Scores.Stardust.Sum());
                     }
 
-                    if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                    if (ConfigurationManager.Shared.Config.MySql.Enabled)
                     {
                         connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon, null);
                     }
@@ -649,7 +628,7 @@ namespace PolygonStats
                         entry.FleetPokemon++;
                     }
 
-                    if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+                    if (ConfigurationManager.Shared.Config.MySql.Enabled)
                     {
                         connectionManager.AddPokemonToDatabase(dbSessionId, caughtPokemon, lastEncounterPokemon);
                     }

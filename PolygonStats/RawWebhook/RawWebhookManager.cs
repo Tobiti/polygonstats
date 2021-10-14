@@ -39,7 +39,7 @@ namespace PolygonStats.RawWebhook
 
         public RawWebhookManager()
         {
-            if (!ConfigurationManager.shared.config.rawDataSettings.enabled)
+            if (!ConfigurationManager.Shared.Config.RawData.Enabled)
             {
                 return;
             }
@@ -56,7 +56,7 @@ namespace PolygonStats.RawWebhook
 
         public void AddRawData(RawDataMessage message)
         {
-            if (!ConfigurationManager.shared.config.rawDataSettings.enabled)
+            if (!ConfigurationManager.Shared.Config.RawData.Enabled)
             {
                 return;
             }
@@ -79,7 +79,7 @@ namespace PolygonStats.RawWebhook
                         {
                             rawDataList.Add(rawData);
                         }
-                        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, ConfigurationManager.shared.config.rawDataSettings.webhookUrl);
+                        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, ConfigurationManager.Shared.Config.RawData.WebhookUrl);
                         request.Headers.Add("origin", key);
                         request.Content = new StringContent(JsonSerializer.Serialize(rawDataList.ToArray()), Encoding.UTF8, "application/json"); ;
                         Log.Debug($"Send Request:\n{JsonSerializer.Serialize(request)}");
@@ -99,7 +99,7 @@ namespace PolygonStats.RawWebhook
 
                     }
                 }
-                Thread.Sleep(Math.Min(1000, ConfigurationManager.shared.config.rawDataSettings.delayMs));
+                Thread.Sleep(Math.Min(1000, ConfigurationManager.Shared.Config.RawData.DelayMs));
             }
         }
     }

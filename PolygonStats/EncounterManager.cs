@@ -35,7 +35,7 @@ namespace PolygonStats
         private readonly Object lockObj = new Object();
 
         public EncounterManager() {
-            if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
+            if (!ConfigurationManager.Shared.Config.Encounter.Enabled) {
                 return;
             }
             cleanTimer = new Timer(DoCleanTimer, null, TimeSpan.Zero, TimeSpan.FromMinutes(20));
@@ -60,8 +60,8 @@ namespace PolygonStats
             }
 
             // Delete all encounter older than 20 minutes from db
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled 
-                && ConfigurationManager.shared.config.encounterSettings.saveToDatabase) {
+            if (ConfigurationManager.Shared.Config.MySql.Enabled 
+                && ConfigurationManager.Shared.Config.Encounter.SaveToDatabase) {
                 using(var context = connectionManager.GetContext()) {
                     context.Database.ExecuteSqlRaw("DELETE FROM `Encounter` WHERE `timestamp` < DATE_SUB( CURRENT_TIME(), INTERVAL 20 MINUTE)");
                 }
@@ -69,7 +69,7 @@ namespace PolygonStats
         }
 
         public void AddEncounter(EncounterOutProto encounter) {
-            if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
+            if (!ConfigurationManager.Shared.Config.Encounter.Enabled) {
                 return;
             }
             blockingEncounterQueue.Add(encounter);
@@ -79,7 +79,7 @@ namespace PolygonStats
             while(true) {
                 List<EncounterOutProto> encounterList = new List<EncounterOutProto>();
 
-                if (ConfigurationManager.shared.config.mysqlSettings.enabled && ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
+                if (ConfigurationManager.Shared.Config.MySql.Enabled && ConfigurationManager.Shared.Config.Encounter.SaveToDatabase)
                 {
                     using (var context = new MySQLContext())
                     {
@@ -116,14 +116,14 @@ namespace PolygonStats
                     }
                 }
                 if(encounterList.Count > 0) {
-                    ConfigurationManager.shared.config.encounterSettings.discordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounterList));
+                    ConfigurationManager.Shared.Config.Encounter.DiscordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounterList));
                     Thread.Sleep(3000);
                 }
                 Thread.Sleep(1000);
             }
         }
 
-        private void SendDiscordWebhooks(Config.EncounterSettings.WebhookSettings webhook, List<EncounterOutProto> encounterList) {
+        private void SendDiscordWebhooks(Configuration.Config.EncounterSettings.WebhookSettings webhook, List<EncounterOutProto> encounterList) {
             List<Discord.Embed> embeds = new List<Discord.Embed>();
             foreach(EncounterOutProto encounter in encounterList) {
                 PokemonProto pokemon = encounter.Pokemon.Pokemon;

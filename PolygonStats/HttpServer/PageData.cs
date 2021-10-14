@@ -205,7 +205,7 @@ namespace PolygonStats.HttpServer
 
         private static string getName(bool isAdmin, Stats stat)
         {
-            if(isAdmin || ConfigurationManager.shared.config.httpSettings.showAccountNames)
+            if(isAdmin || ConfigurationManager.Shared.Config.Http.ShowAccountNames)
             {
                 return stat.AccountName;
             }
