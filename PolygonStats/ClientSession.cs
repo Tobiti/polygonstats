@@ -245,7 +245,7 @@ namespace PolygonStats
                     GetMapObjectsOutProto mapProto = GetMapObjectsOutProto.Parser.ParseFrom(payload.getDate());
                     if (mapProto.Status == GetMapObjectsOutProto.Types.Status.Success)
                     {
-                        if (ConfigurationManager.Shared.Config.RocketMap.enabled)
+                        if (ConfigurationManager.Shared.Config.RocketMap.Enabled)
                         {
                             RocketMap.RocketMapManager.shared.AddCells(mapProto.MapCell.ToList());
                             RocketMap.RocketMapManager.shared.AddWeather(mapProto.ClientWeather.ToList(), (int) mapProto.TimeOfDay);
@@ -259,7 +259,7 @@ namespace PolygonStats
                     break;
                 case Method.FortDetails:
                     FortDetailsOutProto fortDetailProto = FortDetailsOutProto.Parser.ParseFrom(payload.getDate());
-                    if (ConfigurationManager.Shared.Config.RocketMap.enabled)
+                    if (ConfigurationManager.Shared.Config.RocketMap.Enabled)
                     {
                         RocketMap.RocketMapManager.shared.UpdateFortInformations(fortDetailProto);
                     }
@@ -268,7 +268,7 @@ namespace PolygonStats
                     GymGetInfoOutProto gymProto = GymGetInfoOutProto.Parser.ParseFrom(payload.getDate());
                     if (gymProto.Result == GymGetInfoOutProto.Types.Result.Success)
                     {
-                        if (ConfigurationManager.Shared.Config.RocketMap.enabled)
+                        if (ConfigurationManager.Shared.Config.RocketMap.Enabled)
                         {
                             RocketMap.RocketMapManager.shared.UpdateGymDetails(gymProto);
                         }
@@ -279,7 +279,7 @@ namespace PolygonStats
                     if (fortSearchProto.Result == FortSearchOutProto.Types.Result.Success)
                     {
                         ProcessSpinnedFort(payload.account_name, fortSearchProto);
-                        if (ConfigurationManager.Shared.Config.RocketMap.enabled)
+                        if (ConfigurationManager.Shared.Config.RocketMap.Enabled)
                         {
                             RocketMap.RocketMapManager.shared.AddQuest(fortSearchProto);
                         }
@@ -330,7 +330,7 @@ namespace PolygonStats
                 return;
             }
 
-            if (ConfigurationManager.Shared.Config.RocketMap.enabled)
+            if (ConfigurationManager.Shared.Config.RocketMap.Enabled)
             {
                 RocketMap.RocketMapManager.shared.AddEncounter(encounterProto, payload);
             }

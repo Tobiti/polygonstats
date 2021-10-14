@@ -127,48 +127,48 @@ namespace PolygonStats
             List<Discord.Embed> embeds = new List<Discord.Embed>();
             foreach(EncounterOutProto encounter in encounterList) {
                 PokemonProto pokemon = encounter.Pokemon.Pokemon;
-                if(webhook.filterByIV) {
-                    if (webhook.onlyEqual)
+                if(webhook.FilterByIV) {
+                    if (webhook.OnlyEqual)
                     {
-                        if (pokemon.IndividualAttack != webhook.minAttackIV)
+                        if (pokemon.IndividualAttack != webhook.MinAttackIV)
                         {
                             continue;
                         }
-                        if (pokemon.IndividualDefense != webhook.minDefenseIV)
+                        if (pokemon.IndividualDefense != webhook.MinDefenseIV)
                         {
                             continue;
                         }
-                        if (pokemon.IndividualStamina != webhook.minStaminaIV)
+                        if (pokemon.IndividualStamina != webhook.MinStaminaIV)
                         {
                             continue;
                         }
                     }
                     else
                     {
-                        if (pokemon.IndividualAttack < webhook.minAttackIV)
+                        if (pokemon.IndividualAttack < webhook.MinAttackIV)
                         {
                             continue;
                         }
-                        if (pokemon.IndividualDefense < webhook.minDefenseIV)
+                        if (pokemon.IndividualDefense < webhook.MinDefenseIV)
                         {
                             continue;
                         }
-                        if (pokemon.IndividualStamina < webhook.minStaminaIV)
+                        if (pokemon.IndividualStamina < webhook.MinStaminaIV)
                         {
                             continue;
                         }
                     }
                 }
-                if(webhook.filterByLocation) {
-                    if(DistanceTo(webhook.latitude, webhook.longitude, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude) > webhook.distanceInKm) {
+                if(webhook.FilterByLocation) {
+                    if(DistanceTo(webhook.Latitude, webhook.Longitude, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude) > webhook.DistanceInKm) {
                         continue;
                     }
                 }
 
                 String customLink = "";
-                if (webhook.customLink != null)
+                if (webhook.CustomLink != null)
                 {
-                    customLink = $"[{webhook.customLink.title}]({getReplacedCustomLink(webhook.customLink.link, encounter)})";
+                    customLink = $"[{webhook.CustomLink.Title}]({getReplacedCustomLink(webhook.CustomLink.Link, encounter)})";
                 }
                 EmbedBuilder eb = new EmbedBuilder(){
                     Title = $"Level {getPokemonLevel(pokemon.CpMultiplier)} {pokemon.PokemonId.ToString("g")} (#{(int) pokemon.PokemonId})",
@@ -207,7 +207,7 @@ namespace PolygonStats
             
             while(!wasSended && errors <= 5) {
                 try {
-                    using(DiscordWebhookClient client = new DiscordWebhookClient(webhook.webhookUrl)) {
+                    using(DiscordWebhookClient client = new DiscordWebhookClient(webhook.WebhookUrl)) {
                         client.SendMessageAsync(null, false, embeds);
                         wasSended = true;
                     }
