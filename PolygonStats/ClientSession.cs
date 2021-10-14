@@ -369,7 +369,10 @@ namespace PolygonStats
             {
                 return;
             }
-            if (attackRaidBattle.BattleUpdate == null || attackRaidBattle.BattleUpdate.BattleLog == null || attackRaidBattle.BattleUpdate.BattleLog.BattleActions == null || attackRaidBattle.BattleUpdate.BattleLog.BattleActions.Count == 0)
+            if (attackRaidBattle.BattleUpdate == null
+                || attackRaidBattle.BattleUpdate.BattleLog == null
+                || attackRaidBattle.BattleUpdate.BattleLog.BattleActions == null
+                || attackRaidBattle.BattleUpdate.BattleLog.BattleActions.Count == 0)
             {
                 return;
             }
@@ -396,7 +399,7 @@ namespace PolygonStats
                 if (ConfigurationManager.shared.config.httpSettings.enabled)
                 {
                     Stats entry = getStatEntry();
-                    entry.addXp(lastEntry.BattleResults.PlayerXpAwarded[index]);
+                    entry.AddXp(lastEntry.BattleResults.PlayerXpAwarded[index]);
                     int stardust = 0;
                     stardust += lastEntry.BattleResults.RaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
                     stardust += lastEntry.BattleResults.DefaultRaidItemRewards[index].LootItem.Sum(loot => loot.Stardust ? loot.Count : 0);
@@ -440,10 +443,10 @@ namespace PolygonStats
                     switch (loot.TypeCase)
                     {
                         case LootItemProto.TypeOneofCase.Experience:
-                            entry.addXp(loot.Count);
+                            entry.AddXp(loot.Count);
                             break;
                         case LootItemProto.TypeOneofCase.Stardust:
-                            entry.addStardust(loot.Count);
+                            entry.AddStardust(loot.Count);
                             break;
                         default:
                             break;
@@ -475,26 +478,25 @@ namespace PolygonStats
                     if (item.InventoryItemData.Pokemon != null)
                     {
                         PokemonProto pokemon = item.InventoryItemData.Pokemon;
-                        
-                        using (var context = connectionManager.GetContext())
+
+                        using var context = connectionManager.GetContext();
+                        int effected = context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName=\"{pokemon.PokemonId.ToString("G")}\", Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id} AND `timestamp` BETWEEN (DATE_SUB(UTC_TIMESTAMP(),INTERVAL 3 MINUTE)) AND (DATE_ADD(UTC_TIMESTAMP(),INTERVAL 2 MINUTE)) ORDER BY Id");
+                        if (effected > 0 && pokemon.IndividualAttack == 15 && pokemon.IndividualDefense == 15 && pokemon.IndividualStamina == 15)
                         {
-                            int effected = context.Database.ExecuteSqlRaw($"UPDATE `SessionLogEntry` SET PokemonName=\"{pokemon.PokemonId.ToString("G")}\", Attack={pokemon.IndividualAttack}, Defense={pokemon.IndividualDefense}, Stamina={pokemon.IndividualStamina} WHERE PokemonUniqueId={pokemon.Id} AND `timestamp` BETWEEN (DATE_SUB(UTC_TIMESTAMP(),INTERVAL 3 MINUTE)) AND (DATE_ADD(UTC_TIMESTAMP(),INTERVAL 2 MINUTE)) ORDER BY Id");
-                            if (effected > 0 && pokemon.IndividualAttack == 15 && pokemon.IndividualDefense == 15 && pokemon.IndividualStamina == 15)
+                            if (!holoPokemon.ContainsKey(pokemon.Id))
                             {
-                                if (!holoPokemon.ContainsKey(pokemon.Id))
-                                {
-                                    holoPokemon.Add(pokemon.Id, DateTime.Now);
-                                    context.Database.ExecuteSqlRaw($"UPDATE `Session` SET MaxIV=MaxIV+1, LastUpdate=UTC_TIMESTAMP() WHERE Id={dbSessionId} ORDER BY Id");
-                                } else
-                        {
-                            foreach(ulong id in holoPokemon.Keys.ToList())
-                            {
-                                if((DateTime.Now - holoPokemon[id]).TotalMinutes > 10)
-                                {
-                                    holoPokemon.Remove(id);
-                                }
+                                holoPokemon.Add(pokemon.Id, DateTime.Now);
+                                context.Database.ExecuteSqlRaw($"UPDATE `Session` SET MaxIV=MaxIV+1, LastUpdate=UTC_TIMESTAMP() WHERE Id={dbSessionId} ORDER BY Id");
                             }
-                        }
+                            else
+                            {
+                                foreach (ulong id in holoPokemon.Keys.ToList())
+                                {
+                                    if ((DateTime.Now - holoPokemon[id]).TotalMinutes > 10)
+                                    {
+                                        holoPokemon.Remove(id);
+                                    }
+                                }
                             }
                         }
                     }
@@ -510,7 +512,7 @@ namespace PolygonStats
             if (ConfigurationManager.shared.config.httpSettings.enabled)
             {
                 Stats entry = getStatEntry();
-                entry.addXp(evolvePokemon.ExpAwarded);
+                entry.AddXp(evolvePokemon.ExpAwarded);
             }
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
@@ -524,8 +526,8 @@ namespace PolygonStats
             if (ConfigurationManager.shared.config.httpSettings.enabled)
             {
                 Stats entry = getStatEntry();
-                entry.addXp(feedPokemonProto.XpAwarded);
-                entry.addStardust(feedPokemonProto.StardustAwarded);
+                entry.AddXp(feedPokemonProto.XpAwarded);
+                entry.AddStardust(feedPokemonProto.StardustAwarded);
             }
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
@@ -540,7 +542,7 @@ namespace PolygonStats
             {
                 Stats entry = getStatEntry();
                 entry.AddSpinnedPokestop();
-                entry.addXp(fortSearchProto.XpAwarded);
+                entry.AddXp(fortSearchProto.XpAwarded);
             }
 
             if (ConfigurationManager.shared.config.mysqlSettings.enabled)
@@ -563,11 +565,11 @@ namespace PolygonStats
                 {
                     if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Exp)
                     {
-                        entry.addXp(reward.Exp);
+                        entry.AddXp(reward.Exp);
                     }
                     if (reward.RewardCase == QuestRewardProto.RewardOneofCase.Stardust)
                     {
-                        entry.addStardust(reward.Stardust);
+                        entry.AddStardust(reward.Stardust);
                     }
                 }
             }
@@ -587,8 +589,8 @@ namespace PolygonStats
             {
                 Stats entry = getStatEntry();
 
-                entry.addXp(getHatchedEggsProto.ExpAwarded.Sum());
-                entry.addStardust(getHatchedEggsProto.StardustAwarded.Sum());
+                entry.AddXp(getHatchedEggsProto.ExpAwarded.Sum());
+                entry.AddStardust(getHatchedEggsProto.StardustAwarded.Sum());
 
                 foreach (PokemonProto pokemon in getHatchedEggsProto.HatchedPokemon)
                 {
@@ -631,8 +633,8 @@ namespace PolygonStats
                             entry.ShinyPokemon++;
                         }
 
-                        entry.addXp(caughtPokemon.Scores.Exp.Sum());
-                        entry.addStardust(caughtPokemon.Scores.Stardust.Sum());
+                        entry.AddXp(caughtPokemon.Scores.Exp.Sum());
+                        entry.AddStardust(caughtPokemon.Scores.Stardust.Sum());
                     }
 
                     if (ConfigurationManager.shared.config.mysqlSettings.enabled)
@@ -643,7 +645,7 @@ namespace PolygonStats
                 case CatchPokemonOutProto.Types.Status.CatchFlee:
                     if (entry != null)
                     {
-                        entry.addXp(caughtPokemon.Scores.Exp.Sum());
+                        entry.AddXp(caughtPokemon.Scores.Exp.Sum());
                         entry.FleetPokemon++;
                     }
 
