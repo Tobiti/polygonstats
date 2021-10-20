@@ -18,23 +18,14 @@ namespace PolygonStats
         public long StardustTotal { get; set; } = 0;
         public long SpinnedPokestops { get; set; } = 0;
         public long FleetPokemon { get; set; } = 0;
-
         public int XpPerHour => (int)(XpTotal / Hours);
-
         public int StardustPerHour => (int)(StardustTotal / Hours);
-
         public int XpPerDay => (int)(XpTotal / Days);
-
         public int StardustPerDay => (int)(StardustTotal / Days);
-
         public void AddStardust(long stardust) => StardustTotal += stardust;
-
         public void AddXp(long xp) => XpTotal += xp;
-
         public void AddSpinnedPokestop() => SpinnedPokestops++;
-
         internal int CaughtPokemonPerDay => (int)(CaughtPokemon / Days);
-
         internal int SpinnedPokestopsPerDay => (int)(SpinnedPokestops / Days);
     }
 }
