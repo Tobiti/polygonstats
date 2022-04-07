@@ -244,7 +244,7 @@ namespace PolygonStats
                     var map = GetMapObjectsOutProto.Parser.ParseFrom(payload.getDate());
                     if (map.Status == GetMapObjectsOutProto.Types.Status.Success)
                     {
-                        if (PolyConfig.Shared.Config.RocketMap.Enabled)
+                        if (PolyConfig.Shared.Config.MadExport.Enabled)
                         {
                             RocketMap.RocketMapManager.shared.AddCells(map.MapCell.ToList());
                             RocketMap.RocketMapManager.shared.AddWeather(map.ClientWeather.ToList(), (int) map.TimeOfDay);
@@ -258,7 +258,7 @@ namespace PolygonStats
                     break;
                 case Method.FortDetails:
                     var fort = FortDetailsOutProto.Parser.ParseFrom(payload.getDate());
-                    if (PolyConfig.Shared.Config.RocketMap.Enabled)
+                    if (PolyConfig.Shared.Config.MadExport.Enabled)
                     {
                         RocketMap.RocketMapManager.shared.UpdateFortInformations(fort);
                     }
@@ -267,7 +267,7 @@ namespace PolygonStats
                     var gym = GymGetInfoOutProto.Parser.ParseFrom(payload.getDate());
                     if (gym.Result == GymGetInfoOutProto.Types.Result.Success)
                     {
-                        if (PolyConfig.Shared.Config.RocketMap.Enabled)
+                        if (PolyConfig.Shared.Config.MadExport.Enabled)
                         {
                             RocketMap.RocketMapManager.shared.UpdateGymDetails(gym);
                         }
@@ -278,7 +278,7 @@ namespace PolygonStats
                     if (fortSearch.Result == FortSearchOutProto.Types.Result.Success)
                     {
                         ProcessSpinnedFort(payload.account_name, fortSearch);
-                        if (PolyConfig.Shared.Config.RocketMap.Enabled)
+                        if (PolyConfig.Shared.Config.MadExport.Enabled)
                         {
                             RocketMap.RocketMapManager.shared.AddQuest(fortSearch);
                         }
@@ -330,7 +330,7 @@ namespace PolygonStats
                 return;
             }
 
-            if (PolyConfig.Shared.Config.RocketMap.Enabled)
+            if (PolyConfig.Shared.Config.MadExport.Enabled)
             {
                 RocketMap.RocketMapManager.shared.AddEncounter(encounterProto, payload);
             }

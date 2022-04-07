@@ -25,7 +25,7 @@ namespace PolygonStats.RocketMap
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string dbConnectionString = ConfigurationManager.Shared.Config.RocketMap.ConnectionString;
+            string dbConnectionString = ConfigurationManager.Shared.Config.MadExport.ConnectionString;
             optionsBuilder.UseMySql(dbConnectionString, ServerVersion.AutoDetect(dbConnectionString), options => options.EnableRetryOnFailure());
         }
     }

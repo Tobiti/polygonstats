@@ -9,7 +9,7 @@ namespace PolygonStats.Configuration
         public HttpSettings Http { get; set; }
         public RawDataSettings RawData { get; set; }
         public MysqlSettings MySql { get; set; }
-        public RocketMapSettings RocketMap { get; set; }
+        public MadExportSettings MadExport { get; set; }
         public EncounterSettings Encounter { get; set; }
 
 
@@ -45,7 +45,7 @@ namespace PolygonStats.Configuration
             public string ConnectionString { get; set; }
         }
 
-        public class RocketMapSettings
+        public class MadExportSettings
         {
             public bool Enabled { get; set; }
             public string ConnectionString { get; set; }
@@ -115,7 +115,7 @@ namespace PolygonStats.Configuration
                 ConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
             };
 
-            RocketMap = new RocketMapSettings()
+            MadExport = new MadExportSettings()
             {
                 Enabled = false,
                 ConnectionString = "server=localhost; port=3306; database=mysqldotnet; user=mysqldotnetuser; password=Pa55w0rd!; Persist Security Info=false; Connect Timeout=300"
