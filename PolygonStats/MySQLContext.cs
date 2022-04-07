@@ -35,6 +35,15 @@ namespace PolygonStats
             modelBuilder.Entity<LogEntry>()
                 .HasIndex(l => new { l.PokemonUniqueId })
                 .IsUnique(false);
+            modelBuilder.Entity<LogEntry>()
+                .HasIndex(l => new { l.timestamp })
+                .IsUnique(false);
+            modelBuilder.Entity<Session>()
+                .HasIndex(s => new { s.StartTime })
+                .IsUnique(false);
+            modelBuilder.Entity<Session>()
+                .HasIndex(s => new { s.EndTime })
+                .IsUnique(false);
         }
     }
 }
