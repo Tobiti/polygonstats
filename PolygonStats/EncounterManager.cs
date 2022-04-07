@@ -35,7 +35,7 @@ namespace PolygonStats
         private readonly Object lockObj = new Object();
 
         public EncounterManager() {
-            if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
+            if (!ConfigurationManager.Shared.Config.Encounter.Enabled) {
                 return;
             }
             cleanTimer = new Timer(DoCleanTimer, null, TimeSpan.Zero, TimeSpan.FromMinutes(20));
@@ -60,8 +60,8 @@ namespace PolygonStats
             }
 
             // Delete all encounter older than 20 minutes from db
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled 
-                && ConfigurationManager.shared.config.encounterSettings.saveToDatabase) {
+            if (ConfigurationManager.Shared.Config.MySql.Enabled 
+                && ConfigurationManager.Shared.Config.Encounter.SaveToDatabase) {
                 using(var context = connectionManager.GetContext()) {
                     context.Database.ExecuteSqlRaw("DELETE FROM `Encounter` WHERE `timestamp` < DATE_SUB( CURRENT_TIME(), INTERVAL 20 MINUTE)");
                 }
@@ -69,7 +69,7 @@ namespace PolygonStats
         }
 
         public void AddEncounter(EncounterOutProto encounter) {
-            if (!ConfigurationManager.shared.config.encounterSettings.enabled) {
+            if (!ConfigurationManager.Shared.Config.Encounter.Enabled) {
                 return;
             }
             blockingEncounterQueue.Add(encounter);
@@ -79,7 +79,7 @@ namespace PolygonStats
             while(true) {
                 List<EncounterOutProto> encounterList = new List<EncounterOutProto>();
 
-                if (ConfigurationManager.shared.config.mysqlSettings.enabled && ConfigurationManager.shared.config.encounterSettings.saveToDatabase)
+                if (ConfigurationManager.Shared.Config.MySql.Enabled && ConfigurationManager.Shared.Config.Encounter.SaveToDatabase)
                 {
                     using (var context = new MySQLContext())
                     {
@@ -116,59 +116,59 @@ namespace PolygonStats
                     }
                 }
                 if(encounterList.Count > 0) {
-                    ConfigurationManager.shared.config.encounterSettings.discordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounterList));
+                    ConfigurationManager.Shared.Config.Encounter.DiscordWebhooks.ForEach(hook => SendDiscordWebhooks(hook, encounterList));
                     Thread.Sleep(3000);
                 }
                 Thread.Sleep(1000);
             }
         }
 
-        private void SendDiscordWebhooks(Config.EncounterSettings.WebhookSettings webhook, List<EncounterOutProto> encounterList) {
+        private void SendDiscordWebhooks(Configuration.Config.EncounterSettings.WebhookSettings webhook, List<EncounterOutProto> encounterList) {
             List<Discord.Embed> embeds = new List<Discord.Embed>();
             foreach(EncounterOutProto encounter in encounterList) {
                 PokemonProto pokemon = encounter.Pokemon.Pokemon;
-                if(webhook.filterByIV) {
-                    if (webhook.onlyEqual)
+                if(webhook.FilterByIV) {
+                    if (webhook.OnlyEqual)
                     {
-                        if (pokemon.IndividualAttack != webhook.minAttackIV)
+                        if (pokemon.IndividualAttack != webhook.MinAttackIV)
                         {
                             continue;
                         }
-                        if (pokemon.IndividualDefense != webhook.minDefenseIV)
+                        if (pokemon.IndividualDefense != webhook.MinDefenseIV)
                         {
                             continue;
                         }
-                        if (pokemon.IndividualStamina != webhook.minStaminaIV)
+                        if (pokemon.IndividualStamina != webhook.MinStaminaIV)
                         {
                             continue;
                         }
                     }
                     else
                     {
-                        if (pokemon.IndividualAttack < webhook.minAttackIV)
+                        if (pokemon.IndividualAttack < webhook.MinAttackIV)
                         {
                             continue;
                         }
-                        if (pokemon.IndividualDefense < webhook.minDefenseIV)
+                        if (pokemon.IndividualDefense < webhook.MinDefenseIV)
                         {
                             continue;
                         }
-                        if (pokemon.IndividualStamina < webhook.minStaminaIV)
+                        if (pokemon.IndividualStamina < webhook.MinStaminaIV)
                         {
                             continue;
                         }
                     }
                 }
-                if(webhook.filterByLocation) {
-                    if(DistanceTo(webhook.latitude, webhook.longitude, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude) > webhook.distanceInKm) {
+                if(webhook.FilterByLocation) {
+                    if(DistanceTo(webhook.Latitude, webhook.Longitude, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude) > webhook.DistanceInKm) {
                         continue;
                     }
                 }
 
                 String customLink = "";
-                if (webhook.customLink != null)
+                if (webhook.CustomLink != null)
                 {
-                    customLink = $"[{webhook.customLink.title}]({getReplacedCustomLink(webhook.customLink.link, encounter)})";
+                    customLink = $"[{webhook.CustomLink.Title}]({getReplacedCustomLink(webhook.CustomLink.Link, encounter)})";
                 }
                 EmbedBuilder eb = new EmbedBuilder(){
                     Title = $"Level {getPokemonLevel(pokemon.CpMultiplier)} {pokemon.PokemonId.ToString("g")} (#{(int) pokemon.PokemonId})",
@@ -207,7 +207,7 @@ namespace PolygonStats
             
             while(!wasSended && errors <= 5) {
                 try {
-                    using(DiscordWebhookClient client = new DiscordWebhookClient(webhook.webhookUrl)) {
+                    using(DiscordWebhookClient client = new DiscordWebhookClient(webhook.WebhookUrl)) {
                         client.SendMessageAsync(null, false, embeds);
                         wasSended = true;
                     }

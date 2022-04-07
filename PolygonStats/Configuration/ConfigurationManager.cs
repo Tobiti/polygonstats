@@ -1,60 +1,47 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PolygonStats.Configuration
 {
     class ConfigurationManager
     {
-        private static ConfigurationManager _shared;
-        public static ConfigurationManager shared
+        private string JsonSource { get; set; } = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Config.json";
+        private static readonly Lazy<ConfigurationManager> _shared = new(() => new ConfigurationManager());
+        public static ConfigurationManager Shared => _shared.Value;
+
+        public Config Config { get; set; }
+
+        private ConfigurationManager()
         {
-            get
-            {
-                if(_shared == null)
-                {
-                    _shared = new ConfigurationManager();
-                }
-                return _shared;
-            }
-        }
-        public Config config { get; set; }
-        private string jsonSource;
+            ConfigurationBuilder configurationBuilder = new();
+            _ = configurationBuilder.SetBasePath(Directory.GetCurrentDirectory());
+            _ = configurationBuilder.AddJsonFile("Config.json", true, false);
+            IConfiguration builtConfig = configurationBuilder.Build();
 
-        public ConfigurationManager()
-        {
-            ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-            configurationBuilder.SetBasePath(Directory.GetCurrentDirectory());
-            configurationBuilder.AddJsonFile("Config.json", true, false);
-            IConfiguration buildedConfig = configurationBuilder.Build();
+            Config = new Config();
+            builtConfig.Bind(Config);
 
-            jsonSource = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}Config.json";
-
-            config = new Config();
-            buildedConfig.Bind(config);
-
-            if (!File.Exists(jsonSource))
+            if (!File.Exists(JsonSource))
             {
                 Save();
             }
-            config.encounterSettings.discordWebhooks.RemoveAt(0);
+            Config.Encounter.DiscordWebhooks.RemoveAt(0);
 
             Console.WriteLine("Config was loaded!");
         }
 
         public void Save()
         {
-            JsonSerializerOptions options = new JsonSerializerOptions();
-            options.WriteIndented = true;
+            JsonSerializerOptions options = new()
+            {
+                WriteIndented = true
+            };
             // open config file
-            string json = JsonSerializer.Serialize(config, options);
+            string json = JsonSerializer.Serialize(Config, options);
             //write string to file
-            System.IO.File.WriteAllText(jsonSource, json);
+            File.WriteAllText(JsonSource, json);
 
             Console.WriteLine("Config was created!");
         }

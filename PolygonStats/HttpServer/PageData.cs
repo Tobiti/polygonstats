@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace PolygonStats.HttpServer
 {
@@ -72,7 +71,7 @@ namespace PolygonStats.HttpServer
 
         public static string getData(bool isAdmin)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach (string accName in StatManager.sharedInstance.getAllEntries().Keys)
             {
                 sb.AppendLine(getTableEntry(accName, StatManager.sharedInstance.getAllEntries()[accName], isAdmin));
@@ -81,56 +80,56 @@ namespace PolygonStats.HttpServer
             {
                 sb.AppendLine(getAverageTableEntry());
             }
-            return String.Format(data, sb.ToString());
+            return string.Format(data, sb.ToString());
         }
 
         public static string getTableEntry(string accName, Stats stat, bool isAdmin)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.Append("<tr>");
             sb.Append("<td style=\"padding: 0px 10px 0px 10px;\">");
             sb.Append(getName(isAdmin, stat));
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append(stat.caughtPokemon.ToString());
+            sb.Append(stat.CaughtPokemon.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append(stat.fleetPokemon.ToString());
+            sb.Append(stat.FleetPokemon.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append(stat.shinyPokemon.ToString());
+            sb.Append(stat.ShinyPokemon.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append(stat.spinnedPokestops.ToString());
+            sb.Append(stat.SpinnedPokestops.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getXpPerHour().ToString());
+            sb.Append(stat.XpPerHour.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getXpPerDay().ToString());
+            sb.Append(stat.XpPerDay.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.xpTotal.ToString());
+            sb.Append(stat.XpTotal.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getStardustPerHour().ToString());
+            sb.Append(stat.StardustPerHour.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getStardustPerDay().ToString());
+            sb.Append(stat.StardustPerDay.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.stardustTotal.ToString());
+            sb.Append(stat.StardustTotal.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getCaughtPokemonPerDay().ToString());
+            sb.Append(stat.CaughtPokemonPerDay.ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append(stat.getSpinnedPokestopsPerDay().ToString());
+            sb.Append(stat.SpinnedPokestopsPerDay.ToString());
             sb.Append("</td>");
             if (isAdmin)
             {
                 sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-                sb.Append($"<form method=\"post\" action=\"remove-{stat.accountName}\"><input type=\"submit\" value=\"Remove\"> </form>");
+                sb.Append($"<form method=\"post\" action=\"remove-{stat.AccountName}\"><input type=\"submit\" value=\"Remove\"> </form>");
                 sb.Append("</td>");
             }
             sb.Append("</tr>");
@@ -142,7 +141,7 @@ namespace PolygonStats.HttpServer
         {
             Dictionary<string, Stats> dic = StatManager.sharedInstance.getAllEntries();
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             // Add a black line
             sb.AppendLine("<tr style=\"border-bottom: 1px solid black\">" +
                 "<td style=\"border-bottom: 1px solid black\"/>" +
@@ -164,40 +163,40 @@ namespace PolygonStats.HttpServer
             sb.Append("Average Stats");
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append((dic.Values.Sum(s => s.caughtPokemon) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.CaughtPokemon) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append((dic.Values.Sum(s => s.fleetPokemon) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.FleetPokemon) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append((dic.Values.Sum(s => s.shinyPokemon) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.ShinyPokemon) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center\">");
-            sb.Append((dic.Values.Sum(s => s.spinnedPokestops) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.SpinnedPokestops) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append((dic.Values.Sum(s => s.getXpPerHour()) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.XpPerHour) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append((dic.Values.Sum(s => s.getXpPerDay()) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.XpPerDay) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append((dic.Values.Sum(s => s.xpTotal) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.XpTotal) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append((dic.Values.Sum(s => s.getStardustPerHour()) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.StardustPerHour) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append((dic.Values.Sum(s => s.getStardustPerDay()) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.StardustPerDay) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append((dic.Values.Sum(s => s.stardustTotal) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.StardustTotal) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append((dic.Values.Sum(s => s.getCaughtPokemonPerDay()) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.CaughtPokemonPerDay) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("<td style=\"text-align:center; padding: 0px 5px 0px 5px;\">");
-            sb.Append((dic.Values.Sum(s => s.getSpinnedPokestopsPerDay()) / dic.Values.Count).ToString());
+            sb.Append((dic.Values.Sum(s => s.SpinnedPokestopsPerDay) / dic.Values.Count).ToString());
             sb.Append("</td>");
             sb.Append("</tr>");
 
@@ -206,11 +205,11 @@ namespace PolygonStats.HttpServer
 
         private static string getName(bool isAdmin, Stats stat)
         {
-            if(isAdmin || ConfigurationManager.shared.config.httpSettings.showAccountNames)
+            if(isAdmin || ConfigurationManager.Shared.Config.Http.ShowAccountNames)
             {
-                return stat.accountName;
+                return stat.AccountName;
             }
-            return $"{stat.accountName.Substring(0, 2)}XXXXXX{stat.accountName.Substring(stat.accountName.Length-2, 2)}";
+            return $"{stat.AccountName.Substring(0, 2)}XXXXXX{stat.AccountName.Substring(stat.AccountName.Length-2, 2)}";
         }
     }
 }

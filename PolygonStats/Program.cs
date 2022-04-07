@@ -16,7 +16,7 @@ namespace PolygonStats
                 .WriteTo.Console()
                 .WriteTo.File("logs/main.log", rollingInterval: RollingInterval.Day);
 
-            if (ConfigurationManager.shared.config.debugSettings.debug)
+            if (ConfigurationManager.Shared.Config.Debug.Debug)
             {
                 loggerConfiguration = loggerConfiguration.MinimumLevel.Debug();
             }
@@ -27,14 +27,14 @@ namespace PolygonStats
             Log.Logger = loggerConfiguration.CreateLogger();
 
             PolygonStats.HttpServer.HttpServer httpServer = null;
-            if (ConfigurationManager.shared.config.httpSettings.enabled)
+            if (ConfigurationManager.Shared.Config.Http.Enabled)
             {
                 // Start http server
-                httpServer = new PolygonStats.HttpServer.HttpServer(ConfigurationManager.shared.config.httpSettings.port);
+                httpServer = new PolygonStats.HttpServer.HttpServer(ConfigurationManager.Shared.Config.Http.Port);
             }
 
             // Init db
-            if (ConfigurationManager.shared.config.mysqlSettings.enabled)
+            if (ConfigurationManager.Shared.Config.MySql.Enabled)
             {
                 MySQLConnectionManager manager = new MySQLConnectionManager();
                 var migrator = manager.GetContext().Database.GetService<IMigrator>();
@@ -43,10 +43,10 @@ namespace PolygonStats
                 manager.GetContext().SaveChanges();
             }
 
-            Log.Information($"TCP server port: {ConfigurationManager.shared.config.backendSettings.port}");
+            Log.Information($"TCP server port: {ConfigurationManager.Shared.Config.Backend.Port}");
 
             // Create a new TCP chat server
-            var server = new PolygonStatServer(IPAddress.Any, ConfigurationManager.shared.config.backendSettings.port);
+            var server = new PolygonStatServer(IPAddress.Any, ConfigurationManager.Shared.Config.Backend.Port);
 
             // Start the server
             Log.Information("Server starting...");
