@@ -57,13 +57,23 @@ namespace PolygonStats
                 LogEntry pokemonLogEntry = new LogEntry { LogEntryType = LogEntryType.Pokemon, CaughtSuccess = catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess, timestamp = DateTime.UtcNow };
                 if (catchedPokemon.Status == CatchPokemonOutProto.Types.Status.CatchSuccess)
                 {
-                    if (catchedPokemon.PokemonDisplay != null)
+                    if (catchedPokemon.PokemonDisplay1 != null)
                     {
-                        pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay.Shiny;
-                        pokemonLogEntry.Shadow = catchedPokemon.PokemonDisplay.Alignment == PokemonDisplayProto.Types.Alignment.Shadow;
-                        pokemonLogEntry.Form = catchedPokemon.PokemonDisplay.Form;
-                        pokemonLogEntry.Costume = catchedPokemon.PokemonDisplay.Costume;
+                        pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay1.Shiny;
+                        pokemonLogEntry.Shadow = catchedPokemon.PokemonDisplay1.Alignment == PokemonDisplayProto.Types.Alignment.Shadow;
+                        pokemonLogEntry.Form = catchedPokemon.PokemonDisplay1.Form;
+                        pokemonLogEntry.Costume = catchedPokemon.PokemonDisplay1.Costume;
                     }
+                    //TODO: Needs look better.
+                    /*
+                    else if (catchedPokemon.PokemonDisplay2 != null)
+                    {
+                        pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay2.Shiny;
+                        pokemonLogEntry.Shadow = catchedPokemon.PokemonDisplay2.Alignment == PokemonDisplayProto.Types.Alignment.Shadow;
+                        pokemonLogEntry.Form = catchedPokemon.PokemonDisplay2.Form;
+                        pokemonLogEntry.Costume = catchedPokemon.PokemonDisplay2.Costume;
+                    }
+                    */
                     pokemonLogEntry.PokemonUniqueId = catchedPokemon.CapturedPokemonId;
                     pokemonLogEntry.CandyAwarded = catchedPokemon.Scores.Candy.Sum();
                 }

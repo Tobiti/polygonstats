@@ -613,9 +613,14 @@ namespace PolygonStats
                     if (entry != null)
                     {
                         entry.CaughtPokemon++;
-                        if (caughtPokemon.PokemonDisplay != null && caughtPokemon.PokemonDisplay.Shiny)
+                        if (caughtPokemon.PokemonDisplay1 != null && caughtPokemon.PokemonDisplay1.Shiny)
                         {
                             entry.ShinyPokemon++;
+                        }
+                        else if (caughtPokemon.PokemonDisplay2 != null && caughtPokemon.PokemonDisplay2.Shiny)
+                        {
+                            //TODO: Need look better this.
+                            //entry.ShinyPokemon++;
                         }
 
                         entry.AddXp(caughtPokemon.Scores.Exp.Sum());
