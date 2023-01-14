@@ -64,7 +64,7 @@ namespace PolygonStats
                         pokemonLogEntry.Form = catchedPokemon.PokemonDisplay1.Form;
                         pokemonLogEntry.Costume = catchedPokemon.PokemonDisplay1.Costume;
                     }
-                    //TODO: Needs look better.
+                    //TODO: Needs look better. Maybe Else If there.
                     if (catchedPokemon.PokemonDisplay2 != null)
                     {
                         pokemonLogEntry.Shiny = catchedPokemon.PokemonDisplay2.Shiny;

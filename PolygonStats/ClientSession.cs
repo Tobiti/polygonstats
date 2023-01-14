@@ -617,9 +617,9 @@ namespace PolygonStats
                         {
                             entry.ShinyPokemon++;
                         }
+                        //TODO: Need look better this. maybe else if there !
                         if (caughtPokemon.PokemonDisplay2 != null && caughtPokemon.PokemonDisplay2.Shiny)
                         {
-                            //TODO: Need look better this.
                             entry.ShinyPokemon++;
                         }
 
