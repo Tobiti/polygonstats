@@ -1,0 +1,26 @@
+name: .NET
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Test on .NET ${{ matrix.dotnet }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        dotnet: [ '7.0.x' ]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+      - name: Install dependencies
+        run: dotnet restore PolygonStats.sln
+      - name: Build project
+        run: dotnet build PolygonStats.sln
