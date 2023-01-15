@@ -164,6 +164,12 @@ namespace PolygonStats
                         continue;
                     }
                 }
+                if (webhook.FilterByShiny)
+                {
+                    if (pokemon.PokemonDisplay.Shiny != webhook.IsShiny) { 
+                        continue; 
+                    }
+                }
 
                 String customLink = "";
                 if (webhook.CustomLink != null)

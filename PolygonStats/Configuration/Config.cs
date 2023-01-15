@@ -66,6 +66,8 @@ namespace PolygonStats.Configuration
                 public double Latitude { get; set; }
                 public double Longitude { get; set; }
                 public double DistanceInKm { get; set; }
+                public bool FilterByShiny { get; set; }
+                public bool IsShiny { get; set; }
                 public CustomLink CustomLink { get; set; }
             }
 
