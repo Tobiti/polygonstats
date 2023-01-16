@@ -9,7 +9,6 @@ namespace PolygonStats
         private float Days => (Now - ConnectionTimestamp) / 3600f / 24f;
         private float Hours => (Now - ConnectionTimestamp) / 3600f;
         private static long Now => new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-
         public long ShinyPokemon { get; set; } = 0;
         public string AccountName { get; set; } = null;
         public long ConnectionTimestamp { get; set; } = 0;

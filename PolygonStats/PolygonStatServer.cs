@@ -27,7 +27,7 @@ namespace PolygonStats
         {
             foreach (ClientSession session in this.Sessions.Values)
             {
-                if(!session.isConnected())
+                if (!session.isConnected())
                 {
                     session.Dispose();
                 }

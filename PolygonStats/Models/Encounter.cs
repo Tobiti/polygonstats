@@ -15,7 +15,7 @@ namespace PolygonStats.Models
 
         [Required]
         public ulong EncounterId { get; internal set; }
-        
+
         [Required]
         [Column(TypeName = "nvarchar(30)")]
         public HoloPokemonId PokemonName { get; set; }
@@ -27,8 +27,8 @@ namespace PolygonStats.Models
         public int Defense { get; set; }
         public int Stamina { get; set; }
 
-        public double Longitude {get; set; }
-        public double Latitude {get; set; }
+        public double Longitude { get; set; }
+        public double Latitude { get; set; }
 
         [Required]
         public DateTime timestamp { get; set; }

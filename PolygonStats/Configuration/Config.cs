@@ -12,7 +12,6 @@ namespace PolygonStats.Configuration
         public MadExportSettings MadExport { get; set; }
         public EncounterSettings Encounter { get; set; }
 
-
         public class DebugSettings
         {
             public bool Debug { get; set; }
@@ -61,7 +60,6 @@ namespace PolygonStats.Configuration
                 public int MinAttackIV { get; set; }
                 public int MinDefenseIV { get; set; }
                 public int MinStaminaIV { get; set; }
-
                 public bool FilterByLocation { get; set; }
                 public double Latitude { get; set; }
                 public double Longitude { get; set; }

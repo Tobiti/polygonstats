@@ -1,7 +1,6 @@
 ﻿using PolygonStats.Configuration;
 using System;
 using System.Collections.Concurrent;
-using System.Collections;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -13,7 +12,6 @@ namespace PolygonStats.RawWebhook
 {
     class RawWebhookManager : IDisposable
     {
-
         private static RawWebhookManager _shared;
         public static RawWebhookManager shared
         {
@@ -68,7 +66,7 @@ namespace PolygonStats.RawWebhook
         {
             while (true)
             {
-                foreach(String key in blockingRawDataDictionary.Keys)
+                foreach (String key in blockingRawDataDictionary.Keys)
                 {
                     BlockingCollection<RawData> collection;
                     if (blockingRawDataDictionary.TryGetValue(key, out collection))
@@ -87,10 +85,11 @@ namespace PolygonStats.RawWebhook
                         {
                             HttpResponseMessage response = _client.Send(request);
                             Log.Debug($"Response:{JsonSerializer.Serialize(response)}");
-                        } catch (Exception e)
+                        }
+                        catch (Exception e)
                         {
                             Log.Information($"Request error: {e.Message}");
-                            foreach(RawData data in rawDataList)
+                            foreach (RawData data in rawDataList)
                             {
                                 collection.Add(data);
                             }

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using POGOProtos.Rpc;
+using static POGOProtos.Rpc.AllTypesAndMessagesResponsesProto.Types;
 
 namespace PolygonStats
 {
@@ -16,13 +16,13 @@ namespace PolygonStats
         public string account_name { get; set; }
         public string account_id { get; set; }
 
-        public byte[] getDate()
+        public byte[] getBytes()
         {
             return Convert.FromBase64String(this.proto);
         }
-        public Method getMethodType()
+        public AllResquestTypesProto getMethodType()
         {
-            return (Method) this.type;
+            return (AllResquestTypesProto)this.type;
         }
     }
 

@@ -56,7 +56,8 @@ namespace PolygonStats
             Log.Information("Use CTRL+C to close the software!");
 
             var exitEvent = new ManualResetEvent(false);
-            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e)
+            {
                 e.Cancel = true;
                 exitEvent.Set();
             };

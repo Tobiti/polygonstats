@@ -66,7 +66,7 @@ namespace PolygonStats.HttpServer
                     HttpListenerContext context = _listener.GetContext();
                     Process(context);
                 }
-                catch (Exception ) { }
+                catch (Exception) { }
             }
         }
 
