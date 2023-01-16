@@ -1,4 +1,4 @@
-# polygonstats
+# polygonstats [![.NET](https://github.com/Tobiti/polygonstats/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Tobiti/polygonstats/actions/workflows/dotnet.yml)
 
 PolygonStats is a backend server for polygon# to connect to. 
 
