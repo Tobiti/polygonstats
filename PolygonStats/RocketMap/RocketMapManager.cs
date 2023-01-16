@@ -8,8 +8,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Google.Protobuf.Collections;
 using Google.Common.Geometry;
-using System.Data.SqlClient;
-using System.Collections;
 using MySqlConnector;
 
 namespace PolygonStats.RocketMap
@@ -47,7 +45,7 @@ namespace PolygonStats.RocketMap
                 Spawnpoint spawnpoint = context.Spawnpoints.FromSqlInterpolated($"SELECT spawnpoint, spawndef, calc_endminsec FROM trs_spawn WHERE spawnpoint={spawnpointId}").FirstOrDefault();
                 DateTime disappearTime = getDespawnTime(spawnpoint, encounter.Pokemon.LastModifiedMs, encounter.Pokemon.TimeTillHiddenMs, payload.timestamp);
 
-                String query =  "INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, " +
+                String query = "INSERT INTO pokemon (encounter_id, spawnpoint_id, pokemon_id, latitude, longitude, disappear_time, " +
                                 "individual_attack, individual_defense, individual_stamina, move_1, move_2, cp, cp_multiplier, " +
                                 "weight, height, gender, catch_prob_1, catch_prob_2, catch_prob_3, rating_attack, rating_defense, " +
                                 "weather_boosted_condition, last_modified, costume, form, seen_type) " +
@@ -60,7 +58,7 @@ namespace PolygonStats.RocketMap
                                 "seen_type=IF(seen_type='encounter','encounter',VALUES(seen_type))";
 
                 query = String.Format(query, encounter.Pokemon.EncounterId, spawnpointId, (int)encounter.Pokemon.Pokemon.PokemonId, encounter.Pokemon.Latitude, encounter.Pokemon.Longitude,
-                    ToMySQLDateTime(disappearTime), encounter.Pokemon.Pokemon.IndividualAttack, encounter.Pokemon.Pokemon.IndividualDefense, encounter.Pokemon.Pokemon.IndividualStamina, 
+                    ToMySQLDateTime(disappearTime), encounter.Pokemon.Pokemon.IndividualAttack, encounter.Pokemon.Pokemon.IndividualDefense, encounter.Pokemon.Pokemon.IndividualStamina,
                     (int)encounter.Pokemon.Pokemon.Move1, (int)encounter.Pokemon.Pokemon.Move2, encounter.Pokemon.Pokemon.Cp, encounter.Pokemon.Pokemon.CpMultiplier, encounter.Pokemon.Pokemon.WeightKg,
                     encounter.Pokemon.Pokemon.HeightM, (int)encounter.Pokemon.Pokemon.PokemonDisplay.Gender, encounter.CaptureProbability.CaptureProbability[0], encounter.CaptureProbability.CaptureProbability[1],
                     encounter.CaptureProbability.CaptureProbability[2], "\"\"", "\"\"", (int)encounter.Pokemon.Pokemon.PokemonDisplay.WeatherBoostedCondition, UnixTimeStampToDateTime(encounter.Pokemon.LastModifiedMs).ToString("yyyy-MM-dd HH:mm:ss"),
@@ -114,7 +112,7 @@ namespace PolygonStats.RocketMap
                 {
                     if (fort.FortType == FortType.Checkpoint)
                     {
-                        String query =  "INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, lure_expiration, " +
+                        String query = "INSERT INTO pokestop (pokestop_id, enabled, latitude, longitude, last_modified, lure_expiration, " +
                                         "last_updated, image, active_fort_modifier, incident_start, incident_expiration, incident_grunt_type, " +
                                         "is_ar_scan_eligible) " +
                                         "VALUES (\"{0}\", {1}, {2}, {3}, \"{4}\"," +
@@ -130,7 +128,7 @@ namespace PolygonStats.RocketMap
                         {
                             var activeModifier = (fort.ActiveFortModifier.Count > 0 ? (int)fort.ActiveFortModifier[0] : 0);
                             query = String.Format(query, fort.FortId, fort.Enabled, fort.Latitude, fort.Longitude, ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs)),
-                                                        activeModifier == 0 ? $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\"" : $"date_add(\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\",interval COALESCE((select event_lure_duration from trs_event where now() between event_start and event_end order by event_start desc limit 1), 30) minute)", 
+                                                        activeModifier == 0 ? $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\"" : $"date_add(\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.LastModifiedMs))}\",interval COALESCE((select event_lure_duration from trs_event where now() between event_start and event_end order by event_start desc limit 1), 30) minute)",
                                                         ToMySQLDateTime(DateTime.UtcNow), fort.ImageUrl, activeModifier,
                                                         (fort.PokestopDisplays.Count <= 0 || isRocketLeader(fort.PokestopDisplays) ? "NULL" : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentStartMs))}\""),
                                                         (fort.PokestopDisplays.Count <= 0 || isRocketLeader(fort.PokestopDisplays) ? "NULL" : $"\"{ToMySQLDateTime(UnixTimeStampToDateTime(fort.PokestopDisplays[0].IncidentExpirationMs))}\""),
@@ -145,7 +143,8 @@ namespace PolygonStats.RocketMap
                             Log.Information(e.StackTrace);
                             Log.Information($"Object: {JsonSerializer.Serialize(fort)} \n Query: {query}");
                         }
-                    } else
+                    }
+                    else
                     {
                         AddGym(fort, context);
                     }
@@ -155,8 +154,10 @@ namespace PolygonStats.RocketMap
 
         private bool isRocketLeader(RepeatedField<PokestopIncidentDisplayProto> rockets)
         {
-            foreach (var rocket in rockets) {
-                switch (rocket.CharacterDisplay.Character) {
+            foreach (var rocket in rockets)
+            {
+                switch (rocket.CharacterDisplay.Character)
+                {
                     case EnumWrapper.Types.InvasionCharacter.CharacterGiovanni:
                         return true;
                     case EnumWrapper.Types.InvasionCharacter.CharacterExecutiveArlo:
@@ -281,7 +282,7 @@ namespace PolygonStats.RocketMap
 
         private int getSpawnDefWithMinPos(int oldSpawnDef, int minPos)
         {
-            var bitArray =  Enumerable.Range(0, 8)
+            var bitArray = Enumerable.Range(0, 8)
                             .Select(bitIndex => 1 << bitIndex)
                             .Select(bitMask => (oldSpawnDef & bitMask) == bitMask)
                             .ToArray();
@@ -306,7 +307,7 @@ namespace PolygonStats.RocketMap
             }
             int value = 0;
             int expo = 0;
-            for (int i = bitArray.Length-1; i >= 0; i--)
+            for (int i = bitArray.Length - 1; i >= 0; i--)
             {
                 value += 2 ^ expo * (bitArray[i] ? 1 : 0);
                 expo++;
@@ -356,7 +357,7 @@ namespace PolygonStats.RocketMap
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
                 };
 
-                String query =  "INSERT INTO trs_quest (GUID, quest_type, quest_timestamp, quest_stardust, quest_pokemon_id, " +
+                String query = "INSERT INTO trs_quest (GUID, quest_type, quest_timestamp, quest_stardust, quest_pokemon_id, " +
                                 "quest_pokemon_form_id, quest_pokemon_costume_id, " +
                                 "quest_reward_type, quest_item_id, quest_item_amount, quest_target, quest_condition, quest_reward, " +
                                 "quest_task, quest_template) VALUES (\"{0}\", {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, \'{11}\', \'{12}\', \"{13}\", \"{14}\")" +
@@ -375,7 +376,7 @@ namespace PolygonStats.RocketMap
                 int itemAmount = reward.Item != null ? (int)reward.Item.Amount : 0;
                 int pokemonId = reward.PokemonEncounter != null ? (int)reward.PokemonEncounter.PokemonId : 0;
 
-                if(reward.Type == QuestRewardProto.Types.Type.Candy)
+                if (reward.Type == QuestRewardProto.Types.Type.Candy)
                 {
                     itemAmount = reward.Candy.Amount;
                     pokemonId = (int)reward.Candy.PokemonId;
@@ -388,7 +389,7 @@ namespace PolygonStats.RocketMap
 
                 int FormId = 0;
                 int CostumeId = 0;
-                if(reward.PokemonEncounter != null && reward.PokemonEncounter.PokemonDisplay != null)
+                if (reward.PokemonEncounter != null && reward.PokemonEncounter.PokemonDisplay != null)
                 {
                     FormId = (int)reward.PokemonEncounter.PokemonDisplay.Form;
                     CostumeId = (int)reward.PokemonEncounter.PokemonDisplay.Costume;
@@ -477,7 +478,7 @@ namespace PolygonStats.RocketMap
                 Log.Information($"Object: {JsonSerializer.Serialize(gym)} \n\n Gym Query: {queryGym} \n\n Gym Details Query: {queryGymDetails}");
             }
 
-            if(gym.RaidInfo != null)
+            if (gym.RaidInfo != null)
             {
                 AddRaid(gym, context);
             }
@@ -523,7 +524,7 @@ namespace PolygonStats.RocketMap
 
         public void AddRaid(PokemonFortProto gym, RocketMapContext context)
         {
-            String query =  "INSERT INTO raid (gym_id, level, spawn, start, end, pokemon_id, cp, move_1, move_2, last_scanned, form, " +
+            String query = "INSERT INTO raid (gym_id, level, spawn, start, end, pokemon_id, cp, move_1, move_2, last_scanned, form, " +
                             "is_exclusive, gender, costume, evolution) " +
                             "VALUES (\"{0}\", {1}, \"{2}\", \"{3}\", \"{4}\", {5}, {6}, {7}, {8}, \"{9}\", {10}, {11}, {12}, {13}, {14}) " +
                             "ON DUPLICATE KEY UPDATE level=VALUES(level), spawn=VALUES(spawn), start=VALUES(start), " +
@@ -550,7 +551,8 @@ namespace PolygonStats.RocketMap
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.Gender);
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.Costume);
                 parameters.Add((int)gym.RaidInfo.RaidPokemon.PokemonDisplay.CurrentTempEvolution);
-            } else
+            }
+            else
             {
                 parameters.Add("NULL");
                 parameters.Add(0);
@@ -592,9 +594,10 @@ namespace PolygonStats.RocketMap
                     parameters.Add(cell.S2CellId);
                     parameters.Add(15);
                     ulong cellId = cell.S2CellId;
-                    if (cellId < 0) {
+                    if (cellId < 0)
+                    {
                         cellId = (ulong)(cellId + Math.Pow(2, 64));
-                        }
+                    }
 
                     var s2Cell = new S2CellId(cellId).ToLatLng();
                     parameters.Add(s2Cell.LatDegrees);
@@ -623,7 +626,7 @@ namespace PolygonStats.RocketMap
             {
                 foreach (ClientWeatherProto weather in weatherList)
                 {
-                    String query =  "INSERT INTO weather (s2_cell_id, latitude, longitude, cloud_level, rain_level, wind_level, " +
+                    String query = "INSERT INTO weather (s2_cell_id, latitude, longitude, cloud_level, rain_level, wind_level, " +
                                     "snow_level, fog_level, wind_direction, gameplay_weather, severity, warn_weather, world_time, " +
                                     "last_updated) " +
                                     "VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, \"{13}\") " +
@@ -632,14 +635,14 @@ namespace PolygonStats.RocketMap
                                     "world_time=VALUES(world_time), gameplay_weather=VALUES(gameplay_weather), " +
                                     "last_updated=VALUES(last_updated)";
 
-                    if(weather.DisplayWeather == null)
+                    if (weather.DisplayWeather == null)
                     {
                         continue;
                     }
 
                     List<Object> parameters = new List<Object>();
                     parameters.Add(weather.S2CellId);
-                    var s2CellId = new S2CellId((ulong) weather.S2CellId).ToLatLng();
+                    var s2CellId = new S2CellId((ulong)weather.S2CellId).ToLatLng();
                     parameters.Add(s2CellId.LatDegrees);
                     parameters.Add(s2CellId.LngDegrees);
                     parameters.Add((int)weather.DisplayWeather.CloudLevel);
@@ -648,7 +651,7 @@ namespace PolygonStats.RocketMap
                     parameters.Add((int)weather.DisplayWeather.SnowLevel);
                     parameters.Add((int)weather.DisplayWeather.FogLevel);
                     parameters.Add((int)weather.DisplayWeather.WindDirection);
-                    parameters.Add((int) weather.GameplayWeather.GameplayCondition);
+                    parameters.Add((int)weather.GameplayWeather.GameplayCondition);
                     parameters.Add(0);
                     parameters.Add(0);
                     parameters.Add(timeOfDay);
@@ -691,17 +694,17 @@ namespace PolygonStats.RocketMap
                     switch (v)
                     {
                         case "\x00":            // ASCII NUL (0x00) character
-                    return "\\0";
+                            return "\\0";
                         case "\b":              // BACKSPACE character
-                    return "\\b";
+                            return "\\b";
                         case "\n":              // NEWLINE (linefeed) character
-                    return "\\n";
+                            return "\\n";
                         case "\r":              // CARRIAGE RETURN character
-                    return "\\r";
+                            return "\\r";
                         case "\t":              // TAB
-                    return "\\t";
+                            return "\\t";
                         case "\u001A":          // Ctrl-Z
-                    return "\\Z";
+                            return "\\Z";
                         default:
                             return "\\" + v;
                     }
@@ -728,7 +731,7 @@ namespace PolygonStats.RocketMap
 
                     text = "Catch {0}{1} {2}Pokemon{3}";
 
-                    foreach(QuestConditionProto condition in conditions)
+                    foreach (QuestConditionProto condition in conditions)
                     {
                         switch (condition.Type)
                         {
@@ -772,9 +775,11 @@ namespace PolygonStats.RocketMap
 
                     break;
                 case QuestType.QuestSpinPokestop:
-                    if(conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithUniquePokestop)){
+                    if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithUniquePokestop))
+                    {
                         text = "Spin {0} Pokestops you haven't visited before.";
-                    } else
+                    }
+                    else
                     {
                         text = "Spin {0} Pokestops or Gyms.";
                     }
@@ -783,7 +788,8 @@ namespace PolygonStats.RocketMap
                     if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithWinGymBattleStatus))
                     {
                         text = "Win {0} Gym Battles.";
-                    } else
+                    }
+                    else
                     {
                         if (conditions.Any(c => c.Type == QuestConditionProto.Types.ConditionType.WithSuperEffectiveCharge))
                         {

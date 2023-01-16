@@ -1,5 +1,4 @@
 ﻿using PolygonStats.Configuration;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -205,11 +204,11 @@ namespace PolygonStats.HttpServer
 
         private static string getName(bool isAdmin, Stats stat)
         {
-            if(isAdmin || ConfigurationManager.Shared.Config.Http.ShowAccountNames)
+            if (isAdmin || ConfigurationManager.Shared.Config.Http.ShowAccountNames)
             {
                 return stat.AccountName;
             }
-            return $"{stat.AccountName.Substring(0, 2)}XXXXXX{stat.AccountName.Substring(stat.AccountName.Length-2, 2)}";
+            return $"{stat.AccountName.Substring(0, 2)}XXXXXX{stat.AccountName.Substring(stat.AccountName.Length - 2, 2)}";
         }
     }
 }

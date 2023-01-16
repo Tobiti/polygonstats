@@ -15,6 +15,7 @@ using PolygonStats.RawWebhook;
 using System.Globalization;
 using System.Threading;
 using PolyConfig = PolygonStats.Configuration.ConfigurationManager;
+using static POGOProtos.Rpc.AllTypesAndMessagesResponsesProto.Types;
 
 namespace PolygonStats
 {
@@ -44,7 +45,8 @@ namespace PolygonStats
                     ? configuration.MinimumLevel.Debug()
                     : configuration.MinimumLevel.Information();
                 logger = configuration.CreateLogger();
-            } else
+            }
+            else
             {
                 logger = Log.Logger;
             }
@@ -65,7 +67,7 @@ namespace PolygonStats
             // Add ent time to session
             if (PolyConfig.Shared.Config.MySql.Enabled)
             {
-                if(dbSessionId != -1)
+                if (dbSessionId != -1)
                 {
                     using var context = dbManager.GetContext(); Session dbSession = dbManager.GetSession(context, dbSessionId);
                     dbSession.EndTime = lastMessageDateTime;
@@ -92,11 +94,11 @@ namespace PolygonStats
             {
                 logger.Debug($"Message was split into {jsonStrings.Length} jsonObjects.");
             }
-            for(int index = 0; index < jsonStrings.Length; index++)
+            for (int index = 0; index < jsonStrings.Length; index++)
             {
                 string jsonString = jsonStrings[index];
                 string trimedJsonString = jsonString.Trim('\r', '\n');
-                if(!trimedJsonString.StartsWith("{"))
+                if (!trimedJsonString.StartsWith("{"))
                 {
                     if (PolyConfig.Shared.Config.Debug.DebugMessages)
                     {
@@ -104,13 +106,14 @@ namespace PolygonStats
                     }
                     continue;
                 }
-                if(!trimedJsonString.EndsWith("}"))
+                if (!trimedJsonString.EndsWith("}"))
                 {
                     if (PolyConfig.Shared.Config.Debug.DebugMessages)
                     {
                         logger.Debug("Json string didnt end with a }.");
                     }
-                    if(index == jsonStrings.Length - 1){
+                    if (index == jsonStrings.Length - 1)
+                    {
                         messageBuffer.Append(jsonString);
                     }
                     continue;
@@ -125,13 +128,14 @@ namespace PolygonStats
                     }
                     foreach (Payload payload in message.payloads)
                     {
-                        if(payload.account_name == null || payload.account_name.Equals("null"))
+                        if (payload.account_name == null || payload.account_name.Equals("null"))
                         {
                             continue;
                         }
                         AddAccountAndSessionIfNeeded(payload);
                         HandlePayload(payload);
-                        if (PolyConfig.Shared.Config.RawData.Enabled) {
+                        if (PolyConfig.Shared.Config.RawData.Enabled)
+                        {
                             RawWebhookManager.shared.AddRawData(new RawDataMessage()
                             {
                                 origin = payload.account_name,
@@ -150,7 +154,8 @@ namespace PolygonStats
                 }
                 catch (JsonException)
                 {
-                    if(index == jsonStrings.Length - 1){
+                    if (index == jsonStrings.Length - 1)
+                    {
                         messageBuffer.Append(jsonString);
                     }
                 }
@@ -162,7 +167,8 @@ namespace PolygonStats
             }
         }
 
-        private void AddAccountAndSessionIfNeeded(Payload payload) {
+        private void AddAccountAndSessionIfNeeded(Payload payload)
+        {
             if (this.accountName != payload.account_name)
             {
                 this.accountName = payload.account_name;
@@ -198,56 +204,56 @@ namespace PolygonStats
             logger.Debug($"Payload with type {payload.getMethodType():g}");
             switch (payload.getMethodType())
             {
-                case Method.CheckAwardedBadges:
-                    var badge = CheckAwardedBadgesOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodCheckAwardedBadges:
+                    var badge = CheckAwardedBadgesOutProto.Parser.ParseFrom(payload.getBytes());
                     logger.Debug($"Proto: {JsonSerializer.Serialize(badge)}");
                     break;
-                case Method.Encounter:
-                    var encounter = EncounterOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodEncounter:
+                    var encounter = EncounterOutProto.Parser.ParseFrom(payload.getBytes());
                     logger.Debug($"Proto: {JsonSerializer.Serialize(encounter)}");
                     ProcessEncounter(payload.account_name, encounter, payload);
                     break;
-                case Method.CatchPokemon:
-                    var caught = CatchPokemonOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodCatchPokemon:
+                    var caught = CatchPokemonOutProto.Parser.ParseFrom(payload.getBytes());
                     logger.Debug($"Proto: {JsonSerializer.Serialize(caught)}");
                     ProcessCaughtPokemon(caught);
                     break;
-                case Method.GymFeedPokemon:
-                    var fedPokemon = GymFeedPokemonOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodGymFeedPokemon:
+                    var fedPokemon = GymFeedPokemonOutProto.Parser.ParseFrom(payload.getBytes());
                     if (fedPokemon.Result == GymFeedPokemonOutProto.Types.Result.Success)
                     {
                         ProcessFeedBerry(payload.account_name, fedPokemon);
                     }
                     break;
-                case Method.CompleteQuest:
-                    var quest = CompleteQuestOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodCompleteQuest:
+                    var quest = CompleteQuestOutProto.Parser.ParseFrom(payload.getBytes());
                     if (quest.Status == CompleteQuestOutProto.Types.Status.Success)
                     {
                         ProcessQuestRewards(payload.account_name, quest.Quest.Quest.QuestRewards);
                     }
                     break;
-                case Method.CompleteQuestStampCard:
-                    var questCard = CompleteQuestStampCardOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodCompleteQuestStampCard:
+                    var questCard = CompleteQuestStampCardOutProto.Parser.ParseFrom(payload.getBytes());
                     if (questCard.Status == CompleteQuestStampCardOutProto.Types.Status.Success)
                     {
                         ProcessQuestRewards(payload.account_name, questCard.Reward);
                     }
                     break;
-                case Method.GetHatchedEggs:
-                    var hatchedEggs = GetHatchedEggsOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodGetHatchedEggs:
+                    var hatchedEggs = GetHatchedEggsOutProto.Parser.ParseFrom(payload.getBytes());
                     if (hatchedEggs.Success)
                     {
                         ProcessHatchedEggReward(payload.account_name, hatchedEggs);
                     }
                     break;
-                case Method.GetMapObjects:
-                    var map = GetMapObjectsOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodGetMapObjects:
+                    var map = GetMapObjectsOutProto.Parser.ParseFrom(payload.getBytes());
                     if (map.Status == GetMapObjectsOutProto.Types.Status.Success)
                     {
                         if (PolyConfig.Shared.Config.MadExport.Enabled)
                         {
                             RocketMap.RocketMapManager.shared.AddCells(map.MapCell.ToList());
-                            RocketMap.RocketMapManager.shared.AddWeather(map.ClientWeather.ToList(), (int) map.TimeOfDay);
+                            RocketMap.RocketMapManager.shared.AddWeather(map.ClientWeather.ToList(), (int)map.TimeOfDay);
                             RocketMap.RocketMapManager.shared.AddSpawnpoints(map);
                             foreach (var mapCell in map.MapCell)
                             {
@@ -256,15 +262,15 @@ namespace PolygonStats
                         }
                     }
                     break;
-                case Method.FortDetails:
-                    var fort = FortDetailsOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodFortDetails:
+                    var fort = FortDetailsOutProto.Parser.ParseFrom(payload.getBytes());
                     if (PolyConfig.Shared.Config.MadExport.Enabled)
                     {
                         RocketMap.RocketMapManager.shared.UpdateFortInformations(fort);
                     }
                     break;
-                case Method.GymGetInfo:
-                    var gym = GymGetInfoOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodGymGetInfo:
+                    var gym = GymGetInfoOutProto.Parser.ParseFrom(payload.getBytes());
                     if (gym.Result == GymGetInfoOutProto.Types.Result.Success)
                     {
                         if (PolyConfig.Shared.Config.MadExport.Enabled)
@@ -273,8 +279,8 @@ namespace PolygonStats
                         }
                     }
                     break;
-                case Method.FortSearch:
-                    var fortSearch = FortSearchOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodFortSearch:
+                    var fortSearch = FortSearchOutProto.Parser.ParseFrom(payload.getBytes());
                     if (fortSearch.Result == FortSearchOutProto.Types.Result.Success)
                     {
                         ProcessSpinnedFort(payload.account_name, fortSearch);
@@ -284,37 +290,38 @@ namespace PolygonStats
                         }
                     }
                     break;
-                case Method.EvolvePokemon:
-                    var evolvePokemon = EvolvePokemonOutProto.Parser.ParseFrom(payload.getDate());
-                    if(evolvePokemon.Result == EvolvePokemonOutProto.Types.Result.Success)
+                case AllResquestTypesProto.RequestTypeMethodEvolvePokemon:
+                    var evolvePokemon = EvolvePokemonOutProto.Parser.ParseFrom(payload.getBytes());
+                    if (evolvePokemon.Result == EvolvePokemonOutProto.Types.Result.Success)
                     {
                         ProcessEvolvedPokemon(payload.account_name, evolvePokemon);
                     }
                     break;
-                case Method.GetHoloholoInventory:
-                    var holoInventory = GetHoloholoInventoryOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodGetHoloholoInventory:
+                    var holoInventory = GetHoloholoInventoryOutProto.Parser.ParseFrom(payload.getBytes());
                     logger.Debug($"Proto: {JsonSerializer.Serialize(holoInventory)}");
                     ProcessHoloHoloInventory(payload.account_name, holoInventory);
                     break;
-                case Method.InvasionBattleUpdate:
-                    var updateBattle = UpdateInvasionBattleOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodInvasionBattleUpdate:
+                    var updateBattle = UpdateInvasionBattleOutProto.Parser.ParseFrom(payload.getBytes());
                     ProcessUpdateInvasionBattle(payload.account_name, updateBattle);
                     break;
-                case Method.InvasionEncounter:
-                    var invasionEncounter = InvasionEncounterOutProto.Parser.ParseFrom(payload.getDate());
-                    if (invasionEncounter.EncounterPokemon != null) {
+                case AllResquestTypesProto.RequestTypeMethodInvasionEncounter:
+                    var invasionEncounter = InvasionEncounterOutProto.Parser.ParseFrom(payload.getBytes());
+                    if (invasionEncounter.EncounterPokemon != null)
+                    {
                         this.lastEncounterPokemon = new WildPokemonProto()
                         {
                             Pokemon = invasionEncounter.EncounterPokemon
                         };
                     }
                     break;
-                case Method.AttackRaid:
-                    var attackRaidBattle = AttackRaidBattleOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodAttackRaid:
+                    var attackRaidBattle = AttackRaidBattleOutProto.Parser.ParseFrom(payload.getBytes());
                     ProcessAttackRaidBattle(payload.account_name, attackRaidBattle);
                     break;
-                case Method.GetPlayer:
-                    var player = GetPlayerOutProto.Parser.ParseFrom(payload.getDate());
+                case AllResquestTypesProto.RequestTypeMethodGetPlayer:
+                    var player = GetPlayerOutProto.Parser.ParseFrom(payload.getBytes());
                     ProcessPlayer(payload.account_name, player, int.Parse(payload.level));
                     break;
                 default:
@@ -335,7 +342,8 @@ namespace PolygonStats
                 RocketMap.RocketMapManager.shared.AddEncounter(encounterProto, payload);
             }
 
-            if (!PolyConfig.Shared.Config.Encounter.Enabled) {
+            if (!PolyConfig.Shared.Config.Encounter.Enabled)
+            {
                 return;
             }
             lastEncounterPokemon = encounterProto.Pokemon;
@@ -354,7 +362,7 @@ namespace PolygonStats
             }
 
             BattleActionProto lastEntry = raid.BattleUpdate.BattleLog.BattleActions[^1];
-            
+
             if (lastEntry.BattleResults == null)
             {
                 return;
@@ -362,7 +370,7 @@ namespace PolygonStats
 
             // Get user
             BattleParticipantProto user = lastEntry.BattleResults.Attackers.FirstOrDefault(x => x.TrainerPublicProfile.Name == account_name);
-            
+
             if (user == null)
             {
                 return;

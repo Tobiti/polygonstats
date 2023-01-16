@@ -14,27 +14,27 @@ namespace PolygonStats.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-        
+
         [Required]
         [MaxLength(50)]
         public string Name { get; set; }
-        
+
         [Required]
         [MaxLength(50)]
         public string HashedName { get; set; }
 
         [DefaultValue(1)]
         public int Level { get; set; }
-        
+
         [Column(TypeName = "nvarchar(24)")]
         public Team Team { get; set; }
 
         [DefaultValue(0)]
         public int Pokecoins { get; set; }
-        
+
         [DefaultValue(0)]
         public int Experience { get; set; }
-        
+
         [DefaultValue(0)]
         public long NextLevelExp { get; set; }
 

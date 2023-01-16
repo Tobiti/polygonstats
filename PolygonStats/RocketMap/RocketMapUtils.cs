@@ -3,10 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PolygonStats.RocketMap
 {
@@ -55,14 +52,17 @@ namespace PolygonStats.RocketMap
             questTemplateDictionary = GetJsonFile<Dictionary<String, String>>("quest_templates");
         }
 
-        public T GetJsonFile<T>(String file) {
+        public T GetJsonFile<T>(String file)
+        {
             try
             {
                 using (StreamReader reader = new StreamReader($"locale/{CultureInfo.InstalledUICulture.TwoLetterISOLanguageName}/{file}.json"))
                 {
                     return JsonSerializer.Deserialize<T>(reader.ReadToEnd());
                 }
-            } catch {
+            }
+            catch
+            {
                 using (StreamReader reader = new StreamReader($"locale/en/{file}.json"))
                 {
                     return JsonSerializer.Deserialize<T>(reader.ReadToEnd());
@@ -118,6 +118,6 @@ namespace PolygonStats.RocketMap
             }
             return null;
         }
-        
+
     }
 }
