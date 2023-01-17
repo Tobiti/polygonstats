@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using PolygonStats.Configuration;
+using System.Text;
 
 namespace PolygonStats
 {
@@ -12,6 +13,9 @@ namespace PolygonStats
     {
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+            var title = "PolygonStats v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            Console.Title = title;
             LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
                 .WriteTo.Console()
                 .WriteTo.File("logs/main.log", rollingInterval: RollingInterval.Day);
@@ -25,12 +29,13 @@ namespace PolygonStats
                 loggerConfiguration = loggerConfiguration.MinimumLevel.Information();
             }
             Log.Logger = loggerConfiguration.CreateLogger();
+            Log.Information(title);
 
-            PolygonStats.HttpServer.HttpServer httpServer = null;
+            HttpServer.HttpServer httpServer = null;
             if (ConfigurationManager.Shared.Config.Http.Enabled)
             {
                 // Start http server
-                httpServer = new PolygonStats.HttpServer.HttpServer(ConfigurationManager.Shared.Config.Http.Port);
+                httpServer = new HttpServer.HttpServer(ConfigurationManager.Shared.Config.Http.Port);
             }
 
             // Init db
