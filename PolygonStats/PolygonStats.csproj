@@ -16,7 +16,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputType>Exe</OutputType>
-    <ApplicationIcon>$(SolutionDir)\PolygonStats\resources\icon.ico</ApplicationIcon>
+    <ApplicationIcon>resources\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsWindows)'=='true'">
@@ -29,7 +29,7 @@
     <DefineConstants>Linux</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="$(SolutionDir)\PolygonStats\resources\icon.ico" />
+    <Content Include="resources\icon.ico" />
   </ItemGroup>
   
   <ItemGroup>
